@@ -53,6 +53,15 @@ export function App() {
   const progressById = useMemo(() => new Map(rows.map((row) => [row.module_id, row])), [rows]);
   const totalXp = rows.reduce((sum, row) => sum + (row.xp || 0), 0);
   const completedCount = rows.filter((row) => row.is_complete).length;
+  const currentPath = useMemo(() => {
+    const core = MODULES.filter((module) => !module.expansion);
+    const next = core.find((module) => {
+      if (progressById.get(module.id)?.is_complete) return false;
+      return !module.prerequisite || Boolean(progressById.get(module.prerequisite)?.is_complete);
+    });
+    if (!next) return "Core journey complete";
+    return next.id === "discovery" ? "Complete Discovery" : `${next.title} unlocked`;
+  }, [progressById]);
 
   async function signIn() {
     if (!supabase || !email.trim()) return;
@@ -84,7 +93,7 @@ export function App() {
 
       <section className="world-map" aria-label="Level Up city progression map">
         <img src={`${import.meta.env.BASE_URL}assets/level-up-map.webp`} alt="A glowing Level Up city with districts representing the learning journey." />
-        <div className="map-callout"><Compass /><div><small>CURRENT PATH</small><strong>{progressById.get("discovery")?.is_complete ? "Resume District unlocked" : "Complete Discovery"}</strong></div></div>
+        <div className="map-callout"><Compass /><div><small>CURRENT PATH</small><strong>{currentPath}</strong></div></div>
       </section>
 
       <section className="module-section">
