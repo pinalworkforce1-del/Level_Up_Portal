@@ -12,7 +12,7 @@ const MODULES: Module[] = [
   { id: "interview-arena", title: "Interview Arena", subtitle: "Prepare confidently. Show up. Stand out.", color: "purple", prerequisite: "resume-district", href: "https://pinalworkforce1-del.github.io/Interview_Arena/" },
   { id: "first-day-challenge", title: "First Day Challenge", subtitle: "Show up. Step up. Level up.", color: "orange", prerequisite: "interview-arena", href: "https://pinalworkforce1-del.github.io/Level_Up_Portal/first-day-challenge/" },
   { id: "shadow-passage", title: "Shadow Passage", subtitle: "See where today's money habits can travel.", color: "purple", prerequisite: "first-day-challenge", href: "https://pinalworkforce1-del.github.io/Level_Up_Portal/shadow-passage/" },
-  { id: "money-moves", title: "Money Moves", subtitle: "Manage today. Build tomorrow.", color: "green", prerequisite: "shadow-passage" },
+  { id: "money-moves", title: "Money Moves", subtitle: "Manage today. Build tomorrow.", color: "green", prerequisite: "shadow-passage", href: "https://pinalworkforce1-del.github.io/Level_Up_Portal/money-moves/" },
   { id: "career-skill-tree", title: "Career Skill Tree", subtitle: "Learn, grow, and unlock more.", color: "cyan", prerequisite: "discovery", expansion: true },
   { id: "leadership-peak", title: "Leadership Peak", subtitle: "Build the skills to lead and influence.", color: "gold", prerequisite: "discovery", expansion: true },
 ];

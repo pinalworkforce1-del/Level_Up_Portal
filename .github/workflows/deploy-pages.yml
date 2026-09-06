@@ -22,6 +22,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Expand Money Moves source packages
+        run: |
+          if [ -f public/money-moves/money-moves-source-a.zip ]; then
+            unzip -o public/money-moves/money-moves-source-a.zip -d public/money-moves
+          fi
+          if [ -f public/money-moves/money-moves-source-b.zip ]; then
+            unzip -o public/money-moves/money-moves-source-b.zip -d public/money-moves
+          fi
+          rm -f public/money-moves/money-moves-source-a.zip public/money-moves/money-moves-source-b.zip
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
