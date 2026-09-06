@@ -1,0 +1,75 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Level Up - First Day Challenge</title>
+  <meta name="description" content="An interactive first-day workplace readiness challenge.">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="review-pass.css">
+</head>
+<body>
+  <header class="hud">
+    <div class="brand"><span class="badge">LU</span><div><b>LEVEL UP</b><small>FIRST DAY CHALLENGE</small></div></div>
+    <div class="mission"><div class="mission-row"><span id="sceneTitle">YOUR FIRST SHIFT</span><span id="sceneCount">SCENE 1 OF 18</span></div><div class="progress"><i id="progressFill"></i></div></div>
+    <div class="score"><b id="xp">0 XP</b></div>
+  </header>
+
+  <main>
+    <section class="stage" id="stage" aria-live="polite">
+      <img id="sceneImage" alt="First Day Challenge scene">
+      <div class="caption-backdrop" id="captionBackdrop"></div>
+      <video id="narration" playsinline preload="metadata"></video>
+      <div id="hotspots"></div>
+      <div class="gate" id="gate">Listen or skip—then explore the scene.</div>
+    </section>
+    <aside class="scene-rail" aria-label="Scene controls">
+      <small>SCENE CONTROLS</small>
+      <button id="audioToggle" aria-label="Mute narration"><span class="control-icon">🔊</span><span>Audio on</span></button>
+      <button id="replay" aria-label="Replay narration"><span class="control-icon">↻</span><span>Replay narration</span></button>
+      <button class="skip" id="skip"><span class="control-icon">↠</span><span>Skip narration</span></button>
+      <button class="play" id="play"><span class="control-icon">▶</span><span>Play narration</span></button>
+      <button class="rail-continue" id="continue">Continue <span>→</span></button>
+    </aside>
+    <nav class="nav">
+      <button id="back">← Back</button><span id="status">Narration ready</span>
+    </nav>
+  </main>
+
+  <dialog id="lessonDialog">
+    <div class="dialog-head"><div><small>FIRST DAY CHALLENGE · MICRO LESSON</small><h2 id="dialogTitle"></h2></div><button class="close" aria-label="Close">×</button></div>
+    <div class="dialog-body" id="dialogBody"></div>
+    <div class="dialog-actions"><button class="secondary" id="keepExploring">Keep exploring</button><button id="dialogContinue">Continue</button></div>
+  </dialog>
+
+  <dialog id="reflectionDialog" class="reflection">
+    <div class="dialog-head"><div><small>FIRST DAY CHALLENGE · READINESS REVIEW</small><h2>Your First-Day Trust Plan</h2></div><button class="close" aria-label="Close">×</button></div>
+    <form id="reflectionForm" class="dialog-body">
+      <div class="reflection-lead"><strong>Think about your first week at work.</strong><p>Respond to each situation with the action you would take to arrive prepared, build trust, and keep learning.</p></div>
+      <fieldset><legend>Which two skills will make the biggest difference for you?</legend><div class="choice-grid" id="skillChoices"></div></fieldset>
+      <label>What might make your first days challenging?<select name="barrier" required><option value="">Choose one</option><option>Transportation</option><option>Sleep or morning routine</option><option>Childcare or family responsibilities</option><option>Understanding instructions</option><option>Asking for help</option><option>Managing stress</option><option>Communicating with coworkers</option><option>Handling feedback</option><option>Knowing workplace expectations</option><option>I feel prepared right now</option></select></label>
+      <label>What is your plan for handling that challenge?<button type="button" class="nova-tip" data-tip="plan">✦ Nova: Show me how</button><textarea name="plan" required></textarea></label>
+      <div class="trust-grid">
+        <label>I will arrive…<input name="arrive" required></label><label>When I am unsure, I will…<input name="unsure" required></label>
+        <label>I will support my team by…<input name="team" required></label><label>If I make a mistake, I will…<input name="mistake" required></label>
+        <label>Before my next shift, I will…<input name="nextshift" required></label>
+      </div>
+      <label>How confident do you feel about starting a new job?<select name="confidence" required><option>Not confident yet</option><option>A little confident</option><option>Neutral or unsure</option><option>Confident</option><option>Very confident</option></select></label>
+      <label>What would you like help practicing with your career coach?<select name="coach"><option>First-day planning</option><option>Transportation backup plan</option><option>Workplace communication</option><option>Asking questions</option><option>Customer service</option><option>Managing stress</option><option>Receiving feedback</option><option>Workplace boundaries</option><option>I do not need additional practice right now</option></select></label>
+      <button type="submit">Complete my readiness review</button>
+    </form>
+  </dialog>
+
+  <dialog id="novaDialog" class="nova-dialog">
+    <div class="dialog-head"><div><small>NOVA SAYS…</small><h2>Build a plan you can use</h2></div><button class="close" aria-label="Close Nova tip">×</button></div>
+    <div class="nova-content"><div class="nova-portrait" role="img" aria-label="Nova, your Level Up coach"></div><div><p id="novaTipText"></p><button id="closeNova">Return to my response</button></div></div>
+  </dialog>
+
+  <dialog id="summaryDialog" class="reflection">
+    <div class="dialog-head"><div><small>FIRST DAY CHALLENGE · COMPLETE</small><h2>Your First-Day Readiness Review</h2></div></div>
+    <div class="dialog-body" id="summaryBody"></div>
+    <div class="dialog-actions"><button class="secondary" onclick="window.print()">Print or save as PDF</button><button id="returnFinal">Return to final scene</button></div>
+  </dialog>
+  <script src="app.js"></script>
+</body>
+</html>

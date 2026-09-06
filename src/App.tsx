@@ -9,8 +9,8 @@ type Module = { id: string; title: string; subtitle: string; color: string; href
 const MODULES: Module[] = [
   { id: "discovery", title: "Discovery", subtitle: "Know your strengths, values, purpose, and support.", color: "cyan", href: "https://pinalworkforce1-del.github.io/LU_Discovery/" },
   { id: "resume-district", title: "Resume District", subtitle: "Build your story. Show your strengths.", color: "blue", prerequisite: "discovery" },
-  { id: "interview-arena", title: "Interview Arena", subtitle: "Prepare confidently. Show up. Stand out.", color: "purple", prerequisite: "resume-district" },
-  { id: "first-day-challenge", title: "First Day Challenge", subtitle: "Show up. Step up. Level up.", color: "orange", prerequisite: "interview-arena" },
+  { id: "interview-arena", title: "Interview Arena", subtitle: "Prepare confidently. Show up. Stand out.", color: "purple", prerequisite: "resume-district", href: "https://pinalworkforce1-del.github.io/Interview_Arena/" },
+  { id: "first-day-challenge", title: "First Day Challenge", subtitle: "Show up. Step up. Level up.", color: "orange", prerequisite: "interview-arena", href: "https://pinalworkforce1-del.github.io/Level_Up_Portal/first-day-challenge/" },
   { id: "money-moves", title: "Money Moves", subtitle: "Manage today. Build tomorrow.", color: "green", prerequisite: "first-day-challenge" },
   { id: "career-skill-tree", title: "Career Skill Tree", subtitle: "Learn, grow, and unlock more.", color: "cyan", prerequisite: "discovery", expansion: true },
   { id: "leadership-peak", title: "Leadership Peak", subtitle: "Build the skills to lead and influence.", color: "gold", prerequisite: "discovery", expansion: true },
