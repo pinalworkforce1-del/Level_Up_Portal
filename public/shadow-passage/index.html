@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="theme-color" content="#070711" />
+  <title>Level Up — Shadow Passage</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand" aria-label="Level Up Shadow Passage">
+      <div class="brand-mark">LU</div>
+      <div class="brand-copy"><strong>LEVEL UP</strong><span>SHADOW PASSAGE</span></div>
+    </div>
+
+    <div class="hud">
+      <div class="hud-row"><span id="sceneTitle">Shadow Passage Unlocked</span><span id="sceneCount">SCENE 1 OF 6</span></div>
+      <div class="progress-track" aria-label="Module progress"><i id="progressFill"></i></div>
+      <div class="hud-row tiny"><span id="saveState">CONNECTING…</span><strong id="xp">0 XP</strong></div>
+    </div>
+
+    <div class="header-tools">
+      <button id="access" class="icon-btn" type="button" aria-label="Accessibility and scene description" title="Accessibility">◉</button>
+      <button id="restart" class="icon-btn" type="button" aria-label="Restart Shadow Passage" title="Restart">↻</button>
+    </div>
+  </header>
+
+  <main class="experience-shell">
+    <section class="stage" id="stage" aria-live="polite">
+      <img id="sceneImage" alt="" />
+      <div class="caption-backdrop" id="captionBackdrop"></div>
+      <video id="narrationVideo" playsinline preload="metadata"></video>
+      <div id="hotspots" class="hotspots"></div>
+      <div id="toast" class="toast" role="status" aria-live="polite"></div>
+      <div class="gate" id="gate">Listen or skip — then explore the scene.</div>
+    </section>
+
+    <aside class="scene-rail" aria-label="Scene controls">
+      <small>SCENE CONTROLS</small>
+      <button id="mute" type="button" aria-label="Mute narration"><span class="control-icon">🔊</span><span id="muteLabel">Audio on</span></button>
+      <button id="replay" type="button" aria-label="Replay narration"><span class="control-icon">↻</span><span>Replay narration</span></button>
+      <button id="skip" type="button"><span class="control-icon">↠</span><span>Skip narration</span></button>
+      <button id="play" type="button"><span class="control-icon">▶</span><span id="playLabel">Play narration</span></button>
+      <button id="continue" class="rail-continue" type="button" disabled>Continue <span>→</span></button>
+    </aside>
+
+    <nav class="scene-nav">
+      <button id="back" type="button">← Back</button>
+      <span id="footerNote">Listen to the scene to unlock exploration.</span>
+    </nav>
+  </main>
+
+  <dialog id="modal" class="modal">
+    <div class="modal-card">
+      <button id="modalClose" class="modal-close" aria-label="Close">×</button>
+      <div id="modalBody"></div>
+    </div>
+  </dialog>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-sync.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
