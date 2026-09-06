@@ -11,7 +11,8 @@ const MODULES: Module[] = [
   { id: "resume-district", title: "Resume District", subtitle: "Build your story. Show your strengths.", color: "blue", prerequisite: "discovery" },
   { id: "interview-arena", title: "Interview Arena", subtitle: "Prepare confidently. Show up. Stand out.", color: "purple", prerequisite: "resume-district", href: "https://pinalworkforce1-del.github.io/Interview_Arena/" },
   { id: "first-day-challenge", title: "First Day Challenge", subtitle: "Show up. Step up. Level up.", color: "orange", prerequisite: "interview-arena", href: "https://pinalworkforce1-del.github.io/Level_Up_Portal/first-day-challenge/" },
-  { id: "money-moves", title: "Money Moves", subtitle: "Manage today. Build tomorrow.", color: "green", prerequisite: "first-day-challenge" },
+  { id: "shadow-passage", title: "Shadow Passage", subtitle: "See where today's money habits can travel.", color: "purple", prerequisite: "first-day-challenge", href: "https://pinalworkforce1-del.github.io/Level_Up_Portal/shadow-passage/" },
+  { id: "money-moves", title: "Money Moves", subtitle: "Manage today. Build tomorrow.", color: "green", prerequisite: "shadow-passage" },
   { id: "career-skill-tree", title: "Career Skill Tree", subtitle: "Learn, grow, and unlock more.", color: "cyan", prerequisite: "discovery", expansion: true },
   { id: "leadership-peak", title: "Leadership Peak", subtitle: "Build the skills to lead and influence.", color: "gold", prerequisite: "discovery", expansion: true },
 ];
@@ -53,6 +54,7 @@ export function App() {
   const progressById = useMemo(() => new Map(rows.map((row) => [row.module_id, row])), [rows]);
   const totalXp = rows.reduce((sum, row) => sum + (row.xp || 0), 0);
   const completedCount = rows.filter((row) => row.is_complete).length;
+  const coreModuleCount = MODULES.filter((module) => !module.expansion).length;
   const currentPath = useMemo(() => {
     const core = MODULES.filter((module) => !module.expansion);
     const next = core.find((module) => {
@@ -86,7 +88,7 @@ export function App() {
 
       <section className="hero">
         <div><p className="eyebrow">WELCOME BACK, {name.toUpperCase()}</p><h1>Your next level is waiting.</h1><p>Every module adds new skills, reflections, and evidence to your Level Up journey.</p></div>
-        <div className="journey-meter"><span>{completedCount} MODULE{completedCount === 1 ? "" : "S"} COMPLETE</span><div><i style={{ width: `${Math.min(100, (completedCount / 5) * 100)}%` }} /></div><b>{totalXp} XP EARNED</b></div>
+        <div className="journey-meter"><span>{completedCount} MODULE{completedCount === 1 ? "" : "S"} COMPLETE</span><div><i style={{ width: `${Math.min(100, (completedCount / coreModuleCount) * 100)}%` }} /></div><b>{totalXp} XP EARNED</b></div>
       </section>
 
       {message ? <div className="notice">{message}</div> : null}
