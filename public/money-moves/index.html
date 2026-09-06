@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Level Up — Money Moves</title>
+<link rel="stylesheet" href="styles.css"></head><body>
+<header class="top"><div class="brand">LEVEL UP<small>MONEY MOVES • WORK READY SERIES</small></div><div><div class="hudline"><span id="sceneTitle"></span><span id="sceneCount"></span><span id="xp">0 XP</span></div><div class="track"><i id="fill"></i></div></div><div class="cloud"><span class="statuspill" id="cloudState">CONNECTING…</span><span class="statuspill" id="audioState">READY</span></div></header>
+<main class="shell"><section class="stage" id="stage"><img id="sceneImg" alt=""><div class="caption-backdrop" id="captionBackdrop"></div><div class="hotLayer" id="hotLayer"></div><video id="narration" playsinline preload="metadata"></video></section><aside class="rail"><small>SCENE CONTROLS</small><button id="audioBtn">🔊 Audio on</button><button id="replayBtn">↻ Replay narration</button><button id="skipBtn">≫ Skip narration</button><button id="playBtn">▶ Play narration</button><button id="continueBtn" class="continue">Continue →</button></aside></main>
+<div class="note" id="note"></div>
+<div class="modal" id="modal"><div class="card" id="card"></div></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-sync.js"></script>
+<script src="app.js"></script></body></html>
