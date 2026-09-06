@@ -30,6 +30,7 @@ jobs:
           if [ -f public/money-moves/money-moves-source-b.zip ]; then
             unzip -o public/money-moves/money-moves-source-b.zip -d public/money-moves
           fi
+          rm -f public/money-moves/money-moves-source-a.zip public/money-moves/money-moves-source-b.zip
 
       - name: Set up Node
         uses: actions/setup-node@v4
