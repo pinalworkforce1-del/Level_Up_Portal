@@ -22,9 +22,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Expand Money Moves source package
+      - name: Reassemble and expand Money Moves source package
         run: |
-          if [ -f public/money-moves/money-moves-source.zip ]; then
+          if ls public/money-moves/money-moves-source.zip.part-* >/dev/null 2>&1; then
+            cat public/money-moves/money-moves-source.zip.part-* > /tmp/money-moves-source.zip
+            unzip -o /tmp/money-moves-source.zip -d public/money-moves
+          elif [ -f public/money-moves/money-moves-source.zip ]; then
             unzip -o public/money-moves/money-moves-source.zip -d public/money-moves
           fi
 
