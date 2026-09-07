@@ -65,10 +65,14 @@
     <div class="nova-content"><div class="nova-portrait" role="img" aria-label="Nova, your Level Up coach"></div><div><p id="novaTipText"></p><button id="closeNova">Return to my response</button></div></div>
   </dialog>
 
-  <dialog id="summaryDialog" class="reflection">
+  <dialog id="summaryDialog" class="reflection summary-review">
     <div class="dialog-head"><div><small>FIRST DAY CHALLENGE · COMPLETE</small><h2>Your First-Day Readiness Review</h2></div></div>
     <div class="dialog-body" id="summaryBody"></div>
-    <div class="dialog-actions"><button class="secondary" onclick="window.print()">Print or save as PDF</button><button id="returnFinal">Return to final scene</button></div>
+    <div class="dialog-actions artifact-actions"><button class="secondary" onclick="window.print()">Print or save as PDF</button></div>
+    <div class="completion-journey-footer">
+      <div><strong>✓ First Day Challenge Complete</strong><span>Something changed in Opportunity Plaza.</span></div>
+      <button id="returnFinal">Return to Opportunity City →</button>
+    </div>
   </dialog>
   <script src="app.js"></script>
   <script src="ux-standard-v11.js"></script>
