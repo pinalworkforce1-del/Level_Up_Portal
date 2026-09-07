@@ -1,0 +1,72 @@
+name: Test Opportunity City Home
+
+on:
+  push:
+    branches: ["opportunity-city-home"]
+  pull_request:
+    branches: ["main"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Expand Opportunity City assets
+        run: |
+          mkdir -p public/opportunity-city
+          test -f public/opportunity-city/opportunity-city-source-a.zip
+          test -f public/opportunity-city/opportunity-city-source-b.zip
+          unzip -o public/opportunity-city/opportunity-city-source-a.zip -d public/opportunity-city
+          unzip -o public/opportunity-city/opportunity-city-source-b.zip -d public/opportunity-city
+          rm -f public/opportunity-city/opportunity-city-source-a.zip public/opportunity-city/opportunity-city-source-b.zip
+
+      - name: Verify Opportunity City media contract
+        run: |
+          test -f public/opportunity-city/opportunity-city.png
+          test -f public/opportunity-city/nova-welcome-clean.mp4
+          test -f public/opportunity-city/nova-welcome.vtt
+          test -f public/opportunity-city/nova-card.jpg
+          test -f public/opportunity-city/nova-discovery.mp3
+          test -f public/opportunity-city/nova-resume.mp3
+          test -f public/opportunity-city/nova-interview.mp3
+          test -f public/opportunity-city/nova-first-day.mp3
+          test -f public/opportunity-city/nova-money.mp3
+          test -f public/opportunity-city/nova-career.mp3
+          test -f public/opportunity-city/nova-plaza.mp3
+          grep -q 'confidence-checkpoint' src/App.tsx
+          grep -q 'shadow-passage' src/App.tsx
+          grep -q 'Exploring this card does not write to Supabase' src/App.tsx
+          grep -q 'plaza: { left: "70%", top: "59%" }' src/App.tsx
+
+      - name: Expand Money Moves source packages
+        run: |
+          if [ -f public/money-moves/money-moves-source-a.zip ]; then unzip -o public/money-moves/money-moves-source-a.zip -d public/money-moves; fi
+          if [ -f public/money-moves/money-moves-source-b.zip ]; then unzip -o public/money-moves/money-moves-source-b.zip -d public/money-moves; fi
+          rm -f public/money-moves/money-moves-source-a.zip public/money-moves/money-moves-source-b.zip
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build production portal
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: https://example.supabase.co
+          VITE_SUPABASE_ANON_KEY: test-publishable-key
+
+      - name: Verify built landing page references
+        run: |
+          test -f dist/opportunity-city/opportunity-city.png
+          test -f dist/opportunity-city/nova-welcome-clean.mp4
+          grep -R -q 'Opportunity City' dist/assets

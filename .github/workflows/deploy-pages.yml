@@ -22,6 +22,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Expand Opportunity City assets
+        run: |
+          mkdir -p public/opportunity-city
+          if [ -f public/opportunity-city/opportunity-city-source-a.zip ]; then
+            unzip -o public/opportunity-city/opportunity-city-source-a.zip -d public/opportunity-city
+          fi
+          if [ -f public/opportunity-city/opportunity-city-source-b.zip ]; then
+            unzip -o public/opportunity-city/opportunity-city-source-b.zip -d public/opportunity-city
+          fi
+          rm -f public/opportunity-city/opportunity-city-source-a.zip public/opportunity-city/opportunity-city-source-b.zip
+
       - name: Expand Money Moves source packages
         run: |
           if [ -f public/money-moves/money-moves-source-a.zip ]; then
