@@ -51,7 +51,6 @@
 
   accessButton.onclick=()=>accessDialog.showModal();
   accessDialog.querySelector('.close').onclick=()=>accessDialog.close();
-  autoToggle.onchange=()=>{settings.auto=autoToggle.checked;saveSettings();};
   captionsToggle.onchange=()=>{settings.captions=captionsToggle.checked;saveSettings();applySettings();};
   reduceToggle.onchange=()=>{settings.reduce=reduceToggle.checked;saveSettings();applySettings();};
 
@@ -76,89 +75,59 @@
   };
 
   const showNarrationOptional=()=>{
+    video.pause();
+    stage?.classList.remove('narrating');
+    video.style.visibility='hidden';
+    if(skipBtn)skipBtn.hidden=true;
     playBtn.hidden=false;
     setPlayLabel('Play narration');
     if(status)status.textContent='Explore the scene · narration is optional';
   };
 
-  const ensureNarrationSource=()=>{
-    if(video.getAttribute('src'))return;
-    try{
-      const active=typeof scene==='function'?scene():null;
-      if(active?.media)video.src=`assets/media/${active.media}`;
-    }catch(_error){}
-  };
-
-  const playNarration=({unlockOnFailure=true}={})=>{
-    ensureNarrationSource();
-    stage?.classList.add('narrating');
-    video.style.visibility='visible';
-    if(gate)gate.hidden=true;
-    const hotspots=document.getElementById('hotspots');
-    if(hotspots)hotspots.innerHTML='';
-    playBtn.hidden=true;
-    if(skipBtn)skipBtn.hidden=false;
-    if(status)status.textContent='Narration playing';
-    try{video.currentTime=0}catch(_error){}
-
-    let playback;
-    try{playback=video.play()}catch(_error){playback=Promise.reject(_error)}
-    Promise.resolve(playback).catch(()=>{
-      video.pause();
-      stage?.classList.remove('narrating');
-      video.style.visibility='hidden';
-      if(skipBtn)skipBtn.hidden=true;
-      if(unlockOnFailure){
-        try{if(typeof unlock==='function')unlock()}catch(_error){}
-      }
-      showNarrationOptional();
-      if(status)status.textContent='Challenge ready · narration is available anytime';
-    });
-  };
-
-  // Level Up entry standard: starting the experience is not the same thing as
-  // choosing narration. The first learner action starts/resumes the challenge.
-  // Narration follows the accessibility preference, and a blocked audio stream
-  // never prevents the learner from reaching the activity.
+  // Preserve the module's proven native narration pathway. The previous v1.2
+  // pilot bypassed start() and called video.play() directly; that could unlock
+  // activities after a failed media attempt while producing no sound/captions.
+  // This wrapper changes only *when* start() is called, not *how* narration is
+  // loaded, displayed, skipped, replayed, or completed.
   let nativeStart=null;
   try{nativeStart=typeof start==='function'?start:null}catch(_error){}
   if(nativeStart){
     start=function(auto=false){
+      // First automatic call becomes the module-level entry action.
       if(auto&&!sessionStarted){
         showEntryPrompt();
         return;
       }
+
+      // The learner's first press starts/resumes the experience. Narration then
+      // follows the accessibility preference without being the progression gate.
+      if(!auto&&!sessionStarted){
+        sessionStarted=true;
+        if(settings.auto){
+          setPlayLabel('Play narration');
+          return nativeStart(false);
+        }
+        try{if(typeof unlock==='function')unlock()}catch(_error){}
+        showNarrationOptional();
+        return;
+      }
+
+      // Once started, later scenes autoplay only when requested.
       if(auto&&!settings.auto){
         try{if(typeof unlock==='function')unlock()}catch(_error){}
         showNarrationOptional();
         return;
       }
+
+      // Manual Play and all normal autoplay use the original module code.
       return nativeStart(auto);
     };
   }
 
-  playBtn.onclick=()=>{
-    if(!sessionStarted){
-      sessionStarted=true;
-      if(settings.auto){
-        playNarration({unlockOnFailure:true});
-      }else{
-        try{if(typeof unlock==='function')unlock()}catch(_error){}
-        showNarrationOptional();
-      }
-      return;
-    }
-    playNarration({unlockOnFailure:true});
-  };
+  // Do not replace the module's existing Play/Replay/Skip handlers. They already
+  // know how to expose the caption video and call unlock() on narration end.
+  replayBtn?.addEventListener('click',()=>{sessionStarted=true},true);
 
-  if(replayBtn){
-    replayBtn.onclick=()=>{
-      sessionStarted=true;
-      playNarration({unlockOnFailure:true});
-    };
-  }
-
-  // Keep optional narration available after an audio-disabled scene unlock.
   autoToggle.onchange=()=>{
     settings.auto=autoToggle.checked;
     saveSettings();
@@ -180,7 +149,7 @@
   }
 
   applySettings();
-  // If the original app already attempted autoplay before this adapter loaded,
-  // normalize the entry state back to the explicit Start/Resume action.
+  // The original app schedules start(true) shortly after render. If that timer
+  // has already fired, normalize back to the explicit Start/Resume entry state.
   setTimeout(()=>{if(!sessionStarted)showEntryPrompt()},0);
 })();
