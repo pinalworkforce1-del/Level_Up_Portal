@@ -137,6 +137,35 @@
     }
   };
 
+  // Previously explored hidden branches must remain enterable on revisit. The
+  // native renderer intentionally marks completed branch hotspots as done, but
+  // it also removes their click handler. On scenes such as The Night Before,
+  // that leaves a returning participant with no valid way forward. Restore the
+  // original branch action without re-awarding XP; activate() already guards
+  // branch awards with the existing branch completion state.
+  let nativeShowSpots=null;
+  try{nativeShowSpots=typeof showSpots==='function'?showSpots:null}catch(_error){}
+  const restoreCompletedBranchLinks=()=>{
+    let s=null;
+    try{s=typeof scene==='function'?scene():null}catch(_error){}
+    if(!s||!Array.isArray(s.spots))return;
+    document.querySelectorAll('#hotspots .kind-branch').forEach(button=>{
+      const label=button.getAttribute('aria-label')||'';
+      const branch=s.spots.find(h=>h[5]==='branch'&&h[0]===label);
+      if(!branch)return;
+      const key=`${s.n}-${branch[0]}`;
+      button.onclick=()=>activate(branch,key,button);
+    });
+  };
+  if(nativeShowSpots){
+    showSpots=function(){
+      const result=nativeShowSpots();
+      restoreCompletedBranchLinks();
+      return result;
+    };
+    setTimeout(restoreCompletedBranchLinks,0);
+  }
+
   // Keep the learner artifact separate from progression. After the readiness
   // review, return to Opportunity City so the map can reveal the next step.
   if(returnFinal){
