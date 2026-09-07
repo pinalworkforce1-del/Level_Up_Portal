@@ -43,6 +43,36 @@ jobs:
           fi
           rm -f public/money-moves/money-moves-source-a.zip public/money-moves/money-moves-source-b.zip
 
+      - name: Expand First Day Challenge narration media
+        run: |
+          mkdir -p public/first-day-challenge/assets/media
+          if [ -f public/first-day-challenge/fdc-narration-media-a.zip ]; then
+            unzip -o public/first-day-challenge/fdc-narration-media-a.zip -d public/first-day-challenge/assets/media
+          fi
+          if [ -f public/first-day-challenge/fdc-narration-media-b.zip ]; then
+            unzip -o public/first-day-challenge/fdc-narration-media-b.zip -d public/first-day-challenge/assets/media
+          fi
+          rm -f public/first-day-challenge/fdc-narration-media-a.zip public/first-day-challenge/fdc-narration-media-b.zip
+
+      - name: Verify First Day Challenge narration media
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          root = Path('public/first-day-challenge/assets/media')
+          expected = [root / f'media{i}.mp4' for i in range(1, 22)]
+          bad = []
+          for path in expected:
+              if not path.exists():
+                  bad.append(f'{path.name}: missing')
+                  continue
+              data = path.read_bytes()
+              if b'moov' not in data or b'mdat' not in data:
+                  bad.append(f'{path.name}: incomplete MP4 container')
+          if bad:
+              raise SystemExit('First Day Challenge narration media check failed:\n' + '\n'.join(bad))
+          print('Verified 21 complete First Day Challenge narration MP4s.')
+          PY
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
