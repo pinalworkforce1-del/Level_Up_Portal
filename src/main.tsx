@@ -4,6 +4,7 @@ import { App } from "./App";
 import { prepareJourneyBridge } from "./journeyBridge";
 import "./styles.css";
 import "./journey-fixes.css";
+import "./mobile-map-fix.css";
 
 async function bootstrap() {
   try { await prepareJourneyBridge(); } catch { /* Portal still loads if reconciliation is unavailable. */ }
