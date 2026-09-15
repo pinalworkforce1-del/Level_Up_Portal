@@ -1,0 +1,35 @@
+/* Mobile Opportunity City map fix.
+   Keep the entire map image in the same coordinate space as the existing
+   hotspots/markers so edge districts (especially First Day Challenge) stay
+   visible without changing any progression, Supabase, or unlock logic. */
+
+@media (max-width: 760px) {
+  .opportunity-stage {
+    aspect-ratio: 4 / 3;
+  }
+
+  .opportunity-map {
+    object-fit: fill;
+    object-position: center;
+  }
+}
+
+/* The base stylesheet switches narrow phones to a square canvas, which crops
+   the 16:9 city map. Keep the more map-friendly 4:3 canvas instead. */
+@media (max-width: 520px) {
+  .opportunity-stage {
+    aspect-ratio: 4 / 3;
+  }
+}
+
+/* In landscape there is enough width to preserve the original map geometry. */
+@media (orientation: landscape) and (max-width: 1100px) {
+  .opportunity-stage {
+    aspect-ratio: 16 / 9;
+  }
+
+  .opportunity-map {
+    object-fit: fill;
+    object-position: center;
+  }
+}
