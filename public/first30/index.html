@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Level Up • The First 30</title>
+<link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="brand">
+    <span class="crest">LU</span>
+    <div><b>LEVEL UP</b><small>THE FIRST 30</small></div>
+  </div>
+  <div class="topMeta"><span id="dayTop">THE FIRST 30</span><span id="progressTop">Checkpoint 0 of 5</span></div>
+</header>
+
+<main class="shell">
+  <section id="introScreen" class="introScreen">
+    <div class="introCard">
+      <small>FIRST DAY CHALLENGE • CONTINUATION</small>
+      <h1>You got through Day One.<br>Now the real challenge begins.</h1>
+      <p>The first month on a job is not one big test. It is a series of small decisions about time, energy, money, communication, reliability, and when to ask for help.</p>
+      <div class="resourcePreview">
+        <span>⏱ Time</span><span>⚡ Energy</span><span>💵 Money</span><span>✓ Reliability</span><span>🤝 Support</span>
+      </div>
+      <p class="introNote">There is not always one perfect choice. Protect what matters, watch the tradeoffs, and keep moving.</p>
+      <button class="btn gold big" id="startBtn">Start The First 30 →</button>
+    </div>
+  </section>
+
+  <section id="gameScreen" class="gameScreen hidden">
+    <div class="stage">
+      <div class="visualWrap">
+        <img id="sceneImage" class="sceneImage" alt="">
+        <div class="shade"></div>
+        <div id="captionOverlay" class="captionOverlay hidden"></div>
+        <div class="sceneCopy">
+          <span id="dayLabel" class="dayLabel"></span>
+          <h1 id="sceneTitle"></h1>
+          <p id="scenePrompt"></p>
+        </div>
+        <div class="sceneProgress" id="sceneProgress"></div>
+      </div>
+
+      <aside class="side">
+        <section class="panel hudPanel">
+          <div class="panelHead">
+            <div><small>YOUR RESOURCES</small><h2>What are you protecting?</h2></div>
+            <button class="resetLink" id="resetBtn" type="button">Reset</button>
+          </div>
+          <div id="stats"></div>
+        </section>
+
+        <section class="panel audioPanel">
+          <div class="panelHead compact"><div><small>SCENE NARRATION</small><h2>Listen, then decide</h2></div></div>
+          <div class="audioControls">
+            <button class="btn blue" id="playBtn">▶ Play</button>
+            <button class="btn alt" id="replayBtn">↺ Replay</button>
+            <button class="btn alt" id="ccBtn">CC On</button>
+            <span id="audioTimer" class="audioTimer">0:00 / --:--</span>
+          </div>
+        </section>
+
+        <section class="panel" id="decisionPanel">
+          <div class="panelHead compact"><div><small>DECISION POINT</small><h2>Choose your next move</h2></div></div>
+          <div id="choices" class="choices"></div>
+        </section>
+
+        <section class="panel outcomePanel hidden" id="outcomePanel">
+          <div class="panelHead compact"><div><small>WHAT HAPPENED</small><h2>Your choice changed the picture</h2></div></div>
+          <div class="outcomeBody">
+            <p id="outcomeText"></p>
+            <div id="impactList" class="impactList"></div>
+            <div class="reflectionPrompt" id="reflectionPrompt"></div>
+            <button class="btn gold" id="continueBtn">Continue →</button>
+          </div>
+        </section>
+      </aside>
+    </div>
+  </section>
+
+  <section id="summaryScreen" class="summaryScreen hidden">
+    <div class="summaryHero">
+      <small>THE FIRST 30 • EARLY STRETCH</small>
+      <h1>You are learning how work fits into real life.</h1>
+      <p>You made it through five early-work checkpoints. The point was not to maximize every resource. It was to notice what each decision protects—and what it costs.</p>
+    </div>
+    <div class="summaryGrid">
+      <section class="panel"><div class="panelHead compact"><div><small>ENDING HUD</small><h2>Your resources</h2></div></div><div id="summaryStats" class="summaryBody"></div></section>
+      <section class="panel"><div class="panelHead compact"><div><small>YOUR PATH</small><h2>What your choices emphasized</h2></div></div><div class="summaryBody"><p id="summaryText"></p><div id="choiceHistory" class="history"></div></div></section>
+    </div>
+    <div class="summaryActions">
+      <button class="btn gold" id="restartBtn">Play This Stretch Again</button>
+      <span>This standalone build is intentionally not connected to Level Up progression yet.</span>
+    </div>
+  </section>
+</main>
+
+<audio id="sceneAudio" preload="metadata"></audio>
+<script src="./app.js"></script>
+</body>
+</html>
