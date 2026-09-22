@@ -1,4 +1,5 @@
-const STORAGE_KEY='level-up-first30-v1';
+const LIVE_ROOM=(new URLSearchParams(location.search).get('room')||'').toUpperCase().replace(/[^A-Z2-9]/g,'');
+const STORAGE_KEY=LIVE_ROOM.length>=8?'level-up-first30-live-'+LIVE_ROOM:'level-up-first30-v1';
 const SCENES=[
  {id:'d01_morning',day:1,title:'The Morning Choice',prompt:'Your first shift starts at 9:00 AM. You planned to leave at 8:10, but you stayed up late and hit snooze twice. It is 7:55. You still need to get dressed, eat something, and make your bus.',image:'./assets/images/first30_d01_morning_scene.webp',audio:'./assets/audio/first30_d01_morning_narration.mp3',captions:'./assets/captions/first30_d01_morning_captions.vtt',reflection:'What are you protecting most right now: time, energy, or money?',choices:[
   {text:'Skip breakfast and get moving.',why:'Protect time now.',outcome:'You make the bus. You are on schedule—but by midmorning, your energy is already dropping.',impact:{Time:10,Energy:-15,Reliability:5}},
@@ -58,6 +59,7 @@ const $=id=>document.getElementById(id),audio=$('sceneAudio');
 function cloneInitial(){return JSON.parse(JSON.stringify(INITIAL))}
 function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'),initial=cloneInitial(),history=Array.isArray(saved.history)?saved.history:[];const complete=history.length===SCENES.length&&Boolean(saved.complete);return{...initial,...saved,stats:{...initial.stats,...saved.stats},history,complete,sceneIndex:saved.complete&&!complete?Math.min(history.length,SCENES.length-1):Math.max(0,Math.min(SCENES.length-1,Number(saved.sceneIndex)||0))}}catch{return cloneInitial()}}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function notifyRoom(){if(LIVE_ROOM.length<8||window.parent===window)return;window.parent.postMessage({type:'levelup-first30-progress',room:LIVE_ROOM,checkpoint:Math.max(1,Math.min(SCENES.length,state.history.length)),complete:state.complete},location.origin)}
 function clamp(v){return Math.max(0,Math.min(100,v))}
 function fmt(sec){if(!Number.isFinite(sec))return'--:--';sec=Math.max(0,Math.floor(sec));return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')}
 function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -72,7 +74,7 @@ function renderScene(){
  document.querySelectorAll('.choiceBtn').forEach(b=>b.onclick=()=>choose(Number(b.dataset.i)));
  $('decisionPanel').classList.toggle('hidden',choiceLocked);$('outcomePanel').classList.toggle('hidden',!choiceLocked);
  if(prior){$('outcomeText').textContent=prior.outcome;$('impactList').innerHTML=Object.entries(prior.impact||{}).map(([k,d])=>'<span class="impact '+(d>=0?'good':'bad')+'">'+icon(k)+' '+k+' '+(d>=0?'+':'')+d+'</span>').join('');$('reflectionPrompt').textContent=s.reflection}
- audio.pause();audio.src=s.audio;audio.load();$('playBtn').textContent='▶ Play';$('audioTimer').textContent='0:00 / --:--';$('captionOverlay').classList.add('hidden');$('captionOverlay').textContent='';loadCaptions(s.captions);renderStats();updateCC();save()
+ audio.pause();audio.src=s.audio;audio.load();$('playBtn').textContent='▶ Play';$('audioTimer').textContent='0:00 / --:--';$('captionOverlay').classList.add('hidden');$('captionOverlay').textContent='';loadCaptions(s.captions);renderStats();updateCC();save();notifyRoom()
 }
 function renderStats(target='stats'){
  const el=$(target);el.innerHTML=Object.entries(state.stats).map(([k,v])=>'<div class="stat '+(v<=35?'low':v>=80?'high':'')+'"><div class="statLine"><span>'+icon(k)+' '+k+'</span><span>'+v+'</span></div><div class="bar"><div class="fill" style="width:'+v+'%"></div></div></div>').join('')
@@ -82,13 +84,13 @@ function choose(i){
  if(choiceLocked)return;choiceLocked=true;const s=SCENES[state.sceneIndex],c=s.choices[i];
  Object.entries(c.impact).forEach(([k,d])=>state.stats[k]=clamp((state.stats[k]||0)+d));
  state.history=state.history.filter(x=>x.scene!==s.id);state.history.push({scene:s.id,day:s.day,title:s.title,choice:c.text,outcome:c.outcome,impact:c.impact});
- save();renderStats();$('outcomeText').textContent=c.outcome;$('impactList').innerHTML=Object.entries(c.impact).map(([k,d])=>'<span class="impact '+(d>=0?'good':'bad')+'">'+icon(k)+' '+k+' '+(d>=0?'+':'')+d+'</span>').join('');$('reflectionPrompt').textContent=s.reflection;$('decisionPanel').classList.add('hidden');$('outcomePanel').classList.remove('hidden')
+ save();notifyRoom();renderStats();$('outcomeText').textContent=c.outcome;$('impactList').innerHTML=Object.entries(c.impact).map(([k,d])=>'<span class="impact '+(d>=0?'good':'bad')+'">'+icon(k)+' '+k+' '+(d>=0?'+':'')+d+'</span>').join('');$('reflectionPrompt').textContent=s.reflection;$('decisionPanel').classList.add('hidden');$('outcomePanel').classList.remove('hidden')
 }
 function next(){
  if(state.sceneIndex<SCENES.length-1){state.sceneIndex++;renderScene();window.scrollTo({top:0,behavior:'smooth'})}else{state.complete=true;save();showSummary()}
 }
 function showSummary(){
- audio.pause();$('gameScreen').classList.add('hidden');$('introScreen').classList.add('hidden');$('summaryScreen').classList.remove('hidden');$('dayTop').textContent='FIRST MONTH COMPLETE';$('progressTop').textContent=SCENES.length+' of '+SCENES.length+' checkpoints';renderStats('summaryStats');
+ audio.pause();notifyRoom();$('gameScreen').classList.add('hidden');$('introScreen').classList.add('hidden');$('summaryScreen').classList.remove('hidden');$('dayTop').textContent='FIRST MONTH COMPLETE';$('progressTop').textContent=SCENES.length+' of '+SCENES.length+' checkpoints';renderStats('summaryStats');
  const ranked=Object.entries(state.stats).sort((a,b)=>b[1]-a[1]),top=ranked[0][0],low=ranked[ranked.length-1][0];
  $('summaryText').textContent='Your choices protected '+top.toLowerCase()+' most strongly in this run. '+low+' ended as the resource under the most pressure. That is not a grade—it is a picture of the tradeoffs your path created.';
  $('choiceHistory').innerHTML=state.history.map(h=>'<div class="historyItem"><b>Day '+h.day+' • '+esc(h.title)+'</b><span>'+esc(h.choice)+'</span></div>').join('')
