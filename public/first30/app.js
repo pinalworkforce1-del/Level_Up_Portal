@@ -24,14 +24,39 @@ const SCENES=[
   {text:'Pay required expenses and protect transportation first.',why:'Protect the ability to keep getting to work.',outcome:'You do not have as much spending money left, but your ride to work is protected.',impact:{Money:15,Reliability:5}},
   {text:'Pay the bills and go out Saturday. Figure transportation out later.',why:'Protect some enjoyment now.',outcome:'You have a good night and enjoy having money from your first paycheck. But your transportation cushion is now thin.',impact:{Energy:10,Money:-15}},
   {text:'Pay everything—including the money you borrowed—and stay home this weekend.',why:'Protect obligations and trust.',outcome:'You are financially safer, and you kept your word—but it feels like your paycheck disappeared almost immediately.',impact:{Money:10,Support:10,Energy:-5}}
+ ]},
+ {id:'d15_schedule_change',day:15,title:'The Schedule Changes',prompt:'A new schedule is posted. An upcoming shift now conflicts with an important responsibility outside work. You have time to address it, but the shift still needs coverage.',image:'./assets/images/first30_d15_schedule_change_scene.webp',audio:'./assets/audio/first30_d15_schedule_change_narration.mp3',captions:'./assets/captions/first30_d15_schedule_change.vtt',reflection:'How early can you raise a conflict, and what workable options can you bring?',choices:[
+  {text:'Tell Maya now and ask about a shift swap.',why:'Protect communication and coverage.',outcome:'Maya has time to plan. A swap may be possible, and she knows you are taking responsibility for the conflict.',impact:{Reliability:10,Support:10,Time:-5}},
+  {text:'Ask a coworker to trade, then tell Maya if they agree.',why:'Look for a solution first.',outcome:'You find a possible trade, but the schedule is not settled until Maya approves it. You follow up with her before assuming you are covered.',impact:{Time:-10,Support:5,Reliability:5}},
+  {text:'Wait until the shift is closer to decide.',why:'Avoid a difficult conversation today.',outcome:'The conflict is still there. With less notice, Maya has fewer ways to cover the shift and you feel more pressure.',impact:{Time:-15,Energy:-10,Reliability:-10}}
+ ]},
+ {id:'d18_feedback',day:18,title:'Feedback You Did Not Expect',prompt:'Maya pulls you aside and says that one part of your work needs to improve. Her feedback is direct, and you did not realize there was a problem.',image:'./assets/images/first30_d18_feedback_scene.webp',audio:'./assets/audio/first30_d18_feedback_narration.mp3',captions:'./assets/captions/first30_d18_feedback.vtt',reflection:'What would help you turn feedback into a specific next step?',choices:[
+  {text:'Ask for an example and what good work looks like.',why:'Make the feedback actionable.',outcome:'Maya gives you a concrete example. You leave knowing what to practice and when she will check back in.',impact:{Support:10,Reliability:10,Energy:-5}},
+  {text:'Listen, thank her, and think it through later.',why:'Give yourself time to process.',outcome:'You stay open to the feedback, but you still need to clarify exactly what to change before the next shift.',impact:{Support:5,Energy:5}},
+  {text:'Explain why the problem was not your fault.',why:'Protect your side of the story.',outcome:'Maya hears your context, but the conversation ends without a clear improvement plan. You can still return and ask what to do differently.',impact:{Support:-5,Reliability:-5,Energy:-10}}
+ ]},
+ {id:'d21_coworker_shortcut',day:21,title:'Everyone Does It',prompt:'A coworker shows you a faster way to finish a task and says everyone does it. You are unsure whether the shortcut follows the process you were taught.',image:'./assets/images/first30_d21_coworker_shortcut_scene.webp',audio:'./assets/audio/first30_d21_coworker_shortcut_narration.mp3',captions:'./assets/captions/first30_d21_coworker_shortcut.vtt',reflection:'When speed and the right process seem to conflict, where can you check?',choices:[
+  {text:'Ask Maya whether the shortcut is approved.',why:'Check quality and safety first.',outcome:'You confirm the standard before changing your process. It costs a little time now and protects trust in your work.',impact:{Time:-5,Reliability:10,Support:5}},
+  {text:'Stick with the process you were taught.',why:'Protect consistency.',outcome:'Your task takes longer, but you know it meets the standard. You can ask later whether there is an approved faster method.',impact:{Time:-10,Reliability:10,Energy:-5}},
+  {text:'Use the shortcut because the coworker knows the job.',why:'Save time and keep up.',outcome:'You finish faster, but you have not checked whether a quality or safety step was skipped. That uncertainty follows you into the next task.',impact:{Time:10,Reliability:-15,Energy:-5}}
+ ]},
+ {id:'d25_running_on_empty',day:25,title:'Running on Empty',prompt:'You have kept showing up, but work, transportation, money, and life outside the job are adding up. Your energy is low and you notice small mistakes creeping in.',image:'./assets/images/first30_d25_running_on_empty_scene.webp',audio:'./assets/audio/first30_d25_running_on_empty_narration.mp3',captions:'./assets/captions/first30_d25_running_on_empty.vtt',reflection:'Which small change could help you recover before stress turns into a bigger problem?',choices:[
+  {text:'Tell Maya what is happening and ask about available support.',why:'Address pressure early.',outcome:'You identify a manageable adjustment and learn what support is available. The conversation gives you room to recover.',impact:{Support:15,Energy:10,Reliability:5}},
+  {text:'Protect rest tonight and plan tomorrow’s transportation.',why:'Make a practical recovery plan.',outcome:'You give yourself time to recharge and reduce one source of tomorrow’s stress. The other pressures still need attention.',impact:{Energy:15,Time:5,Money:-5}},
+  {text:'Keep pushing and hope things settle down.',why:'Avoid another conversation or expense.',outcome:'You finish the shift, but the strain carries into the next day. Small mistakes become harder to catch when you have no recovery time.',impact:{Energy:-20,Reliability:-10,Time:-5}}
+ ]},
+ {id:'d30_check_in',day:30,title:'The Thirty Day Check In',prompt:'Maya asks how your first month has gone, what you have learned, and what support would help you keep growing. You have had wins and hard moments.',image:'./assets/images/first30_d30_check_in_scene.webp',audio:'./assets/audio/first30_d30_check_in_narration.mp3',captions:'./assets/captions/first30_d30_check_in.vtt',reflection:'What is one strength you can name, and one next step you want to work on?',choices:[
+  {text:'Share a win, a challenge, and one goal for next month.',why:'Show growth and make a plan.',outcome:'Maya sees that you can recognize progress and take ownership of what comes next. Together you agree on a clear next step.',impact:{Reliability:10,Support:10,Energy:5}},
+  {text:'Ask Maya what she has noticed and where to focus.',why:'Use feedback to set direction.',outcome:'Maya names a strength you may have overlooked and an area to practice. You leave with a clearer picture of your next month.',impact:{Support:15,Reliability:5}},
+  {text:'Say everything is fine and keep the conversation short.',why:'Avoid revisiting the hard parts.',outcome:'The check-in ends quickly. You have made it through the month, but Maya does not yet know what support or growth opportunity would help you.',impact:{Energy:5,Support:-10}}
  ]}
 ];
 const INITIAL={sceneIndex:0,stats:{Time:70,Energy:70,Money:70,Reliability:70,Support:70},captionsEnabled:true,history:[],started:false,complete:false};
-let state=load(),cues=[],choiceLocked=false;
+let state=load(),cues=[],choiceLocked=false,captionRequest=0;
 const $=id=>document.getElementById(id),audio=$('sceneAudio');
 
 function cloneInitial(){return JSON.parse(JSON.stringify(INITIAL))}
-function load(){try{return{...cloneInitial(),...JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}}catch{return cloneInitial()}}
+function load(){try{const saved=JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}'),initial=cloneInitial(),history=Array.isArray(saved.history)?saved.history:[];const complete=history.length===SCENES.length&&Boolean(saved.complete);return{...initial,...saved,stats:{...initial.stats,...saved.stats},history,complete,sceneIndex:saved.complete&&!complete?Math.min(history.length,SCENES.length-1):Math.max(0,Math.min(SCENES.length-1,Number(saved.sceneIndex)||0))}}catch{return cloneInitial()}}
 function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
 function clamp(v){return Math.max(0,Math.min(100,v))}
 function fmt(sec){if(!Number.isFinite(sec))return'--:--';sec=Math.max(0,Math.floor(sec));return Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0')}
@@ -39,13 +64,14 @@ function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&l
 
 function start(){state.started=true;save();$('introScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');renderScene()}
 function renderScene(){
- choiceLocked=false;const s=SCENES[state.sceneIndex];
+ const s=SCENES[state.sceneIndex],prior=state.history.find(h=>h.scene===s.id);choiceLocked=Boolean(prior);
  $('dayTop').textContent='DAY '+s.day;$('progressTop').textContent='Checkpoint '+(state.sceneIndex+1)+' of '+SCENES.length;
  $('dayLabel').textContent='Day '+s.day;$('sceneTitle').textContent=s.title;$('scenePrompt').textContent=s.prompt;$('sceneImage').src=s.image;$('sceneImage').alt='Day '+s.day+' • '+s.title;
  $('sceneProgress').innerHTML=SCENES.map((_,i)=>'<i class="'+(i<state.sceneIndex?'done':i===state.sceneIndex?'active':'')+'"></i>').join('');
  $('choices').innerHTML=s.choices.map((c,i)=>'<button class="choiceBtn" data-i="'+i+'">'+esc(c.text)+'<span>'+esc(c.why)+'</span></button>').join('');
  document.querySelectorAll('.choiceBtn').forEach(b=>b.onclick=()=>choose(Number(b.dataset.i)));
- $('decisionPanel').classList.remove('hidden');$('outcomePanel').classList.add('hidden');
+ $('decisionPanel').classList.toggle('hidden',choiceLocked);$('outcomePanel').classList.toggle('hidden',!choiceLocked);
+ if(prior){$('outcomeText').textContent=prior.outcome;$('impactList').innerHTML=Object.entries(prior.impact||{}).map(([k,d])=>'<span class="impact '+(d>=0?'good':'bad')+'">'+icon(k)+' '+k+' '+(d>=0?'+':'')+d+'</span>').join('');$('reflectionPrompt').textContent=s.reflection}
  audio.pause();audio.src=s.audio;audio.load();$('playBtn').textContent='▶ Play';$('audioTimer').textContent='0:00 / --:--';$('captionOverlay').classList.add('hidden');$('captionOverlay').textContent='';loadCaptions(s.captions);renderStats();updateCC();save()
 }
 function renderStats(target='stats'){
@@ -55,23 +81,23 @@ function icon(k){return({Time:'⏱',Energy:'⚡',Money:'💵',Reliability:'✓',
 function choose(i){
  if(choiceLocked)return;choiceLocked=true;const s=SCENES[state.sceneIndex],c=s.choices[i];
  Object.entries(c.impact).forEach(([k,d])=>state.stats[k]=clamp((state.stats[k]||0)+d));
- state.history=state.history.filter(x=>x.scene!==s.id);state.history.push({scene:s.id,day:s.day,title:s.title,choice:c.text,outcome:c.outcome});
+ state.history=state.history.filter(x=>x.scene!==s.id);state.history.push({scene:s.id,day:s.day,title:s.title,choice:c.text,outcome:c.outcome,impact:c.impact});
  save();renderStats();$('outcomeText').textContent=c.outcome;$('impactList').innerHTML=Object.entries(c.impact).map(([k,d])=>'<span class="impact '+(d>=0?'good':'bad')+'">'+icon(k)+' '+k+' '+(d>=0?'+':'')+d+'</span>').join('');$('reflectionPrompt').textContent=s.reflection;$('decisionPanel').classList.add('hidden');$('outcomePanel').classList.remove('hidden')
 }
 function next(){
  if(state.sceneIndex<SCENES.length-1){state.sceneIndex++;renderScene();window.scrollTo({top:0,behavior:'smooth'})}else{state.complete=true;save();showSummary()}
 }
 function showSummary(){
- audio.pause();$('gameScreen').classList.add('hidden');$('introScreen').classList.add('hidden');$('summaryScreen').classList.remove('hidden');$('dayTop').textContent='EARLY STRETCH COMPLETE';$('progressTop').textContent='5 of 5 checkpoints';renderStats('summaryStats');
+ audio.pause();$('gameScreen').classList.add('hidden');$('introScreen').classList.add('hidden');$('summaryScreen').classList.remove('hidden');$('dayTop').textContent='FIRST MONTH COMPLETE';$('progressTop').textContent=SCENES.length+' of '+SCENES.length+' checkpoints';renderStats('summaryStats');
  const ranked=Object.entries(state.stats).sort((a,b)=>b[1]-a[1]),top=ranked[0][0],low=ranked[ranked.length-1][0];
  $('summaryText').textContent='Your choices protected '+top.toLowerCase()+' most strongly in this run. '+low+' ended as the resource under the most pressure. That is not a grade—it is a picture of the tradeoffs your path created.';
  $('choiceHistory').innerHTML=state.history.map(h=>'<div class="historyItem"><b>Day '+h.day+' • '+esc(h.title)+'</b><span>'+esc(h.choice)+'</span></div>').join('')
 }
-function reset(){if(!confirm('Reset The First 30 and start this stretch again?'))return;state=cloneInitial();save();audio.pause();$('summaryScreen').classList.add('hidden');$('gameScreen').classList.add('hidden');$('introScreen').classList.remove('hidden');$('dayTop').textContent='THE FIRST 30';$('progressTop').textContent='Checkpoint 0 of 5'}
+function reset(){if(!confirm('Reset The First 30 and start again?'))return;state=cloneInitial();save();audio.pause();$('summaryScreen').classList.add('hidden');$('gameScreen').classList.add('hidden');$('introScreen').classList.remove('hidden');$('dayTop').textContent='THE FIRST 30';$('progressTop').textContent='Checkpoint 0 of '+SCENES.length}
 function replay(){audio.currentTime=0;audio.play().catch(()=>{});}
 function updateCC(){$('ccBtn').textContent=state.captionsEnabled?'CC On':'CC Off';if(!state.captionsEnabled){$('captionOverlay').classList.add('hidden');$('captionOverlay').textContent=''}}
 function toggleCC(){state.captionsEnabled=!state.captionsEnabled;save();updateCC();updateCaption()}
-async function loadCaptions(url){cues=[];try{const t=await fetch(url).then(r=>r.text());cues=parseVtt(t)}catch{}updateCaption()}
+async function loadCaptions(url){const request=++captionRequest;cues=[];try{const response=await fetch(url);if(!response.ok)throw Error('Captions unavailable');const parsed=parseVtt(await response.text());if(request===captionRequest)cues=parsed}catch{}if(request===captionRequest)updateCaption()}
 function parseVtt(vtt){
  const out=[],lines=vtt.split(/\r?\n/);let i=0;
  while(i<lines.length){if(lines[i].includes('-->')){const [a,b]=lines[i].split('-->');i++;let text='';while(i<lines.length&&lines[i].trim()!==''){text+=(text?' ':'')+lines[i].trim();i++}out.push({start:tc(a),end:tc(b),text})}i++}return out
