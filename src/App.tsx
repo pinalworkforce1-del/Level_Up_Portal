@@ -194,6 +194,7 @@ export function App() {
   const [rows, setRows] = useState<ProgressRow[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [county, setCounty] = useState<"Pinal" | "Northern" | "">(() => (localStorage.getItem("level-up-pending-county") as "Pinal" | "Northern" | "") || "");
   const [sent, setSent] = useState(false);
   const [message, setMessage] = useState("");
   const [activeKey, setActiveKey] = useState<DistrictKey | null>(null);
@@ -227,6 +228,11 @@ export function App() {
     ]).then(([profile, progress]) => {
       if (!active) return;
       setName(profile.data?.display_name || session.user.email?.split("@")[0] || "Explorer");
+      const pendingCounty = (localStorage.getItem("level-up-pending-county") || county) as "Pinal" | "Northern" | "";
+      if (pendingCounty && profile.data) {
+        await supabase.from("profiles").update({ county: pendingCounty }).eq("user_id", session.user.id);
+        localStorage.setItem("level-up-pending-county", pendingCounty);
+      }
       setRows((progress.data as ProgressRow[] | null) ?? []);
       setMessage(progress.error ? "Your journey could not be refreshed. Try again shortly." : "");
       const welcomeKey = `level-up-opportunity-city-welcome-seen:${session.user.id}`;
@@ -265,7 +271,11 @@ export function App() {
   }
 
   async function signIn() {
-    if (!supabase || !email.trim()) return;
+    if (!supabase || !email.trim() || !county) {
+      if (!county) setMessage("Choose Pinal or Northern before signing in.");
+      return;
+    }
+    localStorage.setItem("level-up-pending-county", county);
     setMessage("");
     const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { emailRedirectTo: redirectUrl() } });
     if (error) return setMessage(error.message);
@@ -370,7 +380,7 @@ export function App() {
   const shadowComplete = complete("shadow-passage");
 
   if (!authReady || loading) return <main className="loading"><span className="brand-mark">LU</span><p>Loading Opportunity City…</p></main>;
-  if (configured && !session) return <SignIn email={email} setEmail={setEmail} sent={sent} message={message} onSubmit={signIn} />;
+  if (configured && !session) return <SignIn email={email} setEmail={setEmail} county={county} setCounty={setCounty} sent={sent} message={message} onSubmit={signIn} />;
 
   return (
     <main className="portal-shell opportunity-shell">
@@ -490,7 +500,7 @@ export function App() {
   );
 }
 
-function SignIn({ email, setEmail, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; sent: boolean; message: string; onSubmit: () => void }) {
+function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | ""; setCounty: (value: "Pinal" | "Northern" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
   return <main className="signin-shell city-signin">
     <img src={`${ASSET}opportunity-city.png`} alt="" aria-hidden="true" />
     <div className="signin-shade" />
@@ -502,6 +512,12 @@ function SignIn({ email, setEmail, sent, message, onSubmit }: { email: string; s
       {sent ? <div className="sent"><Mail /><div><strong>Check your email</strong><span>Open the secure link to return to Opportunity City.</span></div></div> : <>
         <label htmlFor="email">Email address</label>
         <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit()} placeholder="you@example.com" autoComplete="email" />
+        <label htmlFor="county">County</label>
+        <select id="county" value={county} onChange={(event) => setCounty(event.target.value as "Pinal" | "Northern" | "")}>
+          <option value="">Choose county</option>
+          <option value="Pinal">Pinal</option>
+          <option value="Northern">Northern</option>
+        </select>
         <button onClick={onSubmit}>Email my sign-in link <ChevronRight /></button>
       </>}
       {message ? <div className="error">{message}</div> : null}
