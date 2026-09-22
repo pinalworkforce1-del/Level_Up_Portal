@@ -1,0 +1,66 @@
+name: Validate Offline Engine
+
+on:
+  push:
+    branches: ["offline-engine-v1"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Expand packaged assets
+        run: |
+          mkdir -p public/opportunity-city public/first-day-challenge/assets/media
+          for zip in public/opportunity-city/opportunity-city-source-a.zip public/opportunity-city/opportunity-city-source-b.zip; do
+            [ ! -f "$zip" ] || unzip -o "$zip" -d public/opportunity-city
+          done
+          rm -f public/opportunity-city/opportunity-city-source-a.zip public/opportunity-city/opportunity-city-source-b.zip
+          for zip in public/money-moves/money-moves-source-a.zip public/money-moves/money-moves-source-b.zip; do
+            [ ! -f "$zip" ] || unzip -o "$zip" -d public/money-moves
+          done
+          rm -f public/money-moves/money-moves-source-a.zip public/money-moves/money-moves-source-b.zip
+          for zip in public/first-day-challenge/fdc-narration-media-a.zip public/first-day-challenge/fdc-narration-media-b.zip; do
+            [ ! -f "$zip" ] || unzip -o "$zip" -d public/first-day-challenge/assets/media
+          done
+          rm -f public/first-day-challenge/fdc-narration-media-a.zip public/first-day-challenge/fdc-narration-media-b.zip
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+
+      - name: Build portal
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Generate offline manifest
+        run: node scripts/generate-offline-manifest.mjs dist /Level_Up_Portal/
+
+      - name: Validate offline package
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          root = Path("dist")
+          required = ["index.html","offline-sw.js","offline-client.js","offline-manifest.json"]
+          missing = [x for x in required if not (root/x).exists()]
+          if missing:
+              raise SystemExit("Missing offline runtime files: " + ", ".join(missing))
+          m = json.loads((root/"offline-manifest.json").read_text())
+          paths = [x["path"] for x in m["files"]]
+          for ext in [".webp",".mp3",".vtt",".mp4",".js",".css"]:
+              if not any(p.endswith(ext) for p in paths):
+                  raise SystemExit("Manifest has no " + ext + " assets")
+          if m.get("totalBytes",0) < 20_000_000:
+              raise SystemExit("Offline package is unexpectedly small")
+          print("Validated", len(paths), "files,", round(m["totalBytes"]/1024/1024,1), "MB")
+          PY
