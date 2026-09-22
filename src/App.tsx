@@ -225,7 +225,7 @@ export function App() {
     Promise.all([
       supabase.from("profiles").select("display_name").eq("user_id", session.user.id).maybeSingle(),
       supabase.from("module_progress").select("module_id,xp,is_complete,journey_state,updated_at").eq("user_id", session.user.id),
-    ]).then(([profile, progress]) => {
+    ]).then(async ([profile, progress]) => {
       if (!active) return;
       setName(profile.data?.display_name || session.user.email?.split("@")[0] || "Explorer");
       const pendingCounty = (localStorage.getItem("level-up-pending-county") || county) as "Pinal" | "Northern" | "";
