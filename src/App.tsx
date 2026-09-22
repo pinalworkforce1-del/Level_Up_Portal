@@ -230,7 +230,7 @@ export function App() {
       setName(profile.data?.display_name || session.user.email?.split("@")[0] || "Explorer");
       const pendingCounty = (localStorage.getItem("level-up-pending-county") || county) as "Pinal" | "Northern" | "";
       if (pendingCounty && profile.data) {
-        await supabase.from("profiles").update({ county: pendingCounty }).eq("user_id", session.user.id);
+        await supabase!.from("profiles").update({ county: pendingCounty }).eq("user_id", session.user.id);
         localStorage.setItem("level-up-pending-county", pendingCounty);
       }
       setRows((progress.data as ProgressRow[] | null) ?? []);
