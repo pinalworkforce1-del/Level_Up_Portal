@@ -19,6 +19,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { configured, redirectUrl, supabase } from "./supabase";
+import { OfflinePanel } from "./OfflinePanel";
 
 type ProgressRow = {
   module_id: string;
@@ -414,6 +415,7 @@ export function App() {
       </section>
 
       {message ? <div className="notice">{message}</div> : null}
+      <OfflinePanel currentModuleId={currentModuleId} />
 
       <section className="opportunity-stage" aria-label="Interactive Opportunity City map">
         <img className="opportunity-map" src={`${ASSET}opportunity-city.png`} alt="Opportunity City with Discovery, Resume District, Interview Arena, First Day Challenge, Money Moves, Career Skill Tree, and Opportunity Plaza." />
