@@ -194,7 +194,7 @@ export function App() {
   const [rows, setRows] = useState<ProgressRow[]>([]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [county, setCounty] = useState<"Pinal" | "Northern" | "">(() => (localStorage.getItem("level-up-pending-county") as "Pinal" | "Northern" | "") || "");
+  const [county, setCounty] = useState<"Pinal" | "Northern" | "UFO - Eastern New Mexico" | "">(() => (localStorage.getItem("level-up-pending-county") as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") || "");
   const [sent, setSent] = useState(false);
   const [message, setMessage] = useState("");
   const [activeKey, setActiveKey] = useState<DistrictKey | null>(null);
@@ -228,10 +228,24 @@ export function App() {
     ]).then(async ([profile, progress]) => {
       if (!active) return;
       setName(profile.data?.display_name || session.user.email?.split("@")[0] || "Explorer");
-      const pendingCounty = (localStorage.getItem("level-up-pending-county") || county) as "Pinal" | "Northern" | "";
+      const pendingCounty = (localStorage.getItem("level-up-pending-county") || county) as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "";
       if (pendingCounty && profile.data) {
         await supabase!.from("profiles").update({ county: pendingCounty }).eq("user_id", session.user.id);
         localStorage.setItem("level-up-pending-county", pendingCounty);
+      }
+      try {
+        const linkRes = await fetch("https://dnijrzotfyvmmnmueknk.supabase.co/functions/v1/levelup-facilitated", {
+          method: "POST",
+          headers: { "Content-Type": "application/json", "Authorization": "Bearer " + session.access_token },
+          body: JSON.stringify({ action: "link_authenticated" }),
+        });
+        const linkData = await linkRes.json().catch(() => null);
+        if (!linkRes.ok && linkRes.status !== 409) console.warn("Facilitated identity link deferred", linkData);
+        if (linkRes.status === 409 && linkData?.reason === "location_conflict") {
+          setMessage("Your self-paced and facilitated records use different locations. Ask a Level Up administrator to reconcile them before they are combined.");
+        }
+      } catch (err) {
+        console.warn("Facilitated identity link deferred", err);
       }
       setRows((progress.data as ProgressRow[] | null) ?? []);
       setMessage(progress.error ? "Your journey could not be refreshed. Try again shortly." : "");
@@ -500,7 +514,7 @@ export function App() {
   );
 }
 
-function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | ""; setCounty: (value: "Pinal" | "Northern" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
+function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | ""; setCounty: (value: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
   return <main className="signin-shell city-signin">
     <img src={`${ASSET}opportunity-city.png`} alt="" aria-hidden="true" />
     <div className="signin-shade" />
@@ -513,10 +527,11 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
         <label htmlFor="email">Email address</label>
         <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit()} placeholder="you@example.com" autoComplete="email" />
         <label htmlFor="county">County</label>
-        <select id="county" value={county} onChange={(event) => setCounty(event.target.value as "Pinal" | "Northern" | "")}>
+        <select id="county" value={county} onChange={(event) => setCounty(event.target.value as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "")}>
           <option value="">Choose county</option>
           <option value="Pinal">Pinal</option>
           <option value="Northern">Northern</option>
+          <option value="UFO - Eastern New Mexico">UFO - Eastern New Mexico</option>
         </select>
         <button onClick={onSubmit}>Email my sign-in link <ChevronRight /></button>
       </>}
