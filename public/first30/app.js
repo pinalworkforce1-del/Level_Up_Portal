@@ -1,4 +1,6 @@
-const LIVE_ROOM=(new URLSearchParams(location.search).get('room')||'').toUpperCase().replace(/[^A-Z2-9]/g,'');
+const PAGE_PARAMS=new URLSearchParams(location.search);
+const LIVE_ROOM=(PAGE_PARAMS.get('room')||'').toUpperCase().replace(/[^A-Z2-9]/g,'');
+const FROM_FIRST_DAY=PAGE_PARAMS.get('from')==='first-day-challenge';
 const STORAGE_KEY=LIVE_ROOM.length>=8?'level-up-first30-live-'+LIVE_ROOM:'level-up-first30-v1';
 const SCENES=[
  {id:'d01_morning',day:1,title:'The Morning Choice',prompt:'Your first shift starts at 9:00 AM. You planned to leave at 8:10, but you stayed up late and hit snooze twice. It is 7:55. You still need to get dressed, eat something, and make your bus.',image:'./assets/images/first30_d01_morning_scene.webp',audio:'./assets/audio/first30_d01_morning_narration.mp3',captions:'./assets/captions/first30_d01_morning_captions.vtt',reflection:'What are you protecting most right now: time, energy, or money?',choices:[
@@ -93,7 +95,8 @@ function showSummary(){
  audio.pause();notifyRoom();$('gameScreen').classList.add('hidden');$('introScreen').classList.add('hidden');$('summaryScreen').classList.remove('hidden');$('dayTop').textContent='FIRST MONTH COMPLETE';$('progressTop').textContent=SCENES.length+' of '+SCENES.length+' checkpoints';renderStats('summaryStats');
  const ranked=Object.entries(state.stats).sort((a,b)=>b[1]-a[1]),top=ranked[0][0],low=ranked[ranked.length-1][0];
  $('summaryText').textContent='Your choices protected '+top.toLowerCase()+' most strongly in this run. '+low+' ended as the resource under the most pressure. That is not a grade—it is a picture of the tradeoffs your path created.';
- $('choiceHistory').innerHTML=state.history.map(h=>'<div class="historyItem"><b>Day '+h.day+' • '+esc(h.title)+'</b><span>'+esc(h.choice)+'</span></div>').join('')
+ $('choiceHistory').innerHTML=state.history.map(h=>'<div class="historyItem"><b>Day '+h.day+' • '+esc(h.title)+'</b><span>'+esc(h.choice)+'</span></div>').join('');
+ const returnBtn=$('returnPortalBtn');if(returnBtn)returnBtn.classList.toggle('hidden',!!LIVE_ROOM||!FROM_FIRST_DAY)
 }
 function reset(){if(!confirm('Reset The First 30 and start again?'))return;state=cloneInitial();save();audio.pause();$('summaryScreen').classList.add('hidden');$('gameScreen').classList.add('hidden');$('introScreen').classList.remove('hidden');$('dayTop').textContent='THE FIRST 30';$('progressTop').textContent='Checkpoint 0 of '+SCENES.length}
 function replay(){audio.currentTime=0;audio.play().catch(()=>{});}
@@ -114,5 +117,6 @@ audio.addEventListener('timeupdate',()=>{$('audioTimer').textContent=fmt(audio.c
 audio.addEventListener('play',()=>{$('playBtn').textContent='❚❚ Pause'});
 audio.addEventListener('pause',()=>{if(!audio.ended)$('playBtn').textContent='▶ Play'});
 audio.addEventListener('ended',()=>{$('playBtn').textContent='▶ Play';$('captionOverlay').classList.add('hidden')});
-$('startBtn').onclick=start;$('playBtn').onclick=()=>audio.paused?audio.play().catch(()=>{}):audio.pause();$('replayBtn').onclick=replay;$('ccBtn').onclick=toggleCC;$('continueBtn').onclick=next;$('resetBtn').onclick=reset;$('restartBtn').onclick=()=>{state=cloneInitial();state.started=true;save();$('summaryScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');renderScene();window.scrollTo(0,0)};
+$('startBtn').onclick=start;$('playBtn').onclick=()=>audio.paused?audio.play().catch(()=>{}):audio.pause();
+const returnPortalBtn=$('returnPortalBtn');if(returnPortalBtn)returnPortalBtn.onclick=()=>{location.href='../?completed=first-day-challenge'};$('replayBtn').onclick=replay;$('ccBtn').onclick=toggleCC;$('continueBtn').onclick=next;$('resetBtn').onclick=reset;$('restartBtn').onclick=()=>{state=cloneInitial();state.started=true;save();$('summaryScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');renderScene();window.scrollTo(0,0)};
 updateCC();if(state.complete)showSummary();else if(state.started){$('introScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');renderScene()}
