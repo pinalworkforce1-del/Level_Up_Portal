@@ -28,18 +28,25 @@
     },
 
     async save(state, complete=false){
-      const s = await session();
-      if(!s) return { signedIn:false };
       const now = new Date().toISOString();
+      const finished = Boolean(complete || state?.finished);
+      window.LevelUpOfflineProgress?.save(MODULE_ID,state||{},{xp:Number(state?.xp||0),isComplete:finished,completedAt:finished?now:null,updatedAt:now});
+      const s = await session();
+      if(!s) return false;
       const payload = {
         user_id: s.user.id,
         module_id: MODULE_ID,
         journey_state: state,
         xp: Number(state?.xp || 0),
-        is_complete: Boolean(complete || state?.finished),
+        is_complete: finished,
         updated_at: now,
-        completed_at: (complete || state?.finished) ? now : null
+        completed_at: finished ? now : null
       };
+      const { error } = await client.from('module_progress').upsert(payload, { onConflict:'user_id,module_id' });
+      if(error) throw error;
+      window.LevelUpOfflineProgress?.markSynced(MODULE_ID);
+      return true;
+    }  };
       const { error } = await client.from('module_progress').upsert(payload, { onConflict:'user_id,module_id' });
       if(error) throw error;
       return { signedIn:true };

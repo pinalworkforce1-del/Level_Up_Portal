@@ -19,6 +19,8 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { configured, redirectUrl, supabase } from "./supabase";
+import { OfflinePanel } from "./OfflinePanel";
+import { flushOfflineProgress, mergeOfflineProgress } from "./offlineProgress";
 
 type ProgressRow = {
   module_id: string;
@@ -247,14 +249,29 @@ export function App() {
       } catch (err) {
         console.warn("Facilitated identity link deferred", err);
       }
-      setRows((progress.data as ProgressRow[] | null) ?? []);
-      setMessage(progress.error ? "Your journey could not be refreshed. Try again shortly." : "");
+      const mergedProgress = mergeOfflineProgress((progress.data as ProgressRow[] | null) ?? []);
+      setRows(mergedProgress);
+      setMessage(progress.error ? (mergedProgress.length ? "Offline mode • showing progress saved on this device." : "Your journey could not be refreshed. Try again shortly.") : "");
+      if (navigator.onLine) {
+        const refreshed = await flushOfflineProgress(supabase, session.user.id);
+        if (active && refreshed) setRows(mergeOfflineProgress(refreshed as ProgressRow[]));
+      }
       const welcomeKey = `level-up-opportunity-city-welcome-seen:${session.user.id}`;
       setWelcomeGate(localStorage.getItem(welcomeKey) !== "1");
       setLoading(false);
     });
     return () => { active = false; };
   }, [session?.user.id, authReady]);
+
+  useEffect(() => {
+    if (!session || !supabase) return;
+    const syncPending = async () => {
+      const refreshed = await flushOfflineProgress(supabase, session.user.id);
+      if (refreshed) setRows(mergeOfflineProgress(refreshed as ProgressRow[]));
+    };
+    window.addEventListener("online", syncPending);
+    return () => window.removeEventListener("online", syncPending);
+  }, [session?.user.id]);
 
   const progressById = useMemo(() => new Map(rows.map((row) => [row.module_id, row])), [rows]);
   const complete = (id: string) => Boolean(progressById.get(id)?.is_complete);
@@ -414,6 +431,7 @@ export function App() {
       </section>
 
       {message ? <div className="notice">{message}</div> : null}
+      <OfflinePanel currentModuleId={currentModuleId} />
 
       <section className="opportunity-stage" aria-label="Interactive Opportunity City map">
         <img className="opportunity-map" src={`${ASSET}opportunity-city.png`} alt="Opportunity City with Discovery, Resume District, Interview Arena, First Day Challenge, Money Moves, Career Skill Tree, and Opportunity Plaza." />
