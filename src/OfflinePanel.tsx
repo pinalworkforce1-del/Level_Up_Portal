@@ -1,9 +1,14 @@
-import { CheckCircle2, Download, HardDriveDownload, Wifi, WifiOff, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { CheckCircle2, Download, HardDriveDownload, MonitorDown, Smartphone, Wifi, WifiOff, X } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
 type OfflineApi = {
   prepareScopes: (roots: string[], onProgress?: (event: { phase: string; root: string; index: number; total: number }) => void) => Promise<Array<{ root: string; ok: boolean }>>;
   estimateScopes: (roots: string[]) => Promise<{ totalBytes: number; totalFiles: number }>;
+};
+
+type InstallPromptEvent = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
 };
 
 declare global {
@@ -55,6 +60,48 @@ export function OfflinePanel({ currentModuleId }: { currentModuleId: string | nu
   const [status, setStatus] = useState("");
   const [ready, setReady] = useState(false);
   const [estimate, setEstimate] = useState("");
+  const [installPrompt, setInstallPrompt] = useState<InstallPromptEvent | null>(null);
+  const [installStatus, setInstallStatus] = useState("");
+  const [installed, setInstalled] = useState(() => window.matchMedia?.("(display-mode: standalone)")?.matches || (navigator as Navigator & { standalone?: boolean }).standalone === true);
+  const isIos = /iphone|ipad|ipod/i.test(navigator.userAgent);
+
+  useEffect(() => {
+    const captureInstall = (event: Event) => {
+      event.preventDefault();
+      setInstallPrompt(event as InstallPromptEvent);
+    };
+    const markInstalled = () => {
+      setInstalled(true);
+      setInstallPrompt(null);
+      setInstallStatus("Level Up is installed on this device.");
+    };
+    window.addEventListener("beforeinstallprompt", captureInstall);
+    window.addEventListener("appinstalled", markInstalled);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", captureInstall);
+      window.removeEventListener("appinstalled", markInstalled);
+    };
+  }, []);
+
+  async function installApp() {
+    if (installed) {
+      setInstallStatus("Level Up is already installed on this device.");
+      return;
+    }
+    if (installPrompt) {
+      await installPrompt.prompt();
+      const choice = await installPrompt.userChoice;
+      setInstallStatus(choice.outcome === "accepted" ? "Level Up was added to this device." : "Installation was cancelled. You can try again anytime.");
+      if (choice.outcome === "accepted") setInstalled(true);
+      setInstallPrompt(null);
+      return;
+    }
+    if (isIos) {
+      setInstallStatus("On iPhone or iPad: tap Share, then Add to Home Screen.");
+      return;
+    }
+    setInstallStatus("Use your browser menu and choose Install Level Up or Add to home screen.");
+  }
 
   const nextScopes = useMemo(() => {
     const idx = currentModuleId ? JOURNEY.indexOf(currentModuleId as (typeof JOURNEY)[number]) : -1;
@@ -124,6 +171,15 @@ export function OfflinePanel({ currentModuleId }: { currentModuleId: string | nu
           {ready ? <CheckCircle2 /> : navigator.onLine ? <Wifi /> : <WifiOff />}
           <span>{status || ("Nothing downloads unless you choose an option." + (estimate ? " Last estimate: " + estimate + "." : ""))}</span>
         </div>
+        {ready || installed ? <div className="offline-install">
+          <div className="offline-install-copy">
+            {installed ? <Smartphone /> : <MonitorDown />}
+            <span><b>{installed ? "Level Up is installed" : "Cold-start access"}</b><small>{installed ? "Launch Level Up from its device icon, even when the browser is closed." : "Add Level Up to this device so Opportunity City can launch directly from its icon when you are offline."}</small></span>
+          </div>
+          {!installed ? <button type="button" onClick={installApp}><Smartphone /> Add Level Up to this device</button> : null}
+          {installStatus ? <small className="install-status">{installStatus}</small> : null}
+        </div> : null}
+
         <small className="offline-note">AI tools, live labor-market lookups, email sign-in, and live facilitator features still require a connection. Offline progress syncing is handled separately when connectivity returns.</small>
       </div> : null}
     </section>
