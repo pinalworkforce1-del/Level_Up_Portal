@@ -19,7 +19,7 @@
   const $ = s => document.querySelector(s), stage=$('#stage'), image=$('#sceneImage'), hotspots=$('#hotspots'), video=$('#narrationVideo'), playBtn=$('#play'), muteBtn=$('#mute'), backBtn=$('#back'), contBtn=$('#continue'), accessBtn=$('#access'), restartBtn=$('#restart'), skipBtn=$('#skip'), replayBtn=$('#replay'), gate=$('#gate'), modal=$('#modal'), modalBody=$('#modalBody'), modalClose=$('#modalClose');
 
   function load(){ try{return {...baseState,...JSON.parse(localStorage.getItem(STORE)||'{}')}}catch{return {...baseState}} }
-  function save(){ localStorage.setItem(STORE,JSON.stringify(state)); if(cloudReady&&window.ShadowPassageCloud) window.ShadowPassageCloud.save(state,state.finished).then(()=>setCloudStatus('CLOUD SYNCED')).catch(()=>setCloudStatus('LOCAL SAVE • CLOUD RETRY NEEDED')); }
+  function save(){ localStorage.setItem(STORE,JSON.stringify(state)); window.LevelUpOfflineProgress?.save('shadow-passage',state,{xp:state.xp,isComplete:state.finished,completedAt:state.finished?new Date().toISOString():null}); if(cloudReady&&window.ShadowPassageCloud) window.ShadowPassageCloud.save(state,state.finished).then(()=>setCloudStatus('CLOUD SYNCED')).catch(()=>setCloudStatus('LOCAL SAVE • CLOUD RETRY NEEDED')); }
   function setCloudStatus(text){ const el=$('#saveState'); if(el)el.textContent=text; }
   async function initCloud(){
     if(!window.ShadowPassageCloud){setCloudStatus('LOCAL SAVE');return}
