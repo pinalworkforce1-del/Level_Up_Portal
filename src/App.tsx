@@ -214,9 +214,40 @@ export function App() {
 
   useEffect(() => {
     if (!supabase) { setAuthReady(true); setLoading(false); return; }
-    supabase.auth.getSession().then(({ data }) => { setSession(data.session); setAuthReady(true); });
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => { setSession(next); setAuthReady(true); });
-    return () => data.subscription.unsubscribe();
+    let active = true;
+
+    const restoreSession = async () => {
+      const { data } = await supabase.auth.getSession();
+      const cached = data.session;
+
+      if (!cached) {
+        if (active) { setSession(null); setAuthReady(true); }
+        return;
+      }
+
+      if (!navigator.onLine) {
+        if (active) { setSession(cached); setAuthReady(true); }
+        return;
+      }
+
+      const { data: verified, error } = await supabase.auth.getUser();
+      if (!active) return;
+
+      if (error || !verified.user || verified.user.id !== cached.user.id) {
+        await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        setSession(null);
+      } else {
+        setSession(cached);
+      }
+      setAuthReady(true);
+    };
+
+    void restoreSession();
+    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
+      setAuthReady(true);
+    });
+    return () => { active = false; data.subscription.unsubscribe(); };
   }, []);
 
   useEffect(() => {
@@ -328,13 +359,16 @@ export function App() {
     }
     setSavingName(true);
     setMessage("");
-    const { error } = await supabase.from("profiles").update({
+    const { data, error } = await supabase.from("profiles").upsert({
+      user_id: session.user.id,
+      email: session.user.email || null,
       display_name: clean,
       updated_at: new Date().toISOString(),
-    }).eq("user_id", session.user.id);
+    }, { onConflict: "user_id" }).select("display_name").single();
     setSavingName(false);
-    if (error) {
-      setMessage("We couldn't save your name yet. Please try again.");
+    if (error || !data?.display_name) {
+      setMessage("Your saved session is no longer valid. Sign in again to continue.");
+      if (navigator.onLine) await supabase.auth.signOut({ scope: "local" }).catch(() => {});
       return;
     }
     setName(clean);
