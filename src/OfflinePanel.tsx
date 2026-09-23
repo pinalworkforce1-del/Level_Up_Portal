@@ -104,7 +104,7 @@ export function OfflinePanel({ currentModuleId }: { currentModuleId: string | nu
 
       {open ? <div className="offline-panel">
         <div className="offline-panel-head">
-          <div><p className="eyebrow">LEVEL UP OFFLINE ENGINE v1.0</p><h2>Prepare before the signal drops.</h2></div>
+          <div><p className="eyebrow">LEVEL UP OFFLINE ENGINE v1.0.1</p><h2>Prepare before the signal drops.</h2></div>
           <button onClick={() => setOpen(false)} aria-label="Close offline access"><X /></button>
         </div>
         <p>Download Level Up content while you have a reliable connection. Once prepared, the included modules keep their artwork, narration, captions, and interactive activities even when the internet becomes unstable.</p>
