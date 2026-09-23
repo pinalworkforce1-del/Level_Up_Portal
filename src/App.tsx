@@ -214,10 +214,11 @@ export function App() {
 
   useEffect(() => {
     if (!supabase) { setAuthReady(true); setLoading(false); return; }
+    const client = supabase;
     let active = true;
 
     const restoreSession = async () => {
-      const { data } = await supabase.auth.getSession();
+      const { data } = await client.auth.getSession();
       const cached = data.session;
 
       if (!cached) {
@@ -230,11 +231,11 @@ export function App() {
         return;
       }
 
-      const { data: verified, error } = await supabase.auth.getUser();
+      const { data: verified, error } = await client.auth.getUser();
       if (!active) return;
 
       if (error || !verified.user || verified.user.id !== cached.user.id) {
-        await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+        await client.auth.signOut({ scope: "local" }).catch(() => {});
         setSession(null);
       } else {
         setSession(cached);
@@ -243,7 +244,7 @@ export function App() {
     };
 
     void restoreSession();
-    const { data } = supabase.auth.onAuthStateChange((_event, next) => {
+    const { data } = client.auth.onAuthStateChange((_event, next) => {
       setSession(next);
       setAuthReady(true);
     });
