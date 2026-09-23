@@ -195,6 +195,9 @@ export function App() {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<ProgressRow[]>([]);
   const [name, setName] = useState("");
+  const [needsName, setNeedsName] = useState(false);
+  const [nameDraft, setNameDraft] = useState("");
+  const [savingName, setSavingName] = useState(false);
   const [email, setEmail] = useState("");
   const [county, setCounty] = useState<"Pinal" | "Northern" | "UFO - Eastern New Mexico" | "">(() => (localStorage.getItem("level-up-pending-county") as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") || "");
   const [sent, setSent] = useState(false);
@@ -229,7 +232,10 @@ export function App() {
       supabase.from("module_progress").select("module_id,xp,is_complete,journey_state,updated_at").eq("user_id", session.user.id),
     ]).then(async ([profile, progress]) => {
       if (!active) return;
-      setName(profile.data?.display_name || session.user.email?.split("@")[0] || "Explorer");
+      const canonicalName = (profile.data?.display_name || "").trim();
+      setName(canonicalName);
+      setNameDraft(canonicalName);
+      setNeedsName(!canonicalName);
       const pendingCounty = (localStorage.getItem("level-up-pending-county") || county) as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "";
       if (pendingCounty && profile.data) {
         await supabase!.from("profiles").update({ county: pendingCounty }).eq("user_id", session.user.id);
@@ -311,6 +317,29 @@ export function App() {
     const { error } = await supabase.auth.signInWithOtp({ email: email.trim().toLowerCase(), options: { emailRedirectTo: redirectUrl() } });
     if (error) return setMessage(error.message);
     setSent(true);
+  }
+
+  async function saveProfileName() {
+    if (!session || !supabase) return;
+    const clean = nameDraft.trim().replace(/\s+/g, " ");
+    if (clean.length < 2 || clean.length > 60) {
+      setMessage("Enter the professional name you want coaches to see (2–60 characters).");
+      return;
+    }
+    setSavingName(true);
+    setMessage("");
+    const { error } = await supabase.from("profiles").update({
+      display_name: clean,
+      updated_at: new Date().toISOString(),
+    }).eq("user_id", session.user.id);
+    setSavingName(false);
+    if (error) {
+      setMessage("We couldn't save your name yet. Please try again.");
+      return;
+    }
+    setName(clean);
+    setNameDraft(clean);
+    setNeedsName(false);
   }
 
   async function signOut() {
@@ -412,6 +441,7 @@ export function App() {
 
   if (!authReady || loading) return <main className="loading"><span className="brand-mark">LU</span><p>Loading Opportunity City…</p></main>;
   if (configured && !session) return <SignIn email={email} setEmail={setEmail} county={county} setCounty={setCounty} sent={sent} message={message} onSubmit={signIn} />;
+  if (configured && session && needsName) return <NameGate value={nameDraft} setValue={setNameDraft} saving={savingName} message={message} onSave={saveProfileName} onSignOut={signOut} />;
 
   return (
     <main className="portal-shell opportunity-shell">
@@ -530,6 +560,25 @@ export function App() {
       </section>
     </main>
   );
+}
+
+function NameGate({ value, setValue, saving, message, onSave, onSignOut }: { value: string; setValue: (value: string) => void; saving: boolean; message: string; onSave: () => void; onSignOut: () => void }) {
+  return <main className="signin-shell city-signin">
+    <img src={`${ASSET}opportunity-city.png`} alt="" aria-hidden="true" />
+    <div className="signin-shade" />
+    <section className="signin-card">
+      <div className="brand"><span className="brand-mark">LU</span><div><strong>LEVEL UP</strong><span>OPPORTUNITY CITY</span></div></div>
+      <p className="eyebrow">FIRST TIME IN OPPORTUNITY CITY</p>
+      <h1>What should we call you?</h1>
+      <p>Use the professional name you want your coach to see. Level Up will use this name across your modules, progress, and certificates.</p>
+      <label htmlFor="display-name">Professional name</label>
+      <input id="display-name" type="text" value={value} onChange={(event) => setValue(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSave()} placeholder="First and last name" autoComplete="name" maxLength={60} autoFocus />
+      <button onClick={onSave} disabled={saving}>{saving ? "Saving…" : <>Continue to Opportunity City <ChevronRight /></>}</button>
+      {message ? <div className="error">{message}</div> : null}
+      <small>This name is tied to your Level Up account on this device and in your saved progress.</small>
+      <button className="text-button" onClick={onSignOut}>Use a different account</button>
+    </section>
+  </main>;
 }
 
 function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | ""; setCounty: (value: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
