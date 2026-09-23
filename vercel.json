@@ -1,0 +1,6 @@
+{
+  "buildCommand": "bash scripts/build-offline-preview.sh",
+  "outputDirectory": "preview-dist",
+  "framework": null,
+  "cleanUrls": false
+}
