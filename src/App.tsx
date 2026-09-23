@@ -255,12 +255,12 @@ export function App() {
       } catch (err) {
         console.warn("Facilitated identity link deferred", err);
       }
-      const mergedProgress = mergeOfflineProgress((progress.data as ProgressRow[] | null) ?? []);
+      const mergedProgress = mergeOfflineProgress((progress.data as ProgressRow[] | null) ?? [], session.user.id);
       setRows(mergedProgress);
       setMessage(progress.error ? (mergedProgress.length ? "Offline mode • showing progress saved on this device." : "Your journey could not be refreshed. Try again shortly.") : "");
       if (navigator.onLine) {
         const refreshed = await flushOfflineProgress(supabase, session.user.id);
-        if (active && refreshed) setRows(mergeOfflineProgress(refreshed as ProgressRow[]));
+        if (active && refreshed) setRows(mergeOfflineProgress(refreshed as ProgressRow[], session.user.id));
       }
       const welcomeKey = `level-up-opportunity-city-welcome-seen:${session.user.id}`;
       setWelcomeGate(localStorage.getItem(welcomeKey) !== "1");
@@ -273,7 +273,7 @@ export function App() {
     if (!session || !supabase) return;
     const syncPending = async () => {
       const refreshed = await flushOfflineProgress(supabase, session.user.id);
-      if (refreshed) setRows(mergeOfflineProgress(refreshed as ProgressRow[]));
+      if (refreshed) setRows(mergeOfflineProgress(refreshed as ProgressRow[], session.user.id));
     };
     window.addEventListener("online", syncPending);
     return () => window.removeEventListener("online", syncPending);
