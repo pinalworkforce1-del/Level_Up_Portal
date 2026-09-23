@@ -189,6 +189,10 @@ function parseVtt(text: string): Cue[] {
   return cues;
 }
 
+function profileNameKey(userId: string) {
+  return `level-up-profile-name-v1:${userId}`;
+}
+
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
@@ -264,10 +268,13 @@ export function App() {
       supabase.from("module_progress").select("module_id,xp,is_complete,journey_state,updated_at").eq("user_id", session.user.id),
     ]).then(async ([profile, progress]) => {
       if (!active) return;
-      const canonicalName = (profile.data?.display_name || "").trim();
+      const cloudName = (profile.data?.display_name || "").trim();
+      const cachedName = (localStorage.getItem(profileNameKey(session.user.id)) || "").trim();
+      const canonicalName = cloudName || cachedName;
+      if (cloudName) localStorage.setItem(profileNameKey(session.user.id), cloudName);
       setName(canonicalName);
       setNameDraft(canonicalName);
-      setNeedsName(!canonicalName);
+      setNeedsName(!canonicalName && navigator.onLine);
       const pendingCounty = (localStorage.getItem("level-up-pending-county") || county) as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "";
       if (pendingCounty && profile.data) {
         await supabase!.from("profiles").update({ county: pendingCounty }).eq("user_id", session.user.id);
@@ -373,8 +380,10 @@ export function App() {
       setMessage("We couldn't save your name yet. Please try again.");
       return;
     }
-    setName(data.display_name);
-    setNameDraft(clean);
+    const savedName = data.display_name.trim();
+    localStorage.setItem(profileNameKey(session.user.id), savedName);
+    setName(savedName);
+    setNameDraft(savedName);
     setNeedsName(false);
   }
 
