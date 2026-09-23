@@ -78,7 +78,7 @@ export async function flushOfflineProgress(supabase: any, userId: string) {
     .in("module_id", ids);
 
   if (remoteError) return null;
-  const remote = new Map((remoteRows || []).map((row: CloudProgressRow) => [row.module_id, row]));
+  const remote = new Map<string, CloudProgressRow>(((remoteRows || []) as CloudProgressRow[]).map((row) => [row.module_id, row]));
 
   let changed = false;
   for (const entry of pending) {
