@@ -45,7 +45,7 @@ export function mergeOfflineProgress(rows: CloudProgressRow[] | null | undefined
   for (const entry of Object.values(local)) {
     if (!entry?.module_id) continue;
     const cloud = remote.get(entry.module_id);
-    if (entry.pending && newerOrFurther(entry, cloud)) {
+    if (newerOrFurther(entry, cloud)) {
       remote.set(entry.module_id, {
         module_id: entry.module_id,
         journey_state: entry.journey_state || {},
