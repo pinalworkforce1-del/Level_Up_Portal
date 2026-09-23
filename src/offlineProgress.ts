@@ -12,11 +12,12 @@ type LocalProgressRow = CloudProgressRow & {
   last_synced_at?: string | null;
 };
 
-const KEY = "level-up-offline-progress-v1";
+const BASE_KEY = "level-up-offline-progress-v2";
+const keyFor = (userId: string) => `${BASE_KEY}:${userId}`;
 
-function readLocal(): Record<string, LocalProgressRow> {
+function readLocal(userId: string): Record<string, LocalProgressRow> {
   try {
-    const raw = localStorage.getItem(KEY);
+    const raw = localStorage.getItem(keyFor(userId));
     const parsed = raw ? JSON.parse(raw) : {};
     return parsed && typeof parsed === "object" ? parsed : {};
   } catch {
@@ -24,8 +25,8 @@ function readLocal(): Record<string, LocalProgressRow> {
   }
 }
 
-function writeLocal(data: Record<string, LocalProgressRow>) {
-  localStorage.setItem(KEY, JSON.stringify(data));
+function writeLocal(userId: string, data: Record<string, LocalProgressRow>) {
+  localStorage.setItem(keyFor(userId), JSON.stringify(data));
 }
 
 function newerOrFurther(local: LocalProgressRow, remote?: CloudProgressRow | null) {
@@ -37,9 +38,9 @@ function newerOrFurther(local: LocalProgressRow, remote?: CloudProgressRow | nul
   return lt >= rt;
 }
 
-export function mergeOfflineProgress(rows: CloudProgressRow[] | null | undefined): CloudProgressRow[] {
+export function mergeOfflineProgress(rows: CloudProgressRow[] | null | undefined, userId: string): CloudProgressRow[] {
   const remote = new Map((rows || []).map((row) => [row.module_id, row]));
-  const local = readLocal();
+  const local = readLocal(userId);
 
   for (const entry of Object.values(local)) {
     if (!entry?.module_id) continue;
@@ -59,14 +60,14 @@ export function mergeOfflineProgress(rows: CloudProgressRow[] | null | undefined
   return [...remote.values()];
 }
 
-export function pendingOfflineCount() {
-  return Object.values(readLocal()).filter((row) => row?.pending).length;
+export function pendingOfflineCount(userId: string) {
+  return Object.values(readLocal(userId)).filter((row) => row?.pending).length;
 }
 
 export async function flushOfflineProgress(supabase: any, userId: string) {
   if (!supabase || !userId || !navigator.onLine) return null;
 
-  const localMap = readLocal();
+  const localMap = readLocal(userId);
   const pending = Object.values(localMap).filter((row) => row?.pending && row.module_id);
   if (!pending.length) return null;
 
@@ -104,7 +105,7 @@ export async function flushOfflineProgress(supabase: any, userId: string) {
     changed = true;
   }
 
-  if (changed) writeLocal(localMap);
+  if (changed) writeLocal(userId, localMap);
 
   const { data } = await supabase
     .from("module_progress")
