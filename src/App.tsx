@@ -384,6 +384,11 @@ export function App() {
     await supabase?.auth.signOut();
     setSession(null);
     setRows([]);
+    setMessage("");
+    setSent(false);
+    setNeedsName(false);
+    setName("");
+    setNameDraft("");
   }
 
   function markWelcomeSeen() {
