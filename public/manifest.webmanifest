@@ -1,0 +1,44 @@
+{
+  "name": "Level Up — Opportunity City",
+  "short_name": "Level Up",
+  "description": "Level Up career readiness journey with offline access.",
+  "id": "/Level_Up_Portal/",
+  "start_url": "/Level_Up_Portal/?source=pwa",
+  "scope": "/Level_Up_Portal/",
+  "display": "standalone",
+  "display_override": [
+    "window-controls-overlay",
+    "standalone"
+  ],
+  "background_color": "#05081c",
+  "theme_color": "#05081c",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/Level_Up_Portal/level-up-app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/Level_Up_Portal/level-up-app-icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Opportunity City",
+      "short_name": "City",
+      "url": "/Level_Up_Portal/",
+      "icons": [
+        {
+          "src": "/Level_Up_Portal/level-up-app-icon.svg",
+          "sizes": "any",
+          "type": "image/svg+xml"
+        }
+      ]
+    }
+  ]
+}
