@@ -360,19 +360,20 @@ export function App() {
     }
     setSavingName(true);
     setMessage("");
-    const { data, error } = await supabase.from("profiles").upsert({
-      user_id: session.user.id,
-      email: session.user.email || null,
-      display_name: clean,
-      updated_at: new Date().toISOString(),
-    }, { onConflict: "user_id" }).select("display_name").single();
+    const { data, error } = await supabase.from("profiles")
+      .update({
+        display_name: clean,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("user_id", session.user.id)
+      .select("display_name")
+      .maybeSingle();
     setSavingName(false);
     if (error || !data?.display_name) {
-      setMessage("Your saved session is no longer valid. Sign in again to continue.");
-      if (navigator.onLine) await supabase.auth.signOut({ scope: "local" }).catch(() => {});
+      setMessage("We couldn't save your name yet. Please try again.");
       return;
     }
-    setName(clean);
+    setName(data.display_name);
     setNameDraft(clean);
     setNeedsName(false);
   }
