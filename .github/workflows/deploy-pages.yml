@@ -47,12 +47,29 @@ jobs:
         run: |
           python3 - <<'PY'
           from pathlib import Path
+
           p=Path('public/money-moves/index.html')
           if p.exists():
               s=p.read_text()
               if '../offline-progress.js' not in s:
                   s=s.replace('</body>', '<script defer src="../offline-client.js"></script><script defer src="../offline-progress.js"></script></body>')
               p.write_text(s)
+
+          app=Path('public/money-moves/app.js')
+          if app.exists():
+              s=app.read_text()
+              old="function localSave(){try{localStorage.setItem(LOCAL_KEY,JSON.stringify(snapshot()))}catch{}}"
+              new="function localSave(){try{const snap=snapshot();localStorage.setItem(LOCAL_KEY,JSON.stringify(snap));window.LevelUpOfflineProgress?.save('money-moves',snap,{xp:snap.xp,isComplete:snap.finished,completedAt:snap.finished?new Date().toISOString():null})}catch{}}"
+              if old not in s:
+                  raise SystemExit('Money Moves localSave signature changed; offline queue patch not applied')
+              s=s.replace(old,new,1)
+              app.write_text(s)
+
+          sync=Path('public/money-moves/supabase-sync.js')
+          if sync.exists():
+              text=sync.read_text()
+              if 'LevelUpOfflineProgress?.save(MODULE_ID' not in text or 'LevelUpOfflineProgress?.markSynced(MODULE_ID)' not in text:
+                  raise SystemExit('Money Moves shared offline progress hooks missing')
           PY
 
       - name: Expand First Day Challenge narration media
