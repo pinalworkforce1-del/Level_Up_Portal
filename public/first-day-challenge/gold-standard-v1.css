@@ -1,0 +1,130 @@
+/* Level Up First Day Challenge — gold-standard self-paced shell v1 */
+body.fdc-gold-standard .hud{
+  grid-template-columns:235px minmax(0,1fr) auto;
+  gap:18px;
+}
+body.fdc-gold-standard .mission-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:16px;
+  align-items:center;
+}
+body.fdc-gold-standard #xp{
+  color:var(--gold);
+  white-space:nowrap;
+  font-size:13px;
+}
+body.fdc-gold-standard .header-utils{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+}
+body.fdc-gold-standard .header-utils .header-utility{
+  display:flex;
+  align-items:center;
+  gap:7px;
+  min-height:40px;
+  padding:8px 11px;
+  border:1px solid #2b6e98;
+  border-radius:11px;
+  background:#07152f;
+  color:#eef6ff;
+  font:800 12px/1.1 Inter,Segoe UI,Arial,sans-serif;
+  cursor:pointer;
+}
+body.fdc-gold-standard .header-utils .header-utility:hover,
+body.fdc-gold-standard .header-utils .header-utility:focus-visible{
+  border-color:#54eaff;
+  outline:2px solid #54eaff44;
+  outline-offset:2px;
+}
+body.fdc-gold-standard .save-status{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border:1px solid #2b6e98;
+  border-radius:50%;
+  background:#07152f;
+  color:#5de6b6;
+  font-weight:950;
+}
+body.fdc-gold-standard .save-status[data-state="syncing"]{color:#f5d946}
+body.fdc-gold-standard .save-status[data-state="offline"]{color:#c9d5ed}
+
+body.fdc-gold-standard .scene-rail #back{order:0}
+body.fdc-gold-standard .scene-rail #audioToggle{order:1}
+body.fdc-gold-standard .scene-rail #standardAccessBtn{order:2}
+body.fdc-gold-standard .scene-rail #replay{order:3}
+body.fdc-gold-standard .scene-rail #skip{order:4}
+body.fdc-gold-standard .scene-rail #play{order:5}
+body.fdc-gold-standard .scene-rail #continue{order:6}
+body.fdc-gold-standard .scene-rail button:disabled{
+  opacity:.35;
+  filter:saturate(.45);
+  cursor:not-allowed;
+  box-shadow:none;
+}
+body.fdc-gold-standard .scene-rail #play[hidden],
+body.fdc-gold-standard .scene-rail #skip[hidden]{
+  display:flex!important;
+}
+body.fdc-gold-standard .scene-rail .rail-back{
+  border-color:#476a9c;
+  background:#0a1736;
+}
+body.fdc-gold-standard .scene-rail .rail-continue{
+  margin-top:8px;
+}
+
+body.fdc-gold-standard .nav{
+  grid-column:1;
+  display:flex;
+  justify-content:flex-end;
+  min-height:28px;
+}
+body.fdc-gold-standard .nav #status{
+  text-align:right;
+}
+
+.standard-help-dialog{
+  width:min(650px,94vw);
+  height:auto;
+  max-height:88vh;
+}
+.standard-help-dialog .help-guide{
+  display:grid;
+  gap:10px;
+}
+.standard-help-dialog .help-guide p{
+  margin:0;
+  padding:12px 14px;
+  border:1px solid #284c77;
+  border-radius:12px;
+  background:#07162f;
+  line-height:1.45;
+}
+
+@media(max-width:1100px){
+  body.fdc-gold-standard .hud{grid-template-columns:220px minmax(0,1fr)}
+  body.fdc-gold-standard .header-utils{
+    grid-column:1/-1;
+    justify-content:flex-end;
+    padding-bottom:2px;
+  }
+}
+@media(max-width:800px){
+  body.fdc-gold-standard .hud{grid-template-columns:1fr}
+  body.fdc-gold-standard .brand,
+  body.fdc-gold-standard .mission,
+  body.fdc-gold-standard .header-utils{grid-column:1}
+  body.fdc-gold-standard .mission-row{grid-template-columns:1fr auto}
+  body.fdc-gold-standard #sceneTitle{grid-column:1/-1}
+  body.fdc-gold-standard .header-utils{justify-content:space-between}
+  body.fdc-gold-standard .header-utils .header-utility span:last-child{display:none}
+}
+@media(max-width:650px){
+  body.fdc-gold-standard .scene-rail{grid-template-columns:repeat(2,1fr)}
+  body.fdc-gold-standard .scene-rail .rail-continue{grid-column:1/-1}
+}
