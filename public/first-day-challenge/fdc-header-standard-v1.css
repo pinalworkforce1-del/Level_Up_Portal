@@ -1,0 +1,45 @@
+/* FDC Level Up header standard v1 — layout only, no runtime hooks */
+.fdc-standard-header{
+  grid-template-columns:235px minmax(0,1fr) auto;
+  gap:18px;
+}
+.fdc-standard-header .mission-row{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto auto;
+  gap:16px;
+  align-items:center;
+}
+.fdc-standard-header #xp{
+  color:var(--gold);
+  white-space:nowrap;
+  font-size:13px;
+}
+.fdc-header-utils{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+}
+.fdc-header-link{
+  min-height:40px;
+  display:flex;
+  align-items:center;
+  gap:7px;
+  padding:8px 11px;
+  border:1px solid #2b6e98;
+  border-radius:11px;
+  background:#07152f;
+  color:#eef6ff;
+  text-decoration:none;
+  font:800 12px/1.1 Inter,Segoe UI,Arial,sans-serif;
+}
+.fdc-header-link:hover,.fdc-header-link:focus-visible{
+  border-color:#54eaff;
+  box-shadow:0 0 18px #20cde755;
+  outline:none;
+}
+@media(max-width:800px){
+  .fdc-standard-header{grid-template-columns:1fr auto}
+  .fdc-standard-header .mission{grid-column:1/-1;grid-row:2}
+  .fdc-standard-header .mission-row{grid-template-columns:minmax(0,1fr) auto auto}
+  .fdc-header-link span:last-child{display:none}
+}
