@@ -1,4 +1,4 @@
-const ENGINE_VERSION="1.0.4";
+const ENGINE_VERSION="1.0.5";
 const CACHE_PREFIX="level-up-offline";
 const scopeUrl=new URL(self.registration.scope);
 const scopeKey=scopeUrl.pathname.replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")||"root";
@@ -74,7 +74,13 @@ self.addEventListener("fetch",event=>{
         if(cacheable(r)){try{await (await caches.open(CACHE_NAME)).put(request,r.clone())}catch(_){}}
         return r;
       }catch(_){
+        const requested=new URL(request.url);
+        const leaf=requested.pathname.split("/").pop()||"";
+        const nestedIndex=requested.pathname.endsWith("/")
+          ? new URL("index.html",requested).toString()
+          : (!leaf.includes(".") ? new URL(requested.pathname+"/index.html",requested.origin).toString() : null);
         return (await matchAny(request))||
+          (nestedIndex ? await matchAny(new Request(nestedIndex)) : null)||
           (await matchAny(new Request(new URL("index.html",self.registration.scope).toString())))||
           (await matchAny(new Request(self.registration.scope)))||Response.error();
       }
@@ -120,7 +126,12 @@ async function prepareOffline(){
     try{
       const r=await fetch(url,{cache:"reload"});
       if(!cacheable(r))throw new Error("HTTP "+r.status);
-      await cache.put(url,r); completed++;
+      await cache.put(url,r.clone());
+      if(new URL(url).pathname.endsWith("/index.html")){
+        const directoryUrl=new URL("./",url).toString();
+        await cache.put(directoryUrl,r.clone());
+      }
+      completed++;
     }catch(error){failures.push({path:raw,error:String(error?.message||error)})}
   }
   await cache.put(MANIFEST_URL,new Response(JSON.stringify(manifest),{headers:{"Content-Type":"application/json"}}));
