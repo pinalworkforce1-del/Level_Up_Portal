@@ -8,12 +8,18 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="review-pass.css">
   <link rel="stylesheet" href="completion-fix.css">
+  <link rel="stylesheet" href="fdc-header-standard-v1.css">
 </head>
 <body>
-  <header class="hud">
+  <header class="hud fdc-standard-header">
     <div class="brand"><span class="badge">LU</span><div><b>LEVEL UP</b><small>FIRST DAY CHALLENGE</small></div></div>
-    <div class="mission"><div class="mission-row"><span id="sceneTitle">YOUR FIRST SHIFT</span><span id="sceneCount">SCENE 1 OF 18</span></div><div class="progress"><i id="progressFill"></i></div></div>
-    <div class="score"><b id="xp">0 XP</b></div>
+    <div class="mission">
+      <div class="mission-row"><span id="sceneTitle">YOUR FIRST SHIFT</span><span id="sceneCount">SCENE 1 OF 18</span><b id="xp">0 XP</b></div>
+      <div class="progress"><i id="progressFill"></i></div>
+    </div>
+    <div class="score fdc-header-utils">
+      <a class="fdc-header-link" href="../" aria-label="Return to Opportunity City"><span aria-hidden="true">←</span><span>Opportunity City</span></a>
+    </div>
   </header>
 
   <main>
