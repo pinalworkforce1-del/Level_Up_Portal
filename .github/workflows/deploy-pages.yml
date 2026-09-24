@@ -68,8 +68,19 @@ jobs:
           sync=Path('public/money-moves/supabase-sync.js')
           if sync.exists():
               text=sync.read_text()
-              if 'LevelUpOfflineProgress?.save(MODULE_ID' not in text or 'LevelUpOfflineProgress?.markSynced(MODULE_ID)' not in text:
-                  raise SystemExit('Money Moves shared offline progress hooks missing')
+              if 'LevelUpOfflineProgress?.save(MODULE_ID' not in text:
+                  needle="      const s = await session();\n      if(!s) return { signedIn:false };\n      const now = new Date().toISOString();\n      const finished = Boolean(complete || state?.finished);"
+                  replacement="      const now = new Date().toISOString();\n      const finished = Boolean(complete || state?.finished);\n      window.LevelUpOfflineProgress?.save(MODULE_ID,state||{},{xp:Number(state?.xp||0),isComplete:finished,completedAt:finished?now:null,updatedAt:now});\n      const s = await session();\n      if(!s) return { signedIn:false };"
+                  if needle not in text:
+                      raise SystemExit('Money Moves cloud helper signature changed; offline patch not applied')
+                  text=text.replace(needle,replacement,1)
+              if 'LevelUpOfflineProgress?.markSynced(MODULE_ID)' not in text:
+                  needle="      if(error) throw error;\n      return { signedIn:true };"
+                  replacement="      if(error) throw error;\n      window.LevelUpOfflineProgress?.markSynced(MODULE_ID);\n      return { signedIn:true };"
+                  if needle not in text:
+                      raise SystemExit('Money Moves sync completion signature changed; offline patch not applied')
+                  text=text.replace(needle,replacement,1)
+              sync.write_text(text)
           PY
 
       - name: Expand First Day Challenge narration media
