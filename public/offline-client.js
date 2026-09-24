@@ -1,6 +1,6 @@
 (() => {
   if (!("serviceWorker" in navigator)) return;
-  const CLIENT_ENGINE_VERSION="1.0.5";
+  const CLIENT_ENGINE_VERSION="1.0.6";
   const script=document.currentScript;
   const localRoot=script?new URL("./",script.src).pathname:new URL("./",location.href).pathname;
 
@@ -37,7 +37,10 @@
   }
 
   async function activeWorker(root){
-    const reg=await register(root);
+    const scope=normalizeRoot(root);
+    const localScope=normalizeRoot(localRoot);
+    const requireCurrentEngine=scope===localScope;
+    const reg=await register(scope);
     try{await reg.update()}catch(_){}
     if(reg.installing)await waitState(reg.installing);
     if(reg.waiting){
@@ -47,28 +50,33 @@
     let worker=reg.active||reg.waiting||reg.installing;
     if(!worker)throw new Error("Offline worker is not available");
 
-    let status=null;
-    try{status=await post(worker,"OFFLINE_STATUS",8000)}catch(_){}
-    if(status?.engineVersion!==CLIENT_ENGINE_VERSION){
-      try{await reg.update()}catch(_){}
-      if(reg.installing)await waitState(reg.installing);
-      if(reg.waiting){
-        try{await post(reg.waiting,"SKIP_WAITING",5000)}catch(_){}
-        await waitState(reg.waiting);
+    if(requireCurrentEngine){
+      let status=null;
+      try{status=await post(worker,"OFFLINE_STATUS",8000)}catch(_){}
+      if(status?.engineVersion!==CLIENT_ENGINE_VERSION){
+        try{await reg.update()}catch(_){}
+        if(reg.installing)await waitState(reg.installing);
+        if(reg.waiting){
+          try{await post(reg.waiting,"SKIP_WAITING",5000)}catch(_){}
+          await waitState(reg.waiting);
+        }
+        worker=reg.active||reg.waiting||reg.installing;
+        status=worker?await post(worker,"OFFLINE_STATUS",8000):null;
       }
-      worker=reg.active||reg.waiting||reg.installing;
-      status=worker?await post(worker,"OFFLINE_STATUS",8000):null;
-    }
-    if(status?.engineVersion!==CLIENT_ENGINE_VERSION){
-      throw new Error("Offline engine update is still installing");
+      if(status?.engineVersion!==CLIENT_ENGINE_VERSION){
+        throw new Error("Offline engine update is still installing");
+      }
     }
     return worker;
   }
 
   async function prepareScope(root){
-    const worker=await activeWorker(root);
+    const scope=normalizeRoot(root);
+    const worker=await activeWorker(scope);
     const result=await post(worker,"PREPARE_OFFLINE");
-    if(result?.engineVersion!==CLIENT_ENGINE_VERSION)throw new Error("Offline preparation used an outdated worker");
+    if(scope===normalizeRoot(localRoot)&&result?.engineVersion!==CLIENT_ENGINE_VERSION){
+      throw new Error("Offline preparation used an outdated worker");
+    }
     return result;
   }
 
