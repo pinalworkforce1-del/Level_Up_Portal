@@ -8,17 +8,12 @@
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="review-pass.css">
   <link rel="stylesheet" href="completion-fix.css">
-  <link rel="stylesheet" href="gold-standard-v1.css">
 </head>
 <body>
   <header class="hud">
     <div class="brand"><span class="badge">LU</span><div><b>LEVEL UP</b><small>FIRST DAY CHALLENGE</small></div></div>
-    <div class="mission"><div class="mission-row"><span id="sceneTitle">YOUR FIRST SHIFT</span><span id="sceneCount">SCENE 1 OF 18</span><b id="xp">0 XP</b></div><div class="progress"><i id="progressFill"></i></div></div>
-    <div class="score header-utils">
-      <button id="opportunityCityBtn" class="header-utility" type="button" aria-label="Return to Opportunity City"><span aria-hidden="true">←</span><span>Opportunity City</span></button>
-      <span id="saveStatus" class="save-status" aria-label="Level Up save status" title="Save status">●</span>
-      <button id="helpBtn" class="header-utility" type="button" aria-label="Open First Day Challenge help"><span aria-hidden="true">?</span><span>Help</span></button>
-    </div>
+    <div class="mission"><div class="mission-row"><span id="sceneTitle">YOUR FIRST SHIFT</span><span id="sceneCount">SCENE 1 OF 18</span></div><div class="progress"><i id="progressFill"></i></div></div>
+    <div class="score"><b id="xp">0 XP</b></div>
   </header>
 
   <main>
@@ -31,15 +26,14 @@
     </section>
     <aside class="scene-rail" aria-label="Scene controls">
       <small>SCENE CONTROLS</small>
-      <button id="back" class="rail-back" type="button"><span class="control-icon">←</span><span>Previous scene</span></button>
       <button id="audioToggle" aria-label="Mute narration"><span class="control-icon">🔊</span><span>Audio on</span></button>
       <button id="replay" aria-label="Replay narration"><span class="control-icon">↻</span><span>Replay narration</span></button>
-      <button class="skip" id="skip"><span class="control-icon">⇥</span><span>Skip narration</span></button>
+      <button class="skip" id="skip"><span class="control-icon">↠</span><span>Skip narration</span></button>
       <button class="play" id="play"><span class="control-icon">▶</span><span>Play narration</span></button>
       <button class="rail-continue" id="continue">Continue <span>→</span></button>
     </aside>
     <nav class="nav">
-      <span id="status">Narration ready</span>
+      <button id="back">← Back</button><span id="status">Narration ready</span>
     </nav>
   </main>
 
@@ -82,7 +76,7 @@
     </div>
   </dialog>
   <script src="app.js?v=20260922first30handoff"></script>
-  <script src="ux-standard-v13.js"></script>
+  <script src="ux-standard-v11.js"></script>
   <script src="completion-sync-fix.js"></script>
   <script defer src="../offline-client.js"></script>
   <script defer src="../offline-progress.js"></script>
