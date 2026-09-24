@@ -100,6 +100,33 @@ jobs:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
 
+      - name: Verify shared offline progress wiring
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          checks = {
+              Path("dist/first-day-challenge/app.js"): "LevelUpOfflineProgress",
+              Path("dist/shadow-passage/app.js"): "LevelUpOfflineProgress",
+              Path("dist/money-moves/app.js"): "LevelUpOfflineProgress",
+          }
+          missing = []
+          for path, marker in checks.items():
+              if not path.exists():
+                  missing.append(f"{path}: missing")
+                  continue
+              text = path.read_text(errors="ignore")
+              if marker not in text:
+                  missing.append(f"{path}: missing {marker}")
+          if missing:
+              raise SystemExit("Offline progress wiring check failed:\n" + "\n".join(missing))
+          print("Verified shared offline progress hooks for core portal modules.")
+          PY
+
+      - name: Verify cloud helper syntax
+        run: |
+          node --check dist/shadow-passage/supabase-sync.js
+          node --check dist/money-moves/supabase-sync.js
+
       - name: Generate offline manifest
         run: node scripts/generate-offline-manifest.mjs dist /Level_Up_Portal/
 
