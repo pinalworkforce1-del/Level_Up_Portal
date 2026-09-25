@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="./styles-selfpaced-v3.css">
   <link rel="stylesheet" href="./caption-dock-v2.css">
   <link rel="stylesheet" href="./first30-accessibility-v1.css">
+  <link rel="stylesheet" href="./first30-summary-v1.css">
 </head>
 <body>
 <header class="topbar">
@@ -88,11 +89,12 @@
     <div class="summaryHero">
       <small>THE FIRST 30 • MONTH ONE</small>
       <h1>You made it through your first month.</h1>
-      <p>Across ten checkpoints, you balanced work with time, energy, money, reliability, and support. Your choices show what you protected and where you might want a plan for month two.</p>
+      <p>Across ten checkpoints, you balanced work with time, energy, money, reliability, and support. This saved review brings your First Day Challenge and First 30 choices together so you can revisit what worked and what you want to strengthen next.</p>
     </div>
     <div class="summaryGrid">
       <section class="panel"><div class="panelHead compact"><div><small>ENDING HUD</small><h2>Your resources</h2></div></div><div id="summaryStats" class="summaryBody"></div></section>
       <section class="panel"><div class="panelHead compact"><div><small>YOUR PATH</small><h2>What your choices emphasized</h2></div></div><div class="summaryBody"><p id="summaryText"></p><div id="choiceHistory" class="history"></div></div></section>
+      <section class="panel combinedReviewPanel"><div class="panelHead compact"><div><small>FIRST DAY + FIRST 30</small><h2>Your readiness review</h2></div></div><div id="combinedReview" class="summaryBody"></div></section>
     </div>
     <div class="summaryActions">
       <button class="btn gold" id="restartBtn">Play The First 30 Again</button><button class="btn alt hidden" id="returnPortalBtn">Return to Opportunity City →</button>
@@ -129,7 +131,7 @@
   </dialog>
 
 <audio id="sceneAudio" preload="metadata"></audio>
-<script defer src="./app-selfpaced-v3.js"></script>
+<script defer src="./app-selfpaced-v4.js"></script>
   <script defer src="../offline-client.js"></script>
   <script defer src="../offline-progress.js"></script>
 </body>
