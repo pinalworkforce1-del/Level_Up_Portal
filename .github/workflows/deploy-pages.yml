@@ -51,8 +51,12 @@ jobs:
           p=Path('public/money-moves/index.html')
           if p.exists():
               s=p.read_text()
+              if 'money-moves-gold-v1.css' not in s:
+                  s=s.replace('</head>', '<link rel="stylesheet" href="money-moves-gold-v1.css"></head>')
               if '../offline-progress.js' not in s:
                   s=s.replace('</body>', '<script defer src="../offline-client.js"></script><script defer src="../offline-progress.js"></script></body>')
+              if 'money-moves-gold-v1.js' not in s:
+                  s=s.replace('</body>', '<script src="money-moves-gold-v1.js"></script></body>')
               p.write_text(s)
 
           app=Path('public/money-moves/app.js')
@@ -154,6 +158,9 @@ jobs:
         run: |
           node --check dist/shadow-passage/supabase-sync.js
           node --check dist/money-moves/supabase-sync.js
+          node --check dist/money-moves/money-moves-gold-v1.js
+          grep -q "money-moves-gold-v1.css" dist/money-moves/index.html
+          grep -q "money-moves-gold-v1.js" dist/money-moves/index.html
 
       - name: Generate offline manifest
         run: node scripts/generate-offline-manifest.mjs dist /Level_Up_Portal/
