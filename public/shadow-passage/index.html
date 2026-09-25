@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <meta name="theme-color" content="#070711" />
   <title>Level Up — Shadow Passage</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles-gold-v1.css" />
 </head>
 <body>
   <header class="topbar">
@@ -21,8 +21,9 @@
     </div>
 
     <div class="header-tools">
-      <button id="access" class="icon-btn" type="button" aria-label="Accessibility and scene description" title="Accessibility">◉</button>
-      <button id="restart" class="icon-btn" type="button" aria-label="Restart Shadow Passage" title="Restart">↻</button>
+      <button id="opportunityCity" class="header-tool wide-tool" type="button" aria-label="Return to Opportunity City" title="Opportunity City"><span aria-hidden="true">←</span><span>Opportunity City</span></button>
+      <button id="help" class="header-tool" type="button" aria-label="Open Shadow Passage help" title="Help"><span aria-hidden="true">?</span><span>Help</span></button>
+      <button id="restart" class="header-tool icon-only" type="button" aria-label="Restart Shadow Passage" title="Restart Shadow Passage">↻</button>
     </div>
   </header>
 
@@ -38,15 +39,16 @@
 
     <aside class="scene-rail" aria-label="Scene controls">
       <small>SCENE CONTROLS</small>
+      <button id="back" class="rail-back" type="button"><span class="control-icon">←</span><span>Previous scene</span></button>
       <button id="mute" type="button" aria-label="Mute narration"><span class="control-icon">🔊</span><span id="muteLabel">Audio on</span></button>
+      <button id="access" type="button" aria-label="Accessibility"><span class="control-icon">◉</span><span>Accessibility</span></button>
       <button id="replay" type="button" aria-label="Replay narration"><span class="control-icon">↻</span><span>Replay narration</span></button>
-      <button id="skip" type="button"><span class="control-icon">↠</span><span>Skip narration</span></button>
+      <button id="skip" type="button"><span class="control-icon">⇥</span><span>Skip narration</span></button>
       <button id="play" type="button"><span class="control-icon">▶</span><span id="playLabel">Play narration</span></button>
       <button id="continue" class="rail-continue" type="button" disabled>Continue <span>→</span></button>
     </aside>
 
     <nav class="scene-nav">
-      <button id="back" type="button">← Back</button>
       <span id="footerNote">Listen to the scene to unlock exploration.</span>
     </nav>
   </main>
@@ -60,7 +62,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-sync.js"></script>
-  <script src="app.js"></script>
+  <script src="app-gold-v1.js"></script>
   <script defer src="../offline-client.js"></script>
   <script defer src="../offline-progress.js"></script>
 </body>
