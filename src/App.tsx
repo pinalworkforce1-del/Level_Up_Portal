@@ -584,7 +584,7 @@ export function App() {
           <span>{confidenceComplete ? "Confidence ✓" : "Confidence Checkpoint"}</span>
         </button> : null}
 
-        {shadowVisible ? shadowComplete ? <div className="shadow-complete" aria-label="Shadow Passage complete"><Check /><span>Passage complete</span></div> : <button
+        {shadowVisible ? shadowComplete ? <button type="button" className="shadow-complete" onClick={() => navigate(HREFS["shadow-passage"])} aria-label="Revisit Shadow Passage"><Check /><span>Passage complete</span></button> : <button
           className="secret-marker"
           onClick={() => navigate(HREFS["shadow-passage"])}
           aria-label="A mysterious path has appeared in Opportunity Plaza"
