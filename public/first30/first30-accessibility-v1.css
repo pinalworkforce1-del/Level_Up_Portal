@@ -1,0 +1,54 @@
+/* First30 self-paced Level Up accessibility v1 */
+.first30AccessDialog{
+  width:min(760px,94vw);
+  max-height:92vh;
+  padding:0;
+  border:1px solid #2d7896;
+  border-radius:18px;
+  background:#071927;
+  color:#fff;
+  box-shadow:0 26px 70px #0008;
+}
+.first30AccessDialog::backdrop{background:#020914b8;backdrop-filter:blur(4px)}
+.first30AccessHead{
+  display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding:16px 18px;border-bottom:1px solid #28526c;background:linear-gradient(135deg,#102e49,#1d597a)
+}
+.first30AccessHead small{display:block;color:#9fe7ef;font-size:10px;font-weight:950;letter-spacing:.1em}
+.first30AccessHead h2{margin:3px 0 0;font-size:22px}
+.first30AccessHead button{width:38px;height:38px;border:1px solid #64dcea;border-radius:10px;background:#071927;color:#fff;font-size:24px;cursor:pointer}
+.first30AccessBody{display:grid;gap:0;max-height:calc(92vh - 80px);overflow:auto;padding:14px 18px 18px}
+.first30SceneDescription{
+  margin-bottom:8px;padding:15px 16px;border:1px solid #2c8fb6;border-radius:14px;background:#0b2035
+}
+.first30SceneDescription div{display:grid;gap:3px}
+.first30SceneDescription b{font-size:17px}
+.first30SceneDescription small{color:#72eaff;font-weight:850}
+.first30SceneDescription p{margin:10px 0 0;color:#d9e4f7;line-height:1.5}
+.first30SwitchRow{
+  display:flex;justify-content:space-between;align-items:center;gap:18px;padding:15px 4px;border-bottom:1px solid #24475f
+}
+.first30SwitchRow span{display:grid;gap:4px}
+.first30SwitchRow b{font-size:15px}
+.first30SwitchRow small,.first30Speed>small,.first30AccessNote{color:#b9c8e7;line-height:1.4}
+.first30SwitchRow input{width:22px;height:22px;accent-color:#39cfe0}
+.first30Speed{margin:0;padding:15px 4px 17px;border:0;border-bottom:1px solid #24475f}
+.first30Speed legend{padding:0;font-weight:900}
+.first30Speed>div{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:11px}
+.first30Speed button{
+  min-height:42px;border:1px solid #2c82a8;border-radius:10px;background:#0b2035;color:#fff;font-weight:900;cursor:pointer
+}
+.first30Speed button.selected{background:linear-gradient(90deg,#36dbea,#5de6b6);color:#041927;border-color:transparent}
+.first30AccessNote{margin:13px 0 0;font-size:12px}
+body.first30-large-text .panelHead h2,
+body.first30-large-text .choiceBtn,
+body.first30-large-text .audioControls .btn,
+body.first30-large-text .sceneCopy p{font-size:1.08em}
+body.first30-large-text .choiceBtn{min-height:70px}
+body.first30-reduce-motion *,
+body.first30-reduce-motion *::before,
+body.first30-reduce-motion *::after{scroll-behavior:auto!important;animation-duration:.001ms!important;animation-iteration-count:1!important;transition-duration:.001ms!important}
+@media(max-width:700px){
+  .first30Speed>div{grid-template-columns:repeat(2,1fr)}
+  .audioControls #accessibilityBtn{width:100%}
+}
