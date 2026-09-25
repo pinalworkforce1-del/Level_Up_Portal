@@ -67,6 +67,15 @@ jobs:
               if old not in s:
                   raise SystemExit('Money Moves localSave signature changed; offline queue patch not applied')
               s=s.replace(old,new,1)
+
+              # Scene 16 completion must respond immediately. Commit the final
+              # reflection locally first, render the completion summary, then
+              # let cloud synchronization continue in the background.
+              old_finish="""$('#finishModule').onclick=()=>{const custom=$('#ownMove').value.trim();const move=custom||selected;if(!move){$('#calcOut').insertAdjacentHTML('beforeend','<div class="result warn">Choose or write one money move for this week.</div>');return}state.moneyMove=move;state.finished=true;award('calculator',125);persist(true);showCompletionSummary()}}"""
+              new_finish="""$('#finishModule').onclick=()=>{const finishBtn=$('#finishModule');if(finishBtn?.disabled)return;const custom=$('#ownMove').value.trim();const move=custom||selected;if(!move){$('#calcOut').insertAdjacentHTML('beforeend','<div class="result warn">Choose or write one money move for this week.</div>');return}finishBtn.disabled=true;finishBtn.textContent='Completing Money Moves…';state.moneyMove=move;state.finished=true;if(!state.done.has('calculator')){state.done.add('calculator');state.xp+=125}localSave();hud();renderHotspots();showCompletionSummary();persist(true)}}"""
+              if old_finish not in s:
+                  raise SystemExit('Money Moves Scene 16 completion signature changed; immediate-completion patch not applied')
+              s=s.replace(old_finish,new_finish,1)
               app.write_text(s)
 
           sync=Path('public/money-moves/supabase-sync.js')
@@ -159,8 +168,10 @@ jobs:
           node --check dist/shadow-passage/supabase-sync.js
           node --check dist/money-moves/supabase-sync.js
           node --check dist/money-moves/money-moves-gold-v1.js
+          node --check dist/money-moves/app.js
           grep -q "money-moves-gold-v1.css" dist/money-moves/index.html
           grep -q "money-moves-gold-v1.js" dist/money-moves/index.html
+          grep -q "Completing Money Moves" dist/money-moves/app.js
 
       - name: Generate offline manifest
         run: node scripts/generate-offline-manifest.mjs dist /Level_Up_Portal/
