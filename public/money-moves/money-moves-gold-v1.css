@@ -1,0 +1,233 @@
+/* Level Up Money Moves — gold-standard shell v1 */
+.mm-gold-standard .top{
+  grid-template-columns:240px minmax(0,1fr) auto;
+}
+.mm-gold-standard .cloud.mm-header-utils{
+  display:flex;
+  justify-content:flex-end;
+  align-items:center;
+  gap:8px;
+  text-align:right;
+}
+.mm-gold-standard .mm-header-tool{
+  min-height:40px;
+  border:1px solid #2a87b1;
+  background:#07172f;
+  color:#f4f7ff;
+  border-radius:10px;
+  padding:8px 11px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:7px;
+  font-weight:850;
+  font-size:12px;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.mm-gold-standard .mm-header-tool:hover,
+.mm-gold-standard .mm-header-tool:focus-visible{
+  border-color:#66e9ff;
+  box-shadow:0 0 18px #36dbea55;
+  outline:none;
+}
+.mm-gold-standard #cloudState{
+  color:#d7e5ff;
+}
+.mm-gold-standard .rail button{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  text-align:left;
+}
+.mm-gold-standard .rail .control-icon{
+  width:26px;
+  flex:0 0 26px;
+  text-align:center;
+  font-size:18px;
+}
+.mm-gold-standard .rail .rail-back{
+  border-color:#476a9c;
+  background:#0a1736;
+}
+.mm-gold-standard .rail button:disabled{
+  opacity:.35;
+  filter:saturate(.45);
+  cursor:not-allowed;
+  box-shadow:none;
+}
+.mm-gold-standard .rail .continue{
+  justify-content:center;
+  text-align:center;
+}
+.mm-gold-standard .mm-kicker{
+  margin:0 0 8px;
+  color:#66e9ff;
+  font-size:10px;
+  font-weight:950;
+  letter-spacing:.14em;
+}
+.mm-gold-standard .mm-scene-description{
+  margin:14px 0;
+  padding:14px;
+  border:1px solid #66e9ff33;
+  border-radius:12px;
+  background:#0a1730;
+}
+.mm-gold-standard .mm-scene-description>div{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+}
+.mm-gold-standard .mm-scene-description>div>span{
+  color:#66e9ff;
+  font-size:19px;
+}
+.mm-gold-standard .mm-scene-description b,
+.mm-gold-standard .mm-scene-description small{
+  display:block;
+}
+.mm-gold-standard .mm-scene-description small{
+  color:#a9b4cb;
+  margin-top:3px;
+}
+.mm-gold-standard .mm-scene-description p{
+  margin:10px 0 0;
+}
+.mm-gold-standard .mm-access-options{
+  display:grid;
+  gap:3px;
+}
+.mm-gold-standard .mm-access-row{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+  padding:14px 2px;
+  border-bottom:1px solid #ffffff16;
+}
+.mm-gold-standard .mm-access-row>span{
+  display:grid;
+  gap:4px;
+}
+.mm-gold-standard .mm-access-row small{
+  color:#a9b4cb;
+  line-height:1.35;
+}
+.mm-gold-standard .mm-access-row input{
+  width:24px;
+  height:24px;
+  flex:0 0 auto;
+  accent-color:#71ffa3;
+}
+.mm-gold-standard .mm-speed{
+  border:0;
+  padding:14px 0;
+  margin:0;
+}
+.mm-gold-standard .mm-speed legend{
+  color:#fff;
+  font-weight:900;
+}
+.mm-gold-standard .mm-speed>small{
+  display:block;
+  color:#a9b4cb;
+  margin:4px 0 10px;
+}
+.mm-gold-standard .mm-speed>div{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+}
+.mm-gold-standard .mm-speed button{
+  border:1px solid #66e9ff44;
+  background:#11182e;
+  color:#dce8ff;
+  border-radius:10px;
+  padding:10px;
+  font-weight:850;
+  cursor:pointer;
+}
+.mm-gold-standard .mm-speed button.selected{
+  border-color:#71ffa3;
+  background:#123a35;
+  box-shadow:0 0 0 2px #71ffa322 inset;
+}
+.mm-gold-standard .mm-access-note{
+  font-size:12px;
+  color:#a9b4cb;
+}
+.mm-gold-standard .mm-help-guide{
+  display:grid;
+  gap:8px;
+  margin:14px 0;
+}
+.mm-gold-standard .mm-help-guide p{
+  display:grid;
+  gap:4px;
+  margin:0;
+  padding:11px 13px;
+  border:1px solid #ffffff16;
+  border-radius:11px;
+  background:#111427;
+}
+.mm-gold-standard .mm-help-guide span{
+  color:#a9b4cb;
+  font-size:13px;
+}
+.mm-captions-off #narration{
+  opacity:0!important;
+}
+.mm-captions-off #captionBackdrop{
+  opacity:0!important;
+}
+.mm-reduce-motion *,
+.mm-reduce-motion *::before,
+.mm-reduce-motion *::after{
+  animation:none!important;
+  transition:none!important;
+  scroll-behavior:auto!important;
+}
+.mm-large-text .rail button,
+.mm-large-text .mm-header-tool{
+  font-size:15px;
+}
+.mm-large-text .card{
+  font-size:18px;
+}
+.mm-large-text .card h2{
+  font-size:28px;
+}
+@media(max-width:1100px){
+  .mm-gold-standard .top{
+    grid-template-columns:220px minmax(0,1fr);
+  }
+  .mm-gold-standard .cloud.mm-header-utils{
+    grid-column:1/-1;
+    justify-content:flex-end;
+    padding-top:3px;
+  }
+  .mm-gold-standard .rail{
+    grid-template-columns:repeat(4,1fr);
+  }
+}
+@media(max-width:650px){
+  .mm-gold-standard .top{
+    grid-template-columns:1fr;
+  }
+  .mm-gold-standard .cloud.mm-header-utils{
+    justify-content:space-between;
+  }
+  .mm-gold-standard .mm-header-tool span:last-child{
+    display:none;
+  }
+  .mm-gold-standard .rail{
+    grid-template-columns:repeat(2,1fr);
+  }
+  .mm-gold-standard .rail .continue{
+    grid-column:1/-1;
+  }
+  .mm-gold-standard .mm-speed>div{
+    grid-template-columns:repeat(2,1fr);
+  }
+}
