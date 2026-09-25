@@ -237,7 +237,9 @@
   if(card){
     const completionObserver=new MutationObserver(()=>{
       const returnLink=card.querySelector('a.action[href="../"]');
-      if(returnLink)returnLink.textContent='Return to Opportunity City →';
+      if(returnLink&&returnLink.textContent!=='Return to Opportunity City →'){
+        returnLink.textContent='Return to Opportunity City →';
+      }
     });
     completionObserver.observe(card,{subtree:true,childList:true});
   }
