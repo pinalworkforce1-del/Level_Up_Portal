@@ -1,0 +1,53 @@
+/* First Day Challenge rich accessibility shell v1 */
+.rich-access-dialog{width:min(760px,94vw);height:auto;max-height:92vh}
+.rich-access-dialog .dialog-body{max-height:calc(92vh - 118px);overflow:auto}
+.scene-description-card{
+  margin:0 0 8px;
+  padding:16px 18px;
+  border:1px solid #2c8fb6;
+  border-radius:14px;
+  background:linear-gradient(145deg,#081a37,#0d2146);
+}
+.scene-description-title{display:flex;gap:12px;align-items:flex-start}
+.scene-description-title>span{
+  width:34px;height:34px;display:grid;place-items:center;flex:0 0 auto;
+  border:1px solid #5de6b6;border-radius:50%;color:#5de6b6;font-weight:900
+}
+.scene-description-title div{display:grid;gap:2px}
+.scene-description-title b{font-size:17px}
+.scene-description-title small{color:#72eaff;font-weight:800;letter-spacing:.04em}
+.scene-description-card p{margin:12px 0 0;color:#d9e4f7;line-height:1.55}
+.narration-speed{
+  margin:0;
+  padding:16px 4px 18px;
+  border:0;
+  border-bottom:1px solid #25486d;
+}
+.narration-speed legend{padding:0;font-weight:900}
+.narration-speed>small{display:block;margin-top:4px;color:#b9c8e7}
+.speed-buttons{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:12px}
+.speed-buttons button{
+  min-height:42px;
+  border:1px solid #287fa8;
+  border-radius:10px;
+  background:#07172f;
+  color:#fff;
+  font-weight:900;
+  cursor:pointer;
+}
+.speed-buttons button:hover,.speed-buttons button:focus-visible{border-color:#5de6b6;outline:none}
+.speed-buttons button.selected{
+  background:linear-gradient(90deg,#36dbea,#5de6b6);
+  color:#03182a;
+  border-color:transparent;
+}
+.accessibility-note{margin:12px 0 0;color:#b9c8e7;font-size:13px;line-height:1.5}
+body.fdc-large-text .scene-rail button,
+body.fdc-large-text .nav,
+body.fdc-large-text dialog,
+body.fdc-large-text .fdc-header-link{font-size:1.08em}
+body.fdc-large-text .scene-rail button{min-height:56px}
+body.fdc-large-text .hotspot span{font-size:13px}
+@media(max-width:650px){
+  .speed-buttons{grid-template-columns:repeat(2,1fr)}
+}
