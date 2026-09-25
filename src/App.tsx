@@ -294,7 +294,14 @@ export function App() {
       } catch (err) {
         console.warn("Facilitated identity link deferred", err);
       }
-      const mergedProgress = mergeOfflineProgress((progress.data as ProgressRow[] | null) ?? [], session.user.id);
+      let cloudProgress = (progress.data as ProgressRow[] | null) ?? [];
+      if (navigator.onLine) {
+        const refreshedAfterLink = await supabase!.from("module_progress")
+          .select("module_id,xp,is_complete,journey_state,updated_at")
+          .eq("user_id", session.user.id);
+        if (!refreshedAfterLink.error && refreshedAfterLink.data) cloudProgress = refreshedAfterLink.data as ProgressRow[];
+      }
+      const mergedProgress = mergeOfflineProgress(cloudProgress, session.user.id);
       setRows(mergedProgress);
       setMessage(progress.error ? (mergedProgress.length ? "Offline mode • showing progress saved on this device." : "Your journey could not be refreshed. Try again shortly.") : "");
       if (navigator.onLine) {
