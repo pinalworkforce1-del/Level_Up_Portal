@@ -1,0 +1,80 @@
+/* First30 self-paced caption dock v1
+   Layout only: keeps existing VTT parsing, CC state, and audio timing intact. */
+.stage{
+  grid-template-rows:auto auto;
+  column-gap:16px;
+  row-gap:10px;
+}
+.visualWrap{
+  grid-column:1;
+  grid-row:1;
+}
+.captionOverlay.captionDock{
+  position:static!important;
+  grid-column:1;
+  grid-row:2;
+  left:auto!important;
+  right:auto!important;
+  bottom:auto!important;
+  transform:none!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0;
+  min-height:52px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:#071927;
+  color:#fff;
+  border:1px solid #2d5068;
+  border-radius:14px;
+  padding:10px 18px;
+  text-align:center;
+  font-size:clamp(15px,1.3vw,20px);
+  font-weight:750;
+  line-height:1.4;
+  box-shadow:0 8px 22px #0002;
+}
+.captionOverlay.captionDock.hidden{
+  display:none!important;
+}
+.side{
+  grid-column:2;
+  grid-row:1 / span 2;
+}
+@media(max-width:1050px){
+  .stage{
+    grid-template-columns:1fr;
+    grid-template-rows:auto auto auto;
+  }
+  .visualWrap{
+    grid-column:1;
+    grid-row:1;
+  }
+  .captionOverlay.captionDock{
+    grid-column:1;
+    grid-row:2;
+  }
+  .side{
+    grid-column:1;
+    grid-row:3;
+  }
+}
+@media(max-width:700px){
+  .captionOverlay.captionDock{
+    position:relative;
+    left:auto;
+    right:auto;
+    bottom:auto;
+    transform:none;
+    max-width:none;
+    max-height:none;
+    overflow:visible;
+    width:100%;
+    min-height:48px;
+    padding:9px 12px;
+    border-radius:12px;
+    font-size:clamp(12px,3.25vw,15px);
+    line-height:1.35;
+  }
+}
