@@ -6,6 +6,7 @@
 <title>Level Up • The First 30</title>
 <link rel="stylesheet" href="./styles-selfpaced-v3.css">
   <link rel="stylesheet" href="./caption-dock-v2.css">
+  <link rel="stylesheet" href="./first30-accessibility-v1.css">
 </head>
 <body>
 <header class="topbar">
@@ -60,6 +61,7 @@
             <button class="btn blue" id="playBtn">▶ Play</button>
             <button class="btn alt" id="replayBtn">↺ Replay</button>
             <button class="btn alt" id="ccBtn">CC On</button>
+            <button class="btn alt" id="accessibilityBtn" type="button">◉ Accessibility</button>
             <span id="audioTimer" class="audioTimer">0:00 / --:--</span>
           </div>
         </section>
@@ -99,8 +101,35 @@
 </main>
 
 <audio id="sceneAudio" preload="metadata"></audio>
-<script src="./app-selfpaced-v2.js"></script>
+<script src="./app-selfpaced-v3.js"></script>
   <script defer src="../offline-client.js"></script>
   <script defer src="../offline-progress.js"></script>
+  <dialog id="first30Accessibility" class="first30AccessDialog">
+    <div class="first30AccessHead">
+      <div><small>ACCESSIBILITY</small><h2>Choose how you learn</h2></div>
+      <button type="button" id="closeAccessibility" aria-label="Close accessibility">×</button>
+    </div>
+    <div class="first30AccessBody">
+      <section class="first30SceneDescription" aria-live="polite">
+        <div><b>Describe this scene</b><small id="accessSceneLabel">The First 30</small></div>
+        <p id="accessSceneDescription">Workplace readiness scene.</p>
+      </section>
+      <label class="first30SwitchRow"><span><b>Play narration automatically</b><small>New scenes begin narration automatically when your browser allows it.</small></span><input id="accessAuto" type="checkbox"></label>
+      <label class="first30SwitchRow"><span><b>Show visual captions</b><small>Show synchronized captions beneath the scene artwork.</small></span><input id="accessCaptions" type="checkbox"></label>
+      <label class="first30SwitchRow"><span><b>Larger interface text</b><small>Increase readable interface text without changing the artwork.</small></span><input id="accessLargeText" type="checkbox"></label>
+      <fieldset class="first30Speed">
+        <legend>Narration speed</legend>
+        <small>Choose the playback speed that is most comfortable for you.</small>
+        <div>
+          <button type="button" data-rate="0.75">0.75×</button>
+          <button type="button" data-rate="1">1×</button>
+          <button type="button" data-rate="1.25">1.25×</button>
+          <button type="button" data-rate="1.5">1.5×</button>
+        </div>
+      </fieldset>
+      <label class="first30SwitchRow"><span><b>Reduce motion</b><small>Minimize animated transitions and smooth scrolling where possible.</small></span><input id="accessReduceMotion" type="checkbox"></label>
+      <p class="first30AccessNote">These settings are shared with your Level Up experience on this device.</p>
+    </div>
+  </dialog>
 </body>
 </html>
