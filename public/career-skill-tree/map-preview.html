@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Level Up • Career Tree Map Preview</title>
+<style>
+:root{--ink:#f7f9ff;--muted:#aab7d3;--bg:#05081c;--panel:#0d1630;--line:#293b68;--cyan:#72d7ff;--gold:#ffd166;--green:#7de2a8;--violet:#b69cff;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color-scheme:dark}*{box-sizing:border-box}body{margin:0;background:#05081c;color:var(--ink);min-height:100vh}.shell{max-width:1220px;margin:0 auto;padding:28px 24px 70px}.top{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:18px}.eyebrow{display:block;color:var(--cyan);font-size:.75rem;font-weight:900;letter-spacing:.14em;text-transform:uppercase}.top h1{font-size:clamp(2rem,4vw,3.8rem);line-height:.95;margin:.35rem 0}.top p{max-width:720px;color:#c7d3ec;line-height:1.55}.back{color:#dff6ff;text-decoration:none;border:1px solid var(--line);border-radius:12px;padding:10px 14px;background:#111b38;font-weight:800}.map{position:relative;min-height:860px;border:1px solid rgba(114,215,255,.2);border-radius:32px;overflow:hidden;background:radial-gradient(circle at 15% 88%,rgba(34,124,76,.72),transparent 24%),radial-gradient(circle at 76% 12%,rgba(85,57,146,.52),transparent 22%),linear-gradient(180deg,#071126 0%,#0b1c36 44%,#112b35 70%,#122d26 100%);box-shadow:0 28px 80px rgba(0,0,0,.42)}.map:before{content:"";position:absolute;inset:0;background-image:radial-gradient(circle at 10% 15%,rgba(255,255,255,.6) 0 1px,transparent 1.5px),radial-gradient(circle at 30% 8%,rgba(255,255,255,.35) 0 1px,transparent 1.5px),radial-gradient(circle at 68% 17%,rgba(255,255,255,.45) 0 1px,transparent 1.5px),radial-gradient(circle at 88% 10%,rgba(255,255,255,.55) 0 1px,transparent 1.5px);background-size:180px 160px;opacity:.45;pointer-events:none}.hills,.hills:before,.hills:after{position:absolute;content:"";left:-6%;right:-6%;bottom:-120px;height:410px;border-radius:50% 50% 0 0}.hills{background:#0c261f;transform:rotate(-2deg)}.hills:before{background:#11352b;bottom:95px;left:8%;right:34%;height:300px}.hills:after{background:#173c30;bottom:45px;left:52%;right:-8%;height:330px}.path{position:absolute;inset:80px 90px 100px;z-index:1;pointer-events:none}.path svg{width:100%;height:100%;overflow:visible}.path-shadow{fill:none;stroke:rgba(0,0,0,.42);stroke-width:24;stroke-linecap:round;stroke-linejoin:round}.path-line{fill:none;stroke:#e2b468;stroke-width:11;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:4 16}.map-title{position:absolute;top:30px;left:34px;z-index:4}.map-title h2{font-size:1.9rem;margin:.25rem 0}.map-title p{margin:0;color:#b9c8df}.legend{position:absolute;right:28px;top:28px;z-index:4;display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.legend span{border:1px solid var(--line);border-radius:999px;background:rgba(9,19,45,.8);padding:7px 10px;color:#c8d5eb;font-size:.76rem;font-weight:800}.node{position:absolute;z-index:5;width:min(350px,35vw);border:1px solid rgba(114,215,255,.3);border-radius:22px;background:linear-gradient(155deg,rgba(17,29,61,.96),rgba(8,15,36,.96));box-shadow:0 18px 45px rgba(0,0,0,.38);text-decoration:none;color:inherit;overflow:hidden;transition:.2s transform,.2s border-color}.node:hover{transform:translateY(-5px);border-color:rgba(114,215,255,.75)}.node img{display:block;width:100%;height:145px;object-fit:cover}.node-copy{padding:16px 18px 18px}.node-kicker{display:flex;justify-content:space-between;gap:8px;align-items:center;color:var(--cyan);font-size:.7rem;font-weight:900;letter-spacing:.1em}.node h3{font-size:1.45rem;margin:.35rem 0 .45rem}.node p{margin:0;color:#b9c6de;line-height:1.42;font-size:.9rem}.node strong{display:block;color:var(--gold);margin-top:12px;font-size:.88rem}.pin{position:absolute;width:54px;height:54px;border-radius:50%;display:grid;place-items:center;border:4px solid #071126;background:linear-gradient(135deg,#38bdf8,#7c5cff);font-weight:950;font-size:1.2rem;box-shadow:0 0 0 4px rgba(114,215,255,.16),0 10px 28px rgba(0,0,0,.35);z-index:7}.n1{left:5%;bottom:7%}.p1{left:32%;bottom:19%}.n2{right:6%;bottom:28%}.p2{right:33%;bottom:39%}.n3{left:8%;top:30%}.p3{left:34%;top:39%}.n4{right:8%;top:10%;border-color:rgba(125,226,168,.46)}.p4{right:35%;top:20%;background:linear-gradient(135deg,#38c980,#b1f0b6)}.tree-art{height:155px;display:grid;place-items:center;position:relative;background:radial-gradient(circle at 50% 56%,rgba(125,226,168,.28),transparent 35%),linear-gradient(#101c38,#102b2c);font-size:5.6rem}.tree-art:before,.tree-art:after{content:"✦";position:absolute;color:#ffd166;font-size:1.15rem}.tree-art:before{left:25%;top:24%}.tree-art:after{right:23%;top:38%}.nova{position:absolute;left:43%;top:52%;z-index:6;width:118px;border-radius:20px;overflow:hidden;border:1px solid rgba(114,215,255,.35);box-shadow:0 16px 42px rgba(0,0,0,.4);background:#0c1733}.nova img{display:block;width:100%;height:128px;object-fit:cover;object-position:top}.nova div{padding:9px;font-size:.68rem;line-height:1.25;color:#d9e8fb;font-weight:800;text-align:center}.footer-note{text-align:center;color:#91a4c5;font-size:.78rem;margin-top:16px}.badge{position:absolute;z-index:3;padding:8px 12px;border-radius:999px;background:rgba(5,8,28,.72);border:1px solid rgba(255,255,255,.12);font-size:.7rem;font-weight:900;letter-spacing:.09em;color:#dcecff}.badge.start{left:31%;bottom:10%}.badge.finish{right:31%;top:9%;color:#caffdb;border-color:rgba(125,226,168,.32)}
+@media(max-width:880px){.top{align-items:flex-start;flex-direction:column}.map{min-height:auto;padding:120px 16px 28px}.path,.pin,.nova,.hills,.badge{display:none}.map-title{left:20px;right:20px}.legend{top:80px;left:20px;right:auto;justify-content:flex-start}.node{position:relative;inset:auto!important;width:100%;margin:14px 0;display:grid;grid-template-columns:160px 1fr}.node img,.tree-art{height:100%;min-height:170px}.n1,.n2,.n3,.n4{left:auto;right:auto;top:auto;bottom:auto}}@media(max-width:560px){.shell{padding:18px 12px 50px}.map{border-radius:22px;padding-top:148px}.legend{top:94px}.node{grid-template-columns:105px 1fr}.node h3{font-size:1.15rem}.node p{font-size:.82rem}.node-copy{padding:14px}.node img,.tree-art{min-height:190px}}
+</style>
+</head>
+<body>
+<main class="shell">
+  <div class="top">
+    <div><span class="eyebrow">LEVEL UP • CAREER SKILL TREE</span><h1>Career Tree Trail</h1><p>A visual journey from “what interests me?” to three career branches worth exploring. The map keeps the current four milestones and progression rules intact.</p></div>
+    <a class="back" href="index.html#home">← Current Career Tree</a>
+  </div>
+
+  <section class="map" aria-label="Career Tree journey map preview">
+    <div class="hills" aria-hidden="true"></div>
+    <div class="map-title"><span class="eyebrow">YOUR CAREER EXPLORATION MAP</span><h2>Follow the clues. Check the evidence.</h2><p>Each stop unlocks the next.</p></div>
+    <div class="legend"><span>● Current stop</span><span>🔒 Locked until ready</span><span>✓ Completed</span></div>
+    <div class="path" aria-hidden="true"><svg viewBox="0 0 1000 660" preserveAspectRatio="none"><path class="path-shadow" d="M180,610 C290,570 310,500 430,485 S690,520 760,415 S635,285 510,300 S300,310 285,220 S410,105 560,115 S760,150 845,55"/><path class="path-line" d="M180,610 C290,570 310,500 430,485 S690,520 760,415 S635,285 510,300 S300,310 285,220 S410,105 560,115 S760,150 845,55"/></svg></div>
+    <span class="badge start">START • INTERESTS</span><span class="badge finish">FINISH • THREE BRANCHES</span>
+
+    <a class="node n1" href="index.html#interest">
+      <img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-base-camp-home.webp" alt="Illustrated Level Up base camp">
+      <div class="node-copy"><div class="node-kicker"><span>1 • DISCOVER ME</span><span>START</span></div><h3>Interest Trailhead</h3><p>30 visual work activities build your O*NET® RIASEC profile.</p><strong>What kinds of work pull you in? →</strong></div>
+    </a><span class="pin p1">1</span>
+
+    <a class="node n2" href="index.html#alignment">
+      <img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-resume-retreat-home.webp" alt="Illustrated mountain retreat">
+      <div class="node-copy"><div class="node-kicker"><span>2 • CAREER ALIGNMENT</span><span>🔒</span></div><h3>Alignment Junction</h3><p>Layer interests with work style, people, environment, and preparation.</p><strong>Turn clues into possibilities →</strong></div>
+    </a><span class="pin p2">2</span>
+
+    <a class="node n3" href="index.html#lmi">
+      <img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-interview-landing-home.webp" alt="Illustrated Level Up overlook">
+      <div class="node-copy"><div class="node-kicker"><span>3 • LMI LAB</span><span>🔒</span></div><h3>Market Lookout</h3><p>Test wages, demand, openings, training, and market direction.</p><strong>Back your choices with evidence →</strong></div>
+    </a><span class="pin p3">3</span>
+
+    <a class="node n4" href="index.html#tree">
+      <div class="tree-art" aria-hidden="true">🌳</div>
+      <div class="node-copy"><div class="node-kicker"><span>4 • MY CAREER TREE</span><span>🔒</span></div><h3>Career Canopy</h3><p>Carry forward three branches: Explore Now, Keep Open, and Surprise Me.</p><strong>Build the tree you will keep exploring →</strong></div>
+    </a><span class="pin p4">4</span>
+
+    <div class="nova"><img src="../opportunity-city/nova-card.jpg" alt="Nova, Level Up guide"><div>NOVA CHECKPOINT<br>Interests are clues — not commands.</div></div>
+  </section>
+  <div class="footer-note">Map preview only • uses the current Career Tree stage logic and existing Level Up / BOOST artwork as temporary location art.</div>
+</main>
+</body>
+</html>
