@@ -6,12 +6,13 @@
   <meta name="theme-color" content="#071126">
   <title>Level Up • Career Skill Tree</title>
   <link rel="stylesheet" href="styles.css?v=20261005-1">
+  <link rel="stylesheet" href="open-hub.css?v=20261005-1">
 </head>
 <body>
 <div class="app-shell">
   <header class="topbar">
     <a class="brand" href="#home" data-view="home" aria-label="Career Skill Tree home">LEVEL UP • CAREER SKILL TREE</a>
-    <div class="top-progress" aria-label="Career Skill Tree progress"><span id="progressText">0 of 4 milestones complete</span><div class="top-track"><i id="progressBar"></i></div></div>
+    <div class="top-progress" aria-label="Career Tree progress"><span id="progressText">0 of 4 experiences complete</span><div class="top-track"><i id="progressBar"></i></div></div>
     <div class="top-actions">
       <button id="facilitatedToggle" class="mode-btn" type="button" aria-pressed="true">🎓 Facilitated Mode</button>
       <a class="top-link" href="../">← Opportunity City</a>
@@ -21,10 +22,10 @@
   <main id="viewHome" class="view">
     <section class="hero">
       <div class="hero-copy">
-        <span class="eyebrow">CAREER EXPLORATION • LMI • DECISION SKILLS</span>
-        <h1>Grow a career path that fits <em>you</em>.</h1>
-        <p>Start with your interests, connect them to career possibilities, learn how to read labor market information, and leave with three branches worth exploring.</p>
-        <div class="hero-actions"><button class="primary-btn" id="startBtn" type="button">Start Career Tree →</button><button class="secondary-btn" id="resumeBtn" type="button" hidden>Continue where I left off →</button></div>
+        <span class="eyebrow">OPEN CAREER EXPLORATION • START ANYWHERE</span>
+        <h1>Build your path in <em>your order.</em></h1>
+        <p>Career Tree is an open exploration space. Start with interests, career fit, labor-market information, or your career branches — then come back as your thinking changes.</p>
+        <div class="hero-actions"><button class="primary-btn" id="startBtn" type="button">Explore the map ↓</button><button class="secondary-btn" id="resumeBtn" type="button" hidden>Continue where I left off →</button></div>
         <div class="source-note">The interest assessment uses the official 30-item O*NET® Mini Interest Profiler. Career Tree adds Level Up learning activities after the assessment; it does not change the O*NET® items or scoring structure.</div>
       </div>
       <div class="nova-card">
@@ -35,15 +36,15 @@
 
     <section class="journey-grid" id="journeyGrid">
       <button class="journey-card" data-view="interest"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-base-camp-home.webp" alt=""><div><span>1 • DISCOVER ME</span><h2>O*NET® Mini-IP</h2><p>30 quick work-activity questions → your RIASEC interest profile.</p><strong id="homeInterestStatus">Start →</strong></div></button>
-      <button class="journey-card" data-view="alignment"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-resume-retreat-home.webp" alt=""><div><span>2 • CAREER ALIGNMENT</span><h2>Find Possible Fits</h2><p>Layer interests with work style, people, environment, and preparation preferences.</p><strong id="homeAlignmentStatus">Locked</strong></div></button>
-      <button class="journey-card" data-view="lmi"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-interview-landing-home.webp" alt=""><div><span>3 • LMI LAB</span><h2>Read the Market</h2><p>Learn what wages, demand, openings, training, and industry growth actually tell you.</p><strong id="homeLmiStatus">Locked</strong></div></button>
-      <button class="journey-card tree-card" data-view="tree"><div class="tree-visual" aria-hidden="true">🌱<span>🌿</span><b>🌳</b></div><div><span>4 • MY CAREER TREE</span><h2>Choose Three Branches</h2><p>Explore Now • Keep Open • Surprise Me — backed by what you learned.</p><strong id="homeTreeStatus">Locked</strong></div></button>
+      <button class="journey-card" data-view="alignment"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-resume-retreat-home.webp" alt=""><div><span>2 • CAREER ALIGNMENT</span><h2>Find Possible Fits</h2><p>Layer interests with work style, people, environment, and preparation preferences.</p><strong id="homeAlignmentStatus">Available →</strong></div></button>
+      <button class="journey-card" data-view="lmi"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-interview-landing-home.webp" alt=""><div><span>3 • LMI LAB</span><h2>Read the Market</h2><p>Learn what wages, demand, openings, training, and industry growth actually tell you.</p><strong id="homeLmiStatus">Available →</strong></div></button>
+      <button class="journey-card tree-card" data-view="tree"><div class="tree-visual" aria-hidden="true">🌱<span>🌿</span><b>🌳</b></div><div><span>4 • MY CAREER TREE</span><h2>Choose Three Branches</h2><p>Explore Now • Keep Open • Surprise Me — backed by what you learned.</p><strong id="homeTreeStatus">Available →</strong></div></button>
     </section>
   </main>
 
   <main id="viewInterest" class="view" hidden>
     <section class="stage-shell">
-      <div class="stage-head"><div><span class="eyebrow">STAGE 1 • DISCOVER ME</span><h1>O*NET® Mini Interest Profiler</h1><p>Rate how much you would like or dislike each work activity. Don’t answer based on pay, training, or whether you think you are already good at it.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
+      <div class="stage-head"><div><span class="eyebrow">DESTINATION • DISCOVER ME</span><h1>O*NET® Mini Interest Profiler</h1><p>Rate how much you would like or dislike each work activity. Don’t answer based on pay, training, or whether you think you are already good at it.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
       <div class="assessment-status"><span id="ipPageLabel">Set 1 of 5</span><div class="assessment-track"><i id="ipProgress"></i></div><span id="ipCount">0 / 30 answered</span></div>
       <div id="ipQuestions" class="question-stack"></div>
       <div class="assessment-controls"><button id="ipPrev" class="secondary-btn" type="button">← Previous</button><button id="ipNext" class="primary-btn" type="button">Next six →</button></div>
@@ -58,7 +59,7 @@
 
   <main id="viewAlignment" class="view" hidden>
     <section class="stage-shell">
-      <div class="stage-head"><div><span class="eyebrow">STAGE 2 • CAREER ALIGNMENT</span><h1>Interests are one layer. Add the rest of you.</h1><p>There is no perfect career match. These choices help Career Tree surface possibilities that are worth investigating—not jobs you “should” do.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
+      <div class="stage-head"><div><span class="eyebrow">DESTINATION • CAREER ALIGNMENT</span><h1>Interests are one layer. Add the rest of you.</h1><p>There is no perfect career match. These choices help Career Tree surface possibilities that are worth investigating—not jobs you “should” do.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
       <div class="profile-chip-row" id="alignmentRiasec"></div>
       <form id="alignmentForm" class="alignment-form">
         <fieldset><legend>How do you like to spend your workday?</legend><div class="choice-grid" data-field="style"><label><input type="radio" name="style" value="hands"><span>🛠️ Hands-on / build / fix</span></label><label><input type="radio" name="style" value="ideas"><span>🔎 Investigate / solve / analyze</span></label><label><input type="radio" name="style" value="create"><span>🎨 Create / design / express</span></label><label><input type="radio" name="style" value="help"><span>🤝 Help / teach / support</span></label><label><input type="radio" name="style" value="lead"><span>📣 Lead / persuade / sell</span></label><label><input type="radio" name="style" value="organize"><span>📋 Organize / track / detail</span></label></div></fieldset>
@@ -74,7 +75,7 @@
 
   <main id="viewLmi" class="view" hidden>
     <section class="stage-shell">
-      <div class="stage-head"><div><span class="eyebrow">STAGE 3 • LMI LAB</span><h1>Turn “that sounds cool” into an informed question.</h1><p>Labor Market Information (LMI) helps you test whether an opportunity exists, what it may pay, how people enter it, and what the market is doing.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
+      <div class="stage-head"><div><span class="eyebrow">DESTINATION • LMI LAB</span><h1>Turn “that sounds cool” into an informed question.</h1><p>Labor Market Information (LMI) helps you test whether an opportunity exists, what it may pay, how people enter it, and what the market is doing.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
       <div class="lmi-lesson-grid">
         <article><b>💵 WAGES</b><h3>What might the work pay?</h3><p>Look beyond one number. Entry, median, and experienced wages can tell different stories.</p></article>
         <article><b>📈 DEMAND</b><h3>Is the market growing?</h3><p>Growth rate shows direction. It does not tell you how many jobs exist.</p></article>
@@ -83,7 +84,7 @@
       </div>
       <aside class="lmi-warning"><strong>⚠️ LMI trap: Industry growth is not the same thing as occupation growth.</strong><p>A growing healthcare industry employs nurses—but also IT staff, accountants, maintenance workers, drivers, and many other occupations. Always verify the occupation itself.</p></aside>
       <section class="arizona-context"><div class="section-title"><span class="eyebrow">ARIZONA 2024–2034 • INDUSTRY CONTEXT</span><h2>What is growing around us?</h2><p>Use these current Arizona OEO projections as context, then investigate your occupation-level data.</p></div><div id="sectorCards" class="sector-grid"></div><div class="pinal-callout"><strong>Pinal County:</strong> Arizona OEO projects <b>+9,963 jobs</b> from 2024–2034, about <b>1.1% annual growth</b> across the county economy.</div></section>
-      <section class="lmi-workbench"><div class="section-title"><span class="eyebrow">YOUR LMI WORKBENCH</span><h2>Investigate the careers you saved.</h2><p>During facilitated mode, your instructor can demonstrate the OEO tools while you capture the evidence that matters to you.</p></div><div id="lmiCareerTabs" class="tab-row"></div><div id="lmiCareerPanel"></div><div class="official-links"><a href="https://oeo.az.gov/labor-market/occupation-employment" target="_blank" rel="noopener">Arizona OEO • Occupation wages ↗</a><a href="https://oeo.az.gov/labor-market/employment-projections" target="_blank" rel="noopener">Arizona OEO • Employment projections ↗</a><a href="https://www.onetonline.org/" target="_blank" rel="noopener">O*NET OnLine • Career details ↗</a></div></section>
+      <section class="lmi-workbench"><div class="section-title"><span class="eyebrow">YOUR LMI WORKBENCH</span><h2>Investigate careers you want to understand.</h2><p>Bring careers from Career Alignment or add one here. Capture the evidence that matters to you.</p></div><div id="lmiCareerTabs" class="tab-row"></div><div id="lmiCareerPanel"></div><div class="official-links"><a href="https://oeo.az.gov/labor-market/occupation-employment" target="_blank" rel="noopener">Arizona OEO • Occupation wages ↗</a><a href="https://oeo.az.gov/labor-market/employment-projections" target="_blank" rel="noopener">Arizona OEO • Employment projections ↗</a><a href="https://www.onetonline.org/" target="_blank" rel="noopener">O*NET OnLine • Career details ↗</a></div></section>
       <aside class="facilitator-pause" data-facilitator><span>🎓 FACILITATOR PAUSE</span><strong>Have the group defend a choice with evidence.</strong><p>“I like this career” is the starting point. Ask students to add at least two pieces of LMI evidence before deciding whether it stays on their tree.</p></aside>
       <div class="stage-action-row"><button id="lmiContinue" class="primary-btn" type="button">Build My Career Tree →</button></div>
       <aside class="source-note">Industry projections: Arizona Office of Economic Opportunity, 2024–2034 Industry Employment Projections, released November 13, 2025. Occupation-specific wages and projections should be verified using current OEO data tools.</aside>
@@ -92,7 +93,7 @@
 
   <main id="viewTree" class="view" hidden>
     <section class="stage-shell final-shell">
-      <div class="stage-head"><div><span class="eyebrow">STAGE 4 • MY CAREER TREE</span><h1>Your tree is a starting point, not a contract.</h1><p>Choose three branches to carry forward. You can change them as you learn more, gain experience, and discover new possibilities.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
+      <div class="stage-head"><div><span class="eyebrow">DESTINATION • MY CAREER TREE</span><h1>Your tree is a starting point, not a contract.</h1><p>Use this space whenever you are ready to organize career possibilities into Explore Now, Keep Open, and Surprise Me. Your tree can change as you learn more.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
       <div class="final-grid"><section class="tree-output"><div class="tree-canopy">🌳</div><div id="branchCards" class="branch-stack"></div></section><aside class="career-summary"><div class="nova-inline"><img src="../opportunity-city/nova-card.jpg" alt="Nova"><div><span class="eyebrow">NOVA • CAREER EXPLORATION SUMMARY</span><h2 id="finalName">Your Career Tree</h2></div></div><div id="finalRiasec"></div><div id="finalEvidence"></div><button id="completeTree" class="primary-btn" type="button">Complete Career Tree ✓</button><button id="printSummary" class="secondary-btn" type="button">Print / Save Summary</button></aside></div>
       <section id="completionPanel" class="completion-panel" hidden><span class="eyebrow">CAREER TREE COMPLETE</span><h2>Keep exploring. Keep checking the evidence.</h2><p>Your interests gave you clues. Career alignment gave you possibilities. LMI gave you evidence. Your next step is to test those possibilities in the real world.</p><div class="completion-actions"><a class="primary-btn link-btn" href="../">Return to Opportunity City →</a><button class="secondary-btn" id="reviewTree" type="button">Review my tree</button></div></section>
     </section>
@@ -100,6 +101,7 @@
 </div>
 <script defer src="../offline-client.js"></script>
 <script defer src="../offline-progress.js"></script>
+<script src="open-hub.js?v=20261005-1"></script>
 <script src="app.js?v=20261005-2"></script>
 </body>
 </html>
