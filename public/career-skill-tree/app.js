@@ -14,26 +14,26 @@
     const style=document.createElement('style');
     style.id='career-tree-ip-pass-b-styles';
     style.textContent=`
-      #viewInterest .stage-shell{max-width:min(1500px,96vw);margin-inline:auto;padding-inline:clamp(12px,2vw,28px)}
+      #viewInterest .stage-shell{max-width:min(1500px,96vw);margin-inline:auto;padding-inline:clamp(12px,2vw,28px)};padding-top:8px!important;padding-bottom:10px!important}
       #viewInterest .question-stack{display:block}
       #viewInterest .ip-question.ip-scene-card{padding:0!important;overflow:hidden;border-radius:24px;border:1px solid rgba(114,215,255,.22);background:#071126;box-shadow:0 24px 80px rgba(0,0,0,.28)}
       #viewInterest .ip-question.ip-scene-card[hidden]{display:none!important}
       #viewInterest .ip-scene-grid{display:flex!important;flex-direction:column!important;gap:0!important;min-height:0!important}
-      #viewInterest .ip-scene-visual{width:100%!important;min-height:clamp(440px,62vh,760px)!important;border:0!important;border-radius:0!important;background-size:cover!important;background-position:center!important;position:relative!important}
-      #viewInterest .ip-scene-copy{padding:clamp(18px,2.4vw,28px)!important;background:linear-gradient(180deg,#0a1530,#081126)}
-      #viewInterest .ip-scene-copy h3{font-size:clamp(1.35rem,2.2vw,1.9rem)!important;line-height:1.15!important;margin:.35rem 0 .5rem!important}
+      #viewInterest .ip-scene-visual{width:100%!important;height:clamp(300px,46vh,500px)!important;min-height:0!important;border:0!important;border-radius:0!important;background-size:contain!important;background-repeat:no-repeat!important;background-position:center!important;background-color:#071126!important;position:relative!important}
+      #viewInterest .ip-scene-copy{padding:clamp(12px,1.7vw,20px)!important;background:linear-gradient(180deg,#0a1530,#081126)}
+      #viewInterest .ip-scene-copy h3{font-size:clamp(1.25rem,2vw,1.7rem)!important;line-height:1.12!important;margin:.2rem 0 .35rem!important}
       #viewInterest .ip-scene-copy p{font-size:.95rem;line-height:1.4;margin:.1rem 0 .75rem!important;color:#b9c5dd}
       #viewInterest .answer-scale{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;margin-top:8px}
       #viewInterest .answer-scale label{width:100%}
-      #viewInterest .answer-scale label span{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:58px!important;padding:10px 8px!important;border-radius:14px!important;text-align:center}
-      #viewInterest .assessment-controls{margin-top:14px!important;display:flex!important;align-items:center!important;gap:12px!important}
+      #viewInterest .answer-scale label span{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:50px!important;padding:8px 7px!important;border-radius:14px!important;text-align:center}
+      #viewInterest .assessment-controls{margin-top:10px!important;display:flex!important;align-items:center!important;gap:12px!important}
       #viewInterest #ipPrev{margin-right:auto}
       #viewInterest #ipNext{margin-left:auto}
       #viewInterest .assessment-controls button:disabled{opacity:.45;cursor:not-allowed}
-      #viewInterest .ip-scene-fallback{display:grid;place-items:center;min-height:clamp(440px,62vh,760px);padding:32px;text-align:center;color:#c9d6ef;background:#0a1530;font-weight:800}
+      #viewInterest .ip-scene-fallback{display:grid;place-items:center;height:clamp(300px,46vh,500px);padding:32px;text-align:center;color:#c9d6ef;background:#0a1530;font-weight:800}
       @media(max-width:800px){
         #viewInterest .stage-shell{max-width:100%;padding-inline:8px}
-        #viewInterest .ip-scene-visual{min-height:clamp(290px,54vh,520px)!important}
+        #viewInterest .ip-scene-visual{height:clamp(240px,42vh,400px)!important;min-height:0!important}
         #viewInterest .ip-scene-copy{padding:16px!important}
         #viewInterest .answer-scale{grid-template-columns:repeat(2,minmax(0,1fr))!important}
         #viewInterest .answer-scale label:first-child{grid-column:1/-1}
