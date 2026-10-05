@@ -14,32 +14,29 @@
     const style=document.createElement('style');
     style.id='career-tree-ip-pass-b-styles';
     style.textContent=`
-      #viewInterest .stage-shell{max-width:1180px;margin-inline:auto}
+      #viewInterest .stage-shell{max-width:min(1500px,96vw);margin-inline:auto;padding-inline:clamp(12px,2vw,28px)}
       #viewInterest .question-stack{display:block}
-      #viewInterest .ip-question.ip-scene-card{padding:0!important;overflow:hidden;border-radius:24px;border:1px solid rgba(114,215,255,.22);background:linear-gradient(145deg,rgba(10,20,48,.98),rgba(7,16,38,.98));box-shadow:0 24px 80px rgba(0,0,0,.28)}
+      #viewInterest .ip-question.ip-scene-card{padding:0!important;overflow:hidden;border-radius:24px;border:1px solid rgba(114,215,255,.22);background:#071126;box-shadow:0 24px 80px rgba(0,0,0,.28)}
       #viewInterest .ip-question.ip-scene-card[hidden]{display:none!important}
-      #viewInterest .ip-scene-grid{display:grid!important;grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr)!important;gap:0!important;align-items:stretch!important;min-height:520px}
-      #viewInterest .ip-scene-visual{min-height:520px!important;border:0!important;border-radius:0!important;background-size:cover!important;background-position:center!important;position:relative!important}
-      #viewInterest .ip-scene-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent 62%,rgba(7,16,38,.18) 82%,rgba(7,16,38,.58) 100%);pointer-events:none}
-      #viewInterest .ip-scene-copy{padding:clamp(28px,4vw,52px)!important;display:flex!important;flex-direction:column!important;justify-content:center!important;background:linear-gradient(145deg,rgba(8,19,45,.76),rgba(8,17,39,.98))}
-      #viewInterest .ip-scene-copy h3{font-size:clamp(1.55rem,3vw,2.35rem)!important;line-height:1.12!important;margin:.55rem 0 1rem!important}
-      #viewInterest .ip-scene-copy p{font-size:1rem;line-height:1.55}
-      #viewInterest .answer-scale{display:grid!important;grid-template-columns:1fr!important;gap:10px!important;margin-top:10px}
+      #viewInterest .ip-scene-grid{display:flex!important;flex-direction:column!important;gap:0!important;min-height:0!important}
+      #viewInterest .ip-scene-visual{width:100%!important;min-height:clamp(440px,62vh,760px)!important;border:0!important;border-radius:0!important;background-size:cover!important;background-position:center!important;position:relative!important}
+      #viewInterest .ip-scene-copy{padding:clamp(18px,2.4vw,28px)!important;background:linear-gradient(180deg,#0a1530,#081126)}
+      #viewInterest .ip-scene-copy h3{font-size:clamp(1.35rem,2.2vw,1.9rem)!important;line-height:1.15!important;margin:.35rem 0 .5rem!important}
+      #viewInterest .ip-scene-copy p{font-size:.95rem;line-height:1.4;margin:.1rem 0 .75rem!important;color:#b9c5dd}
+      #viewInterest .answer-scale{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;margin-top:8px}
       #viewInterest .answer-scale label{width:100%}
-      #viewInterest .answer-scale label span{display:flex!important;align-items:center!important;width:100%!important;min-height:54px!important;border-radius:14px!important;padding:12px 16px!important;transition:transform .15s ease,border-color .15s ease,background .15s ease!important}
-      #viewInterest .answer-scale label span:hover{transform:translateY(-1px)}
-      #viewInterest .answer-scale input:focus-visible + span{outline:3px solid rgba(89,205,255,.75);outline-offset:2px}
-      #viewInterest .assessment-controls{margin-top:18px;gap:12px;align-items:center}
-      #viewInterest .assessment-controls button:disabled{opacity:.46;cursor:not-allowed;filter:saturate(.5)}
-      #viewInterest .ip-scene-fallback{display:grid;place-items:center;min-height:520px;padding:32px;text-align:center;color:#c9d6ef;background:radial-gradient(circle at 50% 35%,rgba(90,135,255,.18),transparent 46%),#0a1530;font-weight:800;letter-spacing:.02em}
-      #viewInterest .ip-scene-card.scene-enter{animation:careerTreeSceneIn .28s ease both}
-      @keyframes careerTreeSceneIn{from{opacity:.25;transform:translateX(14px)}to{opacity:1;transform:translateX(0)}}
-      @media(max-width:900px){
-        #viewInterest .ip-scene-grid{grid-template-columns:1fr!important;min-height:0}
-        #viewInterest .ip-scene-visual{min-height:clamp(270px,62vw,430px)!important;background-position:center!important}
-        #viewInterest .ip-scene-visual::after{background:linear-gradient(180deg,transparent 72%,rgba(7,16,38,.6) 100%)}
-        #viewInterest .ip-scene-copy{padding:24px!important}
-        #viewInterest .ip-scene-fallback{min-height:300px}
+      #viewInterest .answer-scale label span{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:58px!important;padding:10px 8px!important;border-radius:14px!important;text-align:center}
+      #viewInterest .assessment-controls{margin-top:14px!important;display:flex!important;align-items:center!important;gap:12px!important}
+      #viewInterest #ipPrev{margin-right:auto}
+      #viewInterest #ipNext{margin-left:auto}
+      #viewInterest .assessment-controls button:disabled{opacity:.45;cursor:not-allowed}
+      #viewInterest .ip-scene-fallback{display:grid;place-items:center;min-height:clamp(440px,62vh,760px);padding:32px;text-align:center;color:#c9d6ef;background:#0a1530;font-weight:800}
+      @media(max-width:800px){
+        #viewInterest .stage-shell{max-width:100%;padding-inline:8px}
+        #viewInterest .ip-scene-visual{min-height:clamp(290px,54vh,520px)!important}
+        #viewInterest .ip-scene-copy{padding:16px!important}
+        #viewInterest .answer-scale{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        #viewInterest .answer-scale label:first-child{grid-column:1/-1}
       }
     `;
     document.head.appendChild(style);
@@ -98,7 +95,7 @@
           probe.src=src;
         }
       }
-      if(copy)copy.classList.add('ip-scene-copy');
+      if(copy){copy.classList.add('ip-scene-copy');const scale=copy.querySelector('.answer-scale');if(scale&&!scale.dataset.strengthFirst){[...scale.querySelectorAll('label')].reverse().forEach(label=>scale.appendChild(label));scale.dataset.strengthFirst='1';}}
     }
 
     function currentAnswered(card){
