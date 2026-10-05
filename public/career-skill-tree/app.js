@@ -14,12 +14,15 @@
     const style=document.createElement('style');
     style.id='career-tree-ip-pass-b-styles';
     style.textContent=`
-      #viewInterest .stage-shell{max-width:min(1500px,96vw);margin-inline:auto;padding-inline:clamp(12px,2vw,28px)};padding-top:8px!important;padding-bottom:10px!important}
+      #viewInterest .stage-shell{max-width:min(1500px,96vw);margin-inline:auto;padding:8px clamp(12px,2vw,28px) 10px!important}
       #viewInterest .question-stack{display:block}
       #viewInterest .ip-question.ip-scene-card{padding:0!important;overflow:hidden;border-radius:24px;border:1px solid rgba(114,215,255,.22);background:#071126;box-shadow:0 24px 80px rgba(0,0,0,.28)}
       #viewInterest .ip-question.ip-scene-card[hidden]{display:none!important}
       #viewInterest .ip-scene-grid{display:flex!important;flex-direction:column!important;gap:0!important;min-height:0!important}
-      #viewInterest .ip-scene-visual{width:100%!important;height:clamp(300px,46vh,500px)!important;min-height:0!important;border:0!important;border-radius:0!important;background-size:contain!important;background-repeat:no-repeat!important;background-position:center!important;background-color:#071126!important;position:relative!important}
+      #viewInterest .ip-scene-visual{width:100%!important;height:clamp(300px,46vh,500px)!important;min-height:0!important;border:0!important;border-radius:0!important;background:none!important;background-color:#071126!important;position:relative!important;overflow:hidden!important}
+      #viewInterest .ip-scene-visual::before{content:'';position:absolute;inset:-22px;background-image:var(--scene-image);background-size:cover;background-position:center;filter:blur(18px) brightness(.42) saturate(.9);transform:scale(1.08)}
+      #viewInterest .ip-scene-visual::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,rgba(5,13,31,.32),rgba(5,13,31,.02) 28%,rgba(5,13,31,.02) 72%,rgba(5,13,31,.32));pointer-events:none}
+      #viewInterest .ip-scene-art{position:absolute;z-index:1;inset:0;width:100%;height:100%;object-fit:contain;display:block}
       #viewInterest .ip-scene-copy{padding:clamp(12px,1.7vw,20px)!important;background:linear-gradient(180deg,#0a1530,#081126)}
       #viewInterest .ip-scene-copy h3{font-size:clamp(1.25rem,2vw,1.7rem)!important;line-height:1.12!important;margin:.2rem 0 .35rem!important}
       #viewInterest .ip-scene-copy p{font-size:.95rem;line-height:1.4;margin:.1rem 0 .75rem!important;color:#b9c5dd}
@@ -85,14 +88,18 @@
         const q=Number(card.dataset.question||0);
         if(q){
           const src=`assets/onet/onet-${String(q).padStart(2,'0')}.webp`;
+          visual.style.setProperty('--scene-image','url("'+src+'")');
           const probe=new Image();
+          probe.className='ip-scene-art';
+          probe.alt='';
           probe.onload=()=>{};
           probe.onerror=()=>{
-            visual.style.backgroundImage='none';
+            visual.style.removeProperty('--scene-image');
             visual.classList.add('ip-scene-fallback');
             visual.textContent='Visual unavailable — rate this activity using the statement.';
           };
           probe.src=src;
+          visual.appendChild(probe);
         }
       }
       if(copy){copy.classList.add('ip-scene-copy');const scale=copy.querySelector('.answer-scale');if(scale&&!scale.dataset.strengthFirst){[...scale.querySelectorAll('label')].reverse().forEach(label=>scale.appendChild(label));scale.dataset.strengthFirst='1';}}
