@@ -85,16 +85,40 @@ elif career_action_new not in text:
 
 path.write_text(text, encoding="utf-8")
 
-# When Opportunity City launches Career Tree, land directly on the map rather than at the hero.
+# Career Tree launch context:
+# - normal Opportunity City / direct links are self-paced and do not show a mode control
+# - a future Level Up Live classroom launch can use ?mode=facilitated or ?from=level-up-live
+#   to expose facilitator mode and the facilitator pause prompts.
 hub_path = Path("public/career-skill-tree/open-hub.js")
 if hub_path.exists():
     hub = hub_path.read_text(encoding="utf-8")
+
     map_insert_old = "`;grid.before(map);\n    document.querySelectorAll('[data-hub-view]')"
     map_insert_new = "`;grid.before(map);\n    if(new URLSearchParams(location.search).get('entry')==='map')requestAnimationFrame(()=>map.scrollIntoView({behavior:'auto',block:'start'}));\n    document.querySelectorAll('[data-hub-view]')"
     if map_insert_old in hub:
         hub = hub.replace(map_insert_old, map_insert_new, 1)
     elif "get('entry')==='map'" not in hub:
         raise SystemExit("Career Tree map insertion signature changed; direct-map entry not applied")
+
+    # Inject classroom-aware mode behavior into the base Career Tree runtime.
+    patch_anchor = "    let next=source;\n"
+    mode_patch = '''    let next=source;\n    next=replaceRequired(next,\n"    facilitated:true,",\n"    facilitated:false,",'self-paced default');\n\n    next=replaceRequired(next,\n"  let state = load();",\n`  const launchParams=new URLSearchParams(location.search);\n  const launchFacilitated=launchParams.get('mode')==='facilitated'||launchParams.get('from')==='level-up-live';\n  let state = load();\n  state.facilitated=launchFacilitated;`,'launch-context mode');\n\n    next=replaceRequired(next,\n`    $('facilitatedToggle').setAttribute('aria-pressed',String(state.facilitated));\n    $('facilitatedToggle').textContent=state.facilitated?'🎓 Facilitated Mode':'👤 Self-Paced Mode';\n    $$('[data-facilitator]').forEach(el=>el.hidden=!state.facilitated);`,\n`    const modeToggle=$('facilitatedToggle');\n    modeToggle.hidden=!launchFacilitated;\n    if(launchFacilitated){\n      modeToggle.setAttribute('aria-pressed',String(state.facilitated));\n      modeToggle.textContent=state.facilitated?'🎓 Facilitated Mode':'👤 Self-Paced Mode';\n    }\n    $$('[data-facilitator]').forEach(el=>el.hidden=!launchFacilitated||!state.facilitated);`,'context-aware mode control');\n'''
+    if "launchFacilitated=launchParams.get('mode')==='facilitated'" not in hub:
+        if patch_anchor not in hub:
+            raise SystemExit("Career Tree open-hub patch anchor changed; launch-context mode not applied")
+        hub = hub.replace(patch_anchor, mode_patch, 1)
+
     hub_path.write_text(hub, encoding="utf-8")
 
-print("Opportunity City mock interview, area validation, and optional Career Tree map access enabled.")
+index_path = Path("public/career-skill-tree/index.html")
+if index_path.exists():
+    index = index_path.read_text(encoding="utf-8")
+    visible_toggle = '<button id="facilitatedToggle" class="mode-btn" type="button" aria-pressed="true">🎓 Facilitated Mode</button>'
+    hidden_toggle = '<button id="facilitatedToggle" class="mode-btn" type="button" aria-pressed="false" hidden>🎓 Facilitated Mode</button>'
+    if visible_toggle in index:
+        index = index.replace(visible_toggle, hidden_toggle, 1)
+    elif hidden_toggle not in index:
+        raise SystemExit("Career Tree facilitator toggle signature changed; default-hidden control not applied")
+    index_path.write_text(index, encoding="utf-8")
+
+print("Opportunity City access, Career Tree map entry, and classroom-only facilitator mode enabled.")
