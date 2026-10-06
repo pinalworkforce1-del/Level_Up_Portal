@@ -35,5 +35,12 @@ if "Practice Mock Interview" not in text:
         raise SystemExit("Opportunity City district action signature changed; mock interview button not applied")
     text = text.replace(actions_old, actions_new, 1)
 
+area_old = 'if (!county) setMessage("Choose Pinal or Northern before signing in.");'
+area_new = 'if (!county) setMessage("Choose your area before signing in.");'
+if area_old in text:
+    text = text.replace(area_old, area_new, 1)
+elif area_new not in text:
+    raise SystemExit("Opportunity City area validation signature changed; area copy not updated")
+
 path.write_text(text, encoding="utf-8")
-print("Opportunity City mock interview access enabled.")
+print("Opportunity City mock interview access and area validation copy enabled.")
