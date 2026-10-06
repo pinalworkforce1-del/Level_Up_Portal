@@ -68,9 +68,6 @@ jobs:
                   raise SystemExit('Money Moves localSave signature changed; offline queue patch not applied')
               s=s.replace(old,new,1)
 
-              # Scene 16 completion must respond immediately. Commit the final
-              # reflection locally first, render the completion summary, then
-              # let cloud synchronization continue in the background.
               old_finish="""$('#finishModule').onclick=()=>{const custom=$('#ownMove').value.trim();const move=custom||selected;if(!move){$('#calcOut').insertAdjacentHTML('beforeend','<div class="result warn">Choose or write one money move for this week.</div>');return}state.moneyMove=move;state.finished=true;award('calculator',125);persist(true);showCompletionSummary()}}"""
               new_finish="""$('#finishModule').onclick=()=>{const finishBtn=$('#finishModule');if(finishBtn?.disabled)return;const custom=$('#ownMove').value.trim();const move=custom||selected;if(!move){$('#calcOut').insertAdjacentHTML('beforeend','<div class="result warn">Choose or write one money move for this week.</div>');return}finishBtn.disabled=true;finishBtn.textContent='Completing Money Moves…';state.moneyMove=move;state.finished=true;if(!state.done.has('calculator')){state.done.add('calculator');state.xp+=125}localSave();hud();renderHotspots();showCompletionSummary();persist(true)}}"""
               if old_finish not in s:
@@ -126,6 +123,47 @@ jobs:
           print('Verified 21 complete First Day Challenge narration MP4s.')
           PY
 
+      - name: Add reusable mock interview access to Opportunity City
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+
+          p = Path('src/App.tsx')
+          s = p.read_text(encoding='utf-8')
+
+          nav_old = '''  function navigate(href?: string) {
+    if (href) window.location.assign(href);
+  }
+'''
+          nav_new = '''  function navigate(href?: string) {
+    if (href) window.location.assign(href);
+  }
+
+  function launchMockInterview() {
+    const target = new URL("https://pinalworkforce1-del.github.io/LU_Discovery/mock-interview.html");
+    target.searchParams.set("mode", "selfpaced");
+    target.searchParams.set("returnTo", window.location.href);
+    window.location.assign(target.toString());
+  }
+'''
+          if nav_old not in s:
+              raise SystemExit('Opportunity City navigate signature changed; mock interview helper not applied')
+          s = s.replace(nav_old, nav_new, 1)
+
+          actions_old = '''              {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button disabled>Explore now • pathway module coming later</button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
+'''
+          actions_new = '''              {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button disabled>Explore now • pathway module coming later</button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
+              {activeDistrict.key === "interview" && activeState === "complete" ? <button className="primary-action" onClick={launchMockInterview}><Sparkles /> Practice Mock Interview</button> : null}
+'''
+          if actions_old not in s:
+              raise SystemExit('Opportunity City district action signature changed; mock interview button not applied')
+          s = s.replace(actions_old, actions_new, 1)
+
+          p.write_text(s, encoding='utf-8')
+          PY
+          grep -q "Practice Mock Interview" src/App.tsx
+          grep -q "launchMockInterview" src/App.tsx
+
       - name: Set up Node
         uses: actions/setup-node@v4
         with:
@@ -172,6 +210,7 @@ jobs:
           grep -q "money-moves-gold-v1.css" dist/money-moves/index.html
           grep -q "money-moves-gold-v1.js" dist/money-moves/index.html
           grep -q "Completing Money Moves" dist/money-moves/app.js
+          grep -q "Practice Mock Interview" dist/assets/*.js
 
       - name: Generate offline manifest
         run: node scripts/generate-offline-manifest.mjs dist /Level_Up_Portal/
