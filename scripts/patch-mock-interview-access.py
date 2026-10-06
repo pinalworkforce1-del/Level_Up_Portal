@@ -42,5 +42,59 @@ if area_old in text:
 elif area_new not in text:
     raise SystemExit("Opportunity City area validation signature changed; area copy not updated")
 
+# Career Tree is an optional exploration hub, not part of Level Up progression.
+career_old = '''  career: {
+    key: "career",
+    title: "Career Skill Tree",
+    kicker: "Your first job doesn’t have to be your last stop.",
+    what: "Explore career areas, see how your interests might connect, and learn how entry-level experience can grow into new skills and bigger opportunities.",
+    practice: "Career exploration • interest alignment • skill growth",
+    leave: "A broader view of entry points and future possibilities.",
+    special: "Exploring here does not lock you into a career choice.",
+    audio: "nova-career.mp3",
+  },'''
+career_new = '''  career: {
+    key: "career",
+    title: "Career Skill Tree",
+    kicker: "Your first job doesn’t have to be your last stop.",
+    what: "Explore career areas, see how your interests might connect, and learn how entry-level experience can grow into new skills and bigger opportunities.",
+    practice: "Career exploration • interest alignment • skill growth",
+    leave: "A broader view of entry points and future possibilities.",
+    special: "Optional exploration — Career Tree does not change your Level Up progression.",
+    audio: "nova-career.mp3",
+    href: `${BASE}career-skill-tree/?entry=map#home`,
+  },'''
+if career_old in text:
+    text = text.replace(career_old, career_new, 1)
+elif 'href: `${BASE}career-skill-tree/?entry=map#home`' not in text:
+    raise SystemExit("Opportunity City Career Tree district signature changed; launch link not applied")
+
+explore_old = '            onClick={() => openDistrict(key)}\n'
+explore_new = '            onClick={() => key === "career" ? navigate(DISTRICTS.career.href) : openDistrict(key)}\n'
+if explore_old in text:
+    text = text.replace(explore_old, explore_new, 1)
+elif explore_new not in text:
+    raise SystemExit("Opportunity City explore-icon signature changed; Career Tree direct launch not applied")
+
+career_action_old = 'activeDistrict.key === "career" ? <button disabled>Explore now • pathway module coming later</button>'
+career_action_new = 'activeDistrict.key === "career" ? <button className="primary-action" onClick={() => navigate(activeDistrict.href)}>Open Career Tree <ChevronRight /></button>'
+if career_action_old in text:
+    text = text.replace(career_action_old, career_action_new, 1)
+elif career_action_new not in text:
+    raise SystemExit("Opportunity City Career Tree modal action signature changed")
+
 path.write_text(text, encoding="utf-8")
-print("Opportunity City mock interview access and area validation copy enabled.")
+
+# When Opportunity City launches Career Tree, land directly on the map rather than at the hero.
+hub_path = Path("public/career-skill-tree/open-hub.js")
+if hub_path.exists():
+    hub = hub_path.read_text(encoding="utf-8")
+    map_insert_old = "`;grid.before(map);\n    document.querySelectorAll('[data-hub-view]')"
+    map_insert_new = "`;grid.before(map);\n    if(new URLSearchParams(location.search).get('entry')==='map')requestAnimationFrame(()=>map.scrollIntoView({behavior:'auto',block:'start'}));\n    document.querySelectorAll('[data-hub-view]')"
+    if map_insert_old in hub:
+        hub = hub.replace(map_insert_old, map_insert_new, 1)
+    elif "get('entry')==='map'" not in hub:
+        raise SystemExit("Career Tree map insertion signature changed; direct-map entry not applied")
+    hub_path.write_text(hub, encoding="utf-8")
+
+print("Opportunity City mock interview, area validation, and optional Career Tree map access enabled.")
