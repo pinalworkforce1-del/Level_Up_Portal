@@ -1,0 +1,62 @@
+{
+  "version": "2026-10-06",
+  "provider": "Lightcast",
+  "snapshotYear": 2026,
+  "attribution": "Labor market data: Lightcast. Values are displayed only for the geography represented in the imported annual snapshot.",
+  "sourceStatus": "awaiting annual county/state exports",
+  "areas": {
+    "Pinal": ["pinal", "az"],
+    "Northern": ["coconino", "apache", "navajo", "gila", "az"],
+    "UFO - Eastern New Mexico": []
+  },
+  "geographies": {
+    "pinal": {
+      "label": "Pinal County",
+      "state": "AZ",
+      "type": "county",
+      "occupations": {}
+    },
+    "coconino": {
+      "label": "Coconino County",
+      "state": "AZ",
+      "type": "county",
+      "occupations": {}
+    },
+    "apache": {
+      "label": "Apache County",
+      "state": "AZ",
+      "type": "county",
+      "occupations": {}
+    },
+    "navajo": {
+      "label": "Navajo County",
+      "state": "AZ",
+      "type": "county",
+      "occupations": {}
+    },
+    "gila": {
+      "label": "Gila County",
+      "state": "AZ",
+      "type": "county",
+      "occupations": {}
+    },
+    "az": {
+      "label": "Arizona statewide",
+      "state": "AZ",
+      "type": "state",
+      "occupations": {}
+    }
+  },
+  "occupationMetricSchema": {
+    "employment": "number",
+    "entryHourly": "number",
+    "medianHourly": "number",
+    "experiencedHourly": "number",
+    "medianAnnual": "number",
+    "growthPct": "number",
+    "annualOpenings": "number",
+    "typicalEducation": "string",
+    "projectionPeriod": "string",
+    "sourceLabel": "string"
+  }
+}
