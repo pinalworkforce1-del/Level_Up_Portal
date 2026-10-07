@@ -1,27 +1,5 @@
 (() => {
-  const BASE_SRC = 'app-base.js?v=20261007-storagefix1';
-  const CAREER_STORAGE_KEY = 'level-up-career-skill-tree-v1';
-  const OFFLINE_PROGRESS_PREFIX = 'level-up-offline-progress-v2';
-
-  // A storage quota or browser storage error must never block a Career Tree view
-  // from rendering. Limit the guard to Career Tree's own state and shared
-  // offline-progress mirror; all other localStorage writes retain native behavior.
-  const nativeSetItem = Storage.prototype.setItem;
-  if (!Storage.prototype.__careerTreeSafeSetItem) {
-    Storage.prototype.setItem = function(key, value) {
-      try {
-        return nativeSetItem.call(this, key, value);
-      } catch (error) {
-        const name = String(key || '');
-        if (name === CAREER_STORAGE_KEY || name.startsWith(OFFLINE_PROGRESS_PREFIX)) {
-          console.warn('Career Tree progress could not be persisted; continuing without blocking the experience.', error);
-          return;
-        }
-        throw error;
-      }
-    };
-    Object.defineProperty(Storage.prototype, '__careerTreeSafeSetItem', { value: true, configurable: true });
-  }
+  const BASE_SRC = 'app-base.js?v=20261007-recover1';
 
   function loadBase(){
     const script=document.createElement('script');
@@ -127,9 +105,7 @@
       if(copy){copy.classList.add('ip-scene-copy');const scale=copy.querySelector('.answer-scale');if(scale&&!scale.dataset.strengthFirst){[...scale.querySelectorAll('label')].reverse().forEach(label=>scale.appendChild(label));scale.dataset.strengthFirst='1';}}
     }
 
-    function currentAnswered(card){
-      return Boolean(card?.querySelector('input[type="radio"]:checked'));
-    }
+    function currentAnswered(card){ return Boolean(card?.querySelector('input[type="radio"]:checked')); }
 
     function updateSceneStatus(list){
       const set=setNumber();
@@ -146,19 +122,12 @@
 
     function showActive(list,{animate=true}={}){
       active=Math.max(0,Math.min(active,list.length-1));
-      list.forEach((card,i)=>{
-        card.hidden=i!==active;
-        card.classList.remove('scene-enter');
-      });
+      list.forEach((card,i)=>{ card.hidden=i!==active; card.classList.remove('scene-enter'); });
       const card=list[active];
-      if(card&&animate){
-        requestAnimationFrame(()=>card.classList.add('scene-enter'));
-      }
+      if(card&&animate)requestAnimationFrame(()=>card.classList.add('scene-enter'));
       updateSceneStatus(list);
       const heading=card?.querySelector('h3');
-      if(heading){
-        heading.setAttribute('tabindex','-1');
-      }
+      if(heading)heading.setAttribute('tabindex','-1');
     }
 
     function restoreAssessmentChrome(){
@@ -177,43 +146,27 @@
       if(enhancing)return;
       enhancing=true;
       try{
-        if(results&&!results.hidden){
-          showResultsOnly();
-          return;
-        }
+        if(results&&!results.hidden){ showResultsOnly(); return; }
         restoreAssessmentChrome();
         const list=cards();
         if(!list.length)return;
         list.forEach(prepareCard);
-
         const firstOpen=list.findIndex(card=>!currentAnswered(card));
         active=firstOpen>=0?firstOpen:list.length-1;
-
         nativePrev=prev.onclick;
         nativeNext=next.onclick;
-
         prev.onclick=(evt)=>{
           evt?.preventDefault?.();
-          if(active>0){
-            active-=1;
-            showActive(list);
-            return;
-          }
+          if(active>0){ active-=1; showActive(list); return; }
           if(typeof nativePrev==='function')nativePrev.call(prev,evt);
         };
-
         next.onclick=(evt)=>{
           evt?.preventDefault?.();
           const current=list[active];
           if(!currentAnswered(current))return;
-          if(active<list.length-1){
-            active+=1;
-            showActive(list);
-            return;
-          }
+          if(active<list.length-1){ active+=1; showActive(list); return; }
           if(typeof nativeNext==='function')nativeNext.call(next,evt);
         };
-
         list.forEach(card=>{
           card.querySelectorAll('input[data-ip-answer]').forEach(input=>{
             if(input.dataset.passBListener==='1')return;
@@ -221,29 +174,19 @@
             input.addEventListener('change',()=>setTimeout(()=>updateSceneStatus(list),0));
           });
         });
-
         showActive(list,{animate:false});
-      } finally {
-        enhancing=false;
-      }
+      } finally { enhancing=false; }
     }
 
     const observer=new MutationObserver(()=>queueMicrotask(enhance));
     observer.observe(wrap,{childList:true,subtree:false});
     if(results)observer.observe(results,{attributes:true,attributeFilter:['hidden']});
-
     document.addEventListener('click',evt=>{
-      if(evt.target?.id==='interestRetake'||evt.target?.id==='legacyRetake'){
-        setTimeout(enhance,0);
-      }
+      if(evt.target?.id==='interestRetake'||evt.target?.id==='legacyRetake')setTimeout(enhance,0);
     });
-
     enhance();
   }
 
-  if(document.readyState==='loading'){
-    document.addEventListener('DOMContentLoaded',loadBase,{once:true});
-  }else{
-    loadBase();
-  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',loadBase,{once:true});
+  else loadBase();
 })();
