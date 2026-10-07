@@ -1,0 +1,24 @@
+{
+  "version":"pilot-2026-10-06",
+  "source":"O*NET occupation titles/descriptions with Career Tree RIASEC mappings; expand to full O*NET interest catalog in scheduled data build",
+  "occupations":[
+    {"code":"47-2111.00","title":"Electricians","description":"Install, maintain, and repair electrical wiring, equipment, and fixtures.","interests":["R"]},
+    {"code":"49-9021.00","title":"Heating, Air Conditioning, and Refrigeration Mechanics and Installers","description":"Install or repair heating, central air conditioning, HVAC, or refrigeration systems.","interests":["R","I"]},
+    {"code":"51-4121.00","title":"Welders, Cutters, Solderers, and Brazers","description":"Use hand-welding, flame-cutting, soldering, or brazing equipment to join or repair metal components.","interests":["R"]},
+    {"code":"51-9161.00","title":"Computer Numerically Controlled Tool Operators","description":"Operate computer-controlled machines or robots to perform machining operations on metal or plastic work pieces.","interests":["R","C"]},
+    {"code":"15-1232.00","title":"Computer User Support Specialists","description":"Provide technical assistance to computer users and help diagnose hardware, software, and user issues.","interests":["I","R","C"]},
+    {"code":"15-1231.00","title":"Computer Network Support Specialists","description":"Analyze, test, troubleshoot, and evaluate existing network systems.","interests":["I","R","C"]},
+    {"code":"31-9092.00","title":"Medical Assistants","description":"Perform administrative and certain clinical duties under the direction of a physician.","interests":["S","C","R"]},
+    {"code":"29-1141.00","title":"Registered Nurses","description":"Assess patient health, develop care plans, provide nursing care, and educate patients and families.","interests":["S","I","R"]},
+    {"code":"31-1131.00","title":"Nursing Assistants","description":"Provide or assist with basic care under the direction of licensed nursing staff.","interests":["S","R"]},
+    {"code":"27-1024.00","title":"Graphic Designers","description":"Design or create graphics to meet commercial or promotional needs.","interests":["A","I","E"]},
+    {"code":"27-3031.00","title":"Public Relations Specialists","description":"Promote or create an intended public image for individuals, groups, or organizations.","interests":["E","A","S"]},
+    {"code":"43-4051.00","title":"Customer Service Representatives","description":"Interact with customers to provide information, resolve complaints, and handle service requests.","interests":["S","E","C"]},
+    {"code":"13-1071.00","title":"Human Resources Specialists","description":"Recruit, screen, interview, or place individuals within an organization and support HR activities.","interests":["E","S","C"]},
+    {"code":"41-4012.00","title":"Sales Representatives","description":"Sell goods or services to businesses or individuals and develop customer relationships.","interests":["E","C"]},
+    {"code":"43-3031.00","title":"Bookkeeping, Accounting, and Auditing Clerks","description":"Compute, classify, and record numerical data to keep financial records complete and accurate.","interests":["C"]},
+    {"code":"13-1081.00","title":"Logisticians","description":"Analyze and coordinate an organization's supply chain and the movement of products or resources.","interests":["C","E","I"]},
+    {"code":"47-2061.00","title":"Construction Laborers","description":"Perform physical labor at construction sites, operate tools, and support building activities.","interests":["R"]},
+    {"code":"53-3032.00","title":"Heavy and Tractor-Trailer Truck Drivers","description":"Drive heavy trucks to transport goods over local or long-distance routes.","interests":["R","C"]}
+  ]
+}
