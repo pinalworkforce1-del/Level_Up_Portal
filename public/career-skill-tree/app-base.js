@@ -129,12 +129,25 @@
 
   function save(){
     state.updatedAt=new Date().toISOString();
-    localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
-    window.LevelUpOfflineProgress?.save(MODULE_ID,state,{
-      xp:state.xp,
-      isComplete:state.tree.complete,
-      completedAt:state.tree.completedAt
-    });
+
+    // Browser storage can be unavailable or full. Keep the live session usable
+    // even when either persistence layer rejects a write.
+    try{
+      localStorage.setItem(STORAGE_KEY,JSON.stringify(state));
+    }catch(error){
+      console.warn('Career Tree local progress could not be saved; continuing for this session.',error);
+    }
+
+    try{
+      window.LevelUpOfflineProgress?.save(MODULE_ID,state,{
+        xp:state.xp,
+        isComplete:state.tree.complete,
+        completedAt:state.tree.completedAt
+      });
+    }catch(error){
+      console.warn('Career Tree progress mirror could not be saved; continuing for this session.',error);
+    }
+
     updateTop();
   }
 
