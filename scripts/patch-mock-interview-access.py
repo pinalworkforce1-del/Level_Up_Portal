@@ -1,5 +1,6 @@
 from pathlib import Path
 import sys
+import runpy
 
 path = Path(sys.argv[1] if len(sys.argv) > 1 else "src/App.tsx")
 text = path.read_text(encoding="utf-8")
@@ -121,4 +122,11 @@ if index_path.exists():
         raise SystemExit("Career Tree facilitator toggle signature changed; default-hidden control not applied")
     index_path.write_text(index, encoding="utf-8")
 
-print("Opportunity City access, Career Tree map entry, and classroom-only facilitator mode enabled.")
+# Apply the Career Tree Lightcast data model and the approved optional 550 XP schedule.
+lightcast_patch = Path("scripts/patch-career-tree-lightcast.py")
+if lightcast_patch.exists():
+    runpy.run_path(str(lightcast_patch), run_name="__main__")
+else:
+    raise SystemExit("Missing scripts/patch-career-tree-lightcast.py")
+
+print("Opportunity City access, Career Tree map entry, classroom-only facilitator mode, and Lightcast LMI model enabled.")
