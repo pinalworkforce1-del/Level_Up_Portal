@@ -30,8 +30,18 @@
   }
 
   function write(data) {
-    localStorage.setItem(storageKey(), JSON.stringify(data));
-    window.dispatchEvent(new CustomEvent("level-up-offline-progress", { detail: data }));
+    try {
+      localStorage.setItem(storageKey(), JSON.stringify(data));
+    } catch (error) {
+      console.warn("Level Up offline progress mirror could not be saved; continuing with module-local progress.", error);
+      return false;
+    }
+    try {
+      window.dispatchEvent(new CustomEvent("level-up-offline-progress", { detail: data }));
+    } catch (error) {
+      console.warn("Level Up offline progress event could not be dispatched.", error);
+    }
+    return true;
   }
 
   function save(moduleId, journeyState, options = {}) {
