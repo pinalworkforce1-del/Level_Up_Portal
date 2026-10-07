@@ -1,0 +1,195 @@
+{
+  "fiscalYear": 2027,
+  "source": "HUD Fair Market Rents, FY 2027 County-Level Data",
+  "sourceUrl": "https://www.huduser.gov/portal/datasets/fmr.html",
+  "rentBasis": "40th-percentile gross rent; utilities included in the rent benchmark",
+  "counties": {
+    "apache": {
+      "label": "Apache County",
+      "state": "AZ",
+      "fips": "04001",
+      "hudArea": "Apache County, AZ",
+      "studio": 746,
+      "oneBedroom": 819,
+      "twoBedroom": 1071,
+      "threeBedroom": 1483,
+      "fourBedroom": 1790
+    },
+    "coconino": {
+      "label": "Coconino County",
+      "state": "AZ",
+      "fips": "04005",
+      "hudArea": "Flagstaff, AZ MSA",
+      "studio": 1438,
+      "oneBedroom": 1555,
+      "twoBedroom": 1729,
+      "threeBedroom": 2109,
+      "fourBedroom": 2312
+    },
+    "gila": {
+      "label": "Gila County",
+      "state": "AZ",
+      "fips": "04007",
+      "hudArea": "Gila County, AZ",
+      "studio": 1048,
+      "oneBedroom": 1055,
+      "twoBedroom": 1380,
+      "threeBedroom": 1684,
+      "fourBedroom": 1953
+    },
+    "navajo": {
+      "label": "Navajo County",
+      "state": "AZ",
+      "fips": "04017",
+      "hudArea": "Navajo County, AZ",
+      "studio": 892,
+      "oneBedroom": 966,
+      "twoBedroom": 1264,
+      "threeBedroom": 1567,
+      "fourBedroom": 1661
+    },
+    "pinal": {
+      "label": "Pinal County",
+      "state": "AZ",
+      "fips": "04021",
+      "hudArea": "Phoenix-Mesa-Chandler, AZ MSA",
+      "studio": 1390,
+      "oneBedroom": 1493,
+      "twoBedroom": 1734,
+      "threeBedroom": 2287,
+      "fourBedroom": 2537
+    },
+    "chaves": {
+      "label": "Chaves County",
+      "state": "NM",
+      "fips": "35005",
+      "hudArea": "Chaves County, NM",
+      "studio": 868,
+      "oneBedroom": 892,
+      "twoBedroom": 1091,
+      "threeBedroom": 1476,
+      "fourBedroom": 1624
+    },
+    "curry": {
+      "label": "Curry County",
+      "state": "NM",
+      "fips": "35009",
+      "hudArea": "Curry County, NM",
+      "studio": 802,
+      "oneBedroom": 891,
+      "twoBedroom": 1151,
+      "threeBedroom": 1522,
+      "fourBedroom": 1889
+    },
+    "de-baca": {
+      "label": "De Baca County",
+      "state": "NM",
+      "fips": "35011",
+      "hudArea": "De Baca County, NM",
+      "studio": 807,
+      "oneBedroom": 833,
+      "twoBedroom": 1014,
+      "threeBedroom": 1388,
+      "fourBedroom": 1590
+    },
+    "eddy": {
+      "label": "Eddy County",
+      "state": "NM",
+      "fips": "35015",
+      "hudArea": "Eddy County, NM",
+      "studio": 1053,
+      "oneBedroom": 1150,
+      "twoBedroom": 1252,
+      "threeBedroom": 1734,
+      "fourBedroom": 1855
+    },
+    "guadalupe": {
+      "label": "Guadalupe County",
+      "state": "NM",
+      "fips": "35019",
+      "hudArea": "Guadalupe County, NM",
+      "studio": 770,
+      "oneBedroom": 775,
+      "twoBedroom": 1014,
+      "threeBedroom": 1325,
+      "fourBedroom": 1590
+    },
+    "harding": {
+      "label": "Harding County",
+      "state": "NM",
+      "fips": "35021",
+      "hudArea": "Harding County, NM",
+      "studio": 842,
+      "oneBedroom": 870,
+      "twoBedroom": 1059,
+      "threeBedroom": 1449,
+      "fourBedroom": 1660
+    },
+    "lea": {
+      "label": "Lea County",
+      "state": "NM",
+      "fips": "35025",
+      "hudArea": "Lea County, NM",
+      "studio": 1111,
+      "oneBedroom": 1117,
+      "twoBedroom": 1327,
+      "threeBedroom": 1670,
+      "fourBedroom": 1823
+    },
+    "lincoln": {
+      "label": "Lincoln County",
+      "state": "NM",
+      "fips": "35027",
+      "hudArea": "Lincoln County, NM",
+      "studio": 834,
+      "oneBedroom": 839,
+      "twoBedroom": 1063,
+      "threeBedroom": 1355,
+      "fourBedroom": 1667
+    },
+    "otero": {
+      "label": "Otero County",
+      "state": "NM",
+      "fips": "35035",
+      "hudArea": "Otero County, NM",
+      "studio": 706,
+      "oneBedroom": 877,
+      "twoBedroom": 1014,
+      "threeBedroom": 1404,
+      "fourBedroom": 1695
+    },
+    "quay": {
+      "label": "Quay County",
+      "state": "NM",
+      "fips": "35037",
+      "hudArea": "Quay County, NM",
+      "studio": 774,
+      "oneBedroom": 779,
+      "twoBedroom": 1019,
+      "threeBedroom": 1323,
+      "fourBedroom": 1598
+    },
+    "roosevelt": {
+      "label": "Roosevelt County",
+      "state": "NM",
+      "fips": "35041",
+      "hudArea": "Roosevelt County, NM",
+      "studio": 807,
+      "oneBedroom": 818,
+      "twoBedroom": 1014,
+      "threeBedroom": 1404,
+      "fourBedroom": 1695
+    },
+    "union": {
+      "label": "Union County",
+      "state": "NM",
+      "fips": "35059",
+      "hudArea": "Union County, NM",
+      "studio": 773,
+      "oneBedroom": 778,
+      "twoBedroom": 1014,
+      "threeBedroom": 1388,
+      "fourBedroom": 1590
+    }
+  }
+}

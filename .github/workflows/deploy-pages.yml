@@ -173,6 +173,33 @@ jobs:
           print("Verified Career Tree deployment: 19 geographies × 798 occupations.")
           PY
 
+      - name: Verify county housing data is included
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          expected = {
+              "pinal", "coconino", "apache", "navajo", "gila",
+              "chaves", "curry", "de-baca", "eddy", "guadalupe", "harding",
+              "lea", "lincoln", "otero", "quay", "roosevelt", "union",
+          }
+          for path in (
+              Path("public/career-skill-tree/data/hud-fy27-county-rents.json"),
+              Path("dist/career-skill-tree/data/hud-fy27-county-rents.json"),
+          ):
+              if not path.exists():
+                  raise SystemExit(f"Career Tree HUD housing data is missing: {path}")
+              data = json.loads(path.read_text(encoding="utf-8"))
+              counties = data.get("counties", {})
+              if data.get("fiscalYear") != 2027 or set(counties) != expected:
+                  raise SystemExit(f"Career Tree HUD county data is incomplete: {path}")
+              pinal = counties["pinal"]
+              if (pinal.get("oneBedroom"), pinal.get("twoBedroom")) != (1493, 1734):
+                  raise SystemExit("Pinal FY 2027 HUD rent benchmark does not match the source workbook")
+          print("Verified HUD FY 2027 rent benchmarks for 17 AZ/NM counties in source and deployed files.")
+          PY
+
       - name: Verify shared offline progress wiring
         run: |
           python3 - <<'PY'
