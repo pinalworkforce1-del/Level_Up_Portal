@@ -1,5 +1,27 @@
 (() => {
-  const BASE_SRC = 'app-base.js?v=20261005-passb1';
+  const BASE_SRC = 'app-base.js?v=20261007-storagefix1';
+  const CAREER_STORAGE_KEY = 'level-up-career-skill-tree-v1';
+  const OFFLINE_PROGRESS_PREFIX = 'level-up-offline-progress-v2';
+
+  // A storage quota or browser storage error must never block a Career Tree view
+  // from rendering. Limit the guard to Career Tree's own state and shared
+  // offline-progress mirror; all other localStorage writes retain native behavior.
+  const nativeSetItem = Storage.prototype.setItem;
+  if (!Storage.prototype.__careerTreeSafeSetItem) {
+    Storage.prototype.setItem = function(key, value) {
+      try {
+        return nativeSetItem.call(this, key, value);
+      } catch (error) {
+        const name = String(key || '');
+        if (name === CAREER_STORAGE_KEY || name.startsWith(OFFLINE_PROGRESS_PREFIX)) {
+          console.warn('Career Tree progress could not be persisted; continuing without blocking the experience.', error);
+          return;
+        }
+        throw error;
+      }
+    };
+    Object.defineProperty(Storage.prototype, '__careerTreeSafeSetItem', { value: true, configurable: true });
+  }
 
   function loadBase(){
     const script=document.createElement('script');
