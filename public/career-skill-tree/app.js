@@ -1,5 +1,5 @@
 (() => {
-  const BASE_SRC = 'app-base.js?v=20261006-mobile2';
+  const BASE_SRC = 'app-base.js?v=20261005-passb1';
 
   function loadBase(){
     const script=document.createElement('script');
@@ -27,10 +27,8 @@
       #viewInterest .ip-scene-copy h3{font-size:clamp(1.25rem,2vw,1.7rem)!important;line-height:1.12!important;margin:.2rem 0 .35rem!important}
       #viewInterest .ip-scene-copy p{font-size:.95rem;line-height:1.4;margin:.1rem 0 .75rem!important;color:#b9c5dd}
       #viewInterest .answer-scale{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:10px!important;margin-top:8px}
-      #viewInterest .answer-scale label{width:100%;position:relative;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:rgba(114,215,255,.18);user-select:none}
-      #viewInterest .answer-scale label input[data-ip-answer]{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;opacity:0!important;pointer-events:auto!important;cursor:pointer!important;z-index:3!important}
-      #viewInterest .answer-scale label span{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:50px!important;padding:8px 7px!important;border-radius:14px!important;text-align:center;pointer-events:none!important}
-      #viewInterest .answer-scale label input[data-ip-answer]:focus-visible+span{outline:3px solid rgba(114,215,255,.8);outline-offset:2px}
+      #viewInterest .answer-scale label{width:100%}
+      #viewInterest .answer-scale label span{display:flex!important;align-items:center!important;justify-content:center!important;width:100%!important;min-height:50px!important;padding:8px 7px!important;border-radius:14px!important;text-align:center}
       #viewInterest .assessment-controls{margin-top:10px!important;display:flex!important;align-items:center!important;gap:12px!important}
       #viewInterest #ipPrev{margin-right:auto}
       #viewInterest #ipNext{margin-left:auto}
@@ -38,16 +36,10 @@
       #viewInterest .ip-scene-fallback{display:grid;place-items:center;height:clamp(300px,46vh,500px);padding:32px;text-align:center;color:#c9d6ef;background:#0a1530;font-weight:800}
       @media(max-width:800px){
         #viewInterest .stage-shell{max-width:100%;padding-inline:8px}
-        #viewInterest .ip-scene-visual{height:clamp(230px,39vh,360px)!important;min-height:0!important}
+        #viewInterest .ip-scene-visual{height:clamp(240px,42vh,400px)!important;min-height:0!important}
         #viewInterest .ip-scene-copy{padding:16px!important}
-        #viewInterest .answer-scale{grid-template-columns:1fr!important;gap:8px!important}
-        #viewInterest .answer-scale label span{min-height:56px!important;justify-content:flex-start!important;text-align:left!important;padding:10px 14px!important}
-        #viewInterest .assessment-controls{position:sticky;bottom:0;z-index:30;padding:10px 0 max(10px,env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(8,17,38,0),#081126 24%,#081126)}
-        #viewInterest .assessment-controls button{min-height:48px}
-      }
-      @media(max-width:480px){
-        #viewInterest .ip-scene-visual{height:clamp(200px,34vh,300px)!important}
-        #viewInterest .ip-scene-copy{padding:14px!important}
+        #viewInterest .answer-scale{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+        #viewInterest .answer-scale label:first-child{grid-column:1/-1}
       }
     `;
     document.head.appendChild(style);
@@ -80,23 +72,6 @@
       }
     }
 
-    function armAnswerScale(scale){
-      if(!scale||scale.dataset.mobileTapReady==='1')return;
-      scale.dataset.mobileTapReady='1';
-      scale.querySelectorAll('label').forEach(label=>{
-        const input=label.querySelector('input[data-ip-answer]');
-        if(!input)return;
-        label.addEventListener('click',evt=>{
-          if(evt.target===input)return;
-          evt.preventDefault();
-          if(!input.checked){
-            input.checked=true;
-            input.dispatchEvent(new Event('change',{bubbles:true}));
-          }
-        });
-      });
-    }
-
     function prepareCard(card){
       if(card.dataset.passBReady==='1')return;
       card.dataset.passBReady='1';
@@ -127,15 +102,7 @@
           visual.appendChild(probe);
         }
       }
-      if(copy){
-        copy.classList.add('ip-scene-copy');
-        const scale=copy.querySelector('.answer-scale');
-        if(scale&&!scale.dataset.strengthFirst){
-          [...scale.querySelectorAll('label')].reverse().forEach(label=>scale.appendChild(label));
-          scale.dataset.strengthFirst='1';
-        }
-        armAnswerScale(scale);
-      }
+      if(copy){copy.classList.add('ip-scene-copy');const scale=copy.querySelector('.answer-scale');if(scale&&!scale.dataset.strengthFirst){[...scale.querySelectorAll('label')].reverse().forEach(label=>scale.appendChild(label));scale.dataset.strengthFirst='1';}}
     }
 
     function currentAnswered(card){
