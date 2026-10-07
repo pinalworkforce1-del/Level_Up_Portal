@@ -1,0 +1,53 @@
+{
+  "version": "2026-10-06",
+  "state": "Arizona",
+  "wageSource": {
+    "name": "Arizona Office of Economic Opportunity OEWS",
+    "year": 2025,
+    "url": "https://oeo.az.gov/labor-market/occupation-employment"
+  },
+  "projectionSource": {
+    "name": "Arizona Office of Economic Opportunity Employment Projections",
+    "period": "2024-2034",
+    "url": "https://oeo.az.gov/labor-market/employment-projections"
+  },
+  "note": "County economy context is live in this pilot. Occupation-level OEO values will populate the occupations objects as the automated OEO normalizer is connected. Career Tree must never present a regional or statewide occupation value as county-specific.",
+  "geographies": {
+    "az": {
+      "label": "Arizona statewide",
+      "type": "state",
+      "economy": {"numericChange": 454167, "annualGrowthPct": 1.2, "period": "2024-2034"},
+      "occupations": {}
+    },
+    "pinal": {
+      "label": "Pinal County",
+      "type": "county",
+      "economy": {"numericChange": 9963, "annualGrowthPct": 1.1, "period": "2024-2034"},
+      "occupations": {}
+    },
+    "coconino": {
+      "label": "Coconino County",
+      "type": "county",
+      "economy": {"numericChange": 6454, "annualGrowthPct": 0.8, "period": "2024-2034"},
+      "occupations": {}
+    },
+    "apache": {
+      "label": "Apache County",
+      "type": "county",
+      "economy": {"numericChange": 246, "annualGrowthPct": 0.1, "period": "2024-2034"},
+      "occupations": {}
+    },
+    "navajo": {
+      "label": "Navajo County",
+      "type": "county",
+      "economy": {"numericChange": 2584, "annualGrowthPct": 0.8, "period": "2024-2034"},
+      "occupations": {}
+    },
+    "gila": {
+      "label": "Gila County",
+      "type": "county",
+      "economy": {"numericChange": 1781, "annualGrowthPct": 1.0, "period": "2024-2034"},
+      "occupations": {}
+    }
+  }
+}
