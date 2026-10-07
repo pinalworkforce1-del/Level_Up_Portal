@@ -7,6 +7,7 @@
   <title>Level Up • Career Skill Tree</title>
   <link rel="stylesheet" href="styles.css?v=20261005-1">
   <link rel="stylesheet" href="open-hub.css?v=20261005-1">
+  <link rel="stylesheet" href="az-lmi-explorer.css?v=20261006-1">
 </head>
 <body>
 <div class="app-shell">
@@ -14,7 +15,7 @@
     <a class="brand" href="#home" data-view="home" aria-label="Career Skill Tree home">LEVEL UP • CAREER SKILL TREE</a>
     <div class="top-progress" aria-label="Career Tree progress"><span id="progressText">0 of 4 experiences complete</span><div class="top-track"><i id="progressBar"></i></div></div>
     <div class="top-actions">
-      <button id="facilitatedToggle" class="mode-btn" type="button" aria-pressed="true">🎓 Facilitated Mode</button>
+      <button id="facilitatedToggle" class="mode-btn" type="button" aria-pressed="false" hidden>🎓 Facilitated Mode</button>
       <a class="top-link" href="../">← Opportunity City</a>
     </div>
   </header>
@@ -37,7 +38,7 @@
     <section class="journey-grid" id="journeyGrid">
       <button class="journey-card" data-view="interest"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-base-camp-home.webp" alt=""><div><span>1 • DISCOVER ME</span><h2>O*NET® Mini-IP</h2><p>30 quick work-activity questions → your RIASEC interest profile.</p><strong id="homeInterestStatus">Start →</strong></div></button>
       <button class="journey-card" data-view="alignment"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-resume-retreat-home.webp" alt=""><div><span>2 • CAREER ALIGNMENT</span><h2>Find Possible Fits</h2><p>Layer interests with work style, people, environment, and preparation preferences.</p><strong id="homeAlignmentStatus">Available →</strong></div></button>
-      <button class="journey-card" data-view="lmi"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-interview-landing-home.webp" alt=""><div><span>3 • LMI LAB</span><h2>Read the Market</h2><p>Learn what wages, demand, openings, training, and industry growth actually tell you.</p><strong id="homeLmiStatus">Available →</strong></div></button>
+      <button class="journey-card" data-view="lmi"><img src="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/assests/r2w-interview-landing-home.webp" alt=""><div><span>3 • LMI LAB</span><h2>Explore the Market</h2><p>Find occupations from your O*NET profile or search anything, then compare wages, growth, openings, preparation, and career videos.</p><strong id="homeLmiStatus">Available →</strong></div></button>
       <button class="journey-card tree-card" data-view="tree"><div class="tree-visual" aria-hidden="true">🌱<span>🌿</span><b>🌳</b></div><div><span>4 • MY CAREER TREE</span><h2>Choose Three Branches</h2><p>Explore Now • Keep Open • Surprise Me — backed by what you learned.</p><strong id="homeTreeStatus">Available →</strong></div></button>
     </section>
   </main>
@@ -75,7 +76,8 @@
 
   <main id="viewLmi" class="view" hidden>
     <section class="stage-shell">
-      <div class="stage-head"><div><span class="eyebrow">DESTINATION • LMI LAB</span><h1>Turn “that sounds cool” into an informed question.</h1><p>Labor Market Information (LMI) helps you test whether an opportunity exists, what it may pay, how people enter it, and what the market is doing.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
+      <div class="stage-head"><div><span class="eyebrow">DESTINATION • LMI LAB</span><h1>Turn “that sounds cool” into evidence.</h1><p>Start with occupations aligned to your O*NET interests or search any occupation you are curious about. Save the careers you want to investigate, then compare the market.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
+      <div id="azLmiExplorer" class="az-lmi-explorer"><div class="az-lmi-note">Loading Arizona Career Exploration Lab…</div></div>
       <div class="lmi-lesson-grid">
         <article><b>💵 WAGES</b><h3>What might the work pay?</h3><p>Look beyond one number. Entry, median, and experienced wages can tell different stories.</p></article>
         <article><b>📈 DEMAND</b><h3>Is the market growing?</h3><p>Growth rate shows direction. It does not tell you how many jobs exist.</p></article>
@@ -83,11 +85,11 @@
         <article><b>🎓 PREPARATION</b><h3>What does entry usually require?</h3><p>Compare education, credentials, licenses, apprenticeships, and experience—not just college versus no college.</p></article>
       </div>
       <aside class="lmi-warning"><strong>⚠️ LMI trap: Industry growth is not the same thing as occupation growth.</strong><p>A growing healthcare industry employs nurses—but also IT staff, accountants, maintenance workers, drivers, and many other occupations. Always verify the occupation itself.</p></aside>
-      <section class="arizona-context"><div class="section-title"><span class="eyebrow">ARIZONA 2024–2034 • INDUSTRY CONTEXT</span><h2>What is growing around us?</h2><p>Use these current Arizona OEO projections as context, then investigate your occupation-level data.</p></div><div id="sectorCards" class="sector-grid"></div><div class="pinal-callout"><strong>Pinal County:</strong> Arizona OEO projects <b>+9,963 jobs</b> from 2024–2034, about <b>1.1% annual growth</b> across the county economy.</div></section>
-      <section class="lmi-workbench"><div class="section-title"><span class="eyebrow">YOUR LMI WORKBENCH</span><h2>Investigate careers you want to understand.</h2><p>Bring careers from Career Alignment or add one here. Capture the evidence that matters to you.</p></div><div id="lmiCareerTabs" class="tab-row"></div><div id="lmiCareerPanel"></div><div class="official-links"><a href="https://oeo.az.gov/labor-market/occupation-employment" target="_blank" rel="noopener">Arizona OEO • Occupation wages ↗</a><a href="https://oeo.az.gov/labor-market/employment-projections" target="_blank" rel="noopener">Arizona OEO • Employment projections ↗</a><a href="https://www.onetonline.org/" target="_blank" rel="noopener">O*NET OnLine • Career details ↗</a></div></section>
+      <section class="arizona-context"><div class="section-title"><span class="eyebrow">ARIZONA 2024–2034 • INDUSTRY CONTEXT</span><h2>What is growing around us?</h2><p>Use Arizona OEO projections as context, then investigate occupation-level data.</p></div><div id="sectorCards" class="sector-grid"></div><div class="pinal-callout"><strong>Pinal County:</strong> Arizona OEO projects <b>+9,963 jobs</b> from 2024–2034, about <b>1.1% annual growth</b> across the county economy.</div></section>
+      <section class="lmi-workbench"><div class="section-title"><span class="eyebrow">YOUR SAVED CAREERS</span><h2>Capture the evidence that matters.</h2><p>Your saved occupations flow here for deeper investigation and eventually into My Career Tree.</p></div><div id="lmiCareerTabs" class="tab-row"></div><div id="lmiCareerPanel"></div><div class="official-links"><a href="https://oeo.az.gov/labor-market/occupation-employment" target="_blank" rel="noopener">Arizona OEO • Occupation wages ↗</a><a href="https://oeo.az.gov/labor-market/employment-projections" target="_blank" rel="noopener">Arizona OEO • Employment projections ↗</a><a href="https://www.onetonline.org/" target="_blank" rel="noopener">O*NET OnLine • Career details ↗</a></div></section>
       <aside class="facilitator-pause" data-facilitator><span>🎓 FACILITATOR PAUSE</span><strong>Have the group defend a choice with evidence.</strong><p>“I like this career” is the starting point. Ask students to add at least two pieces of LMI evidence before deciding whether it stays on their tree.</p></aside>
       <div class="stage-action-row"><button id="lmiContinue" class="primary-btn" type="button">Build My Career Tree →</button></div>
-      <aside class="source-note">Industry projections: Arizona Office of Economic Opportunity, 2024–2034 Industry Employment Projections, released November 13, 2025. Occupation-specific wages and projections should be verified using current OEO data tools.</aside>
+      <aside class="source-note">Arizona labor-market sources: Arizona Office of Economic Opportunity. Occupation descriptions and interest relationships: O*NET®. Career videos: CareerOneStop.</aside>
     </section>
   </main>
 
@@ -103,5 +105,6 @@
 <script defer src="../offline-progress.js"></script>
 <script src="open-hub.js?v=20261005-1"></script>
 <script src="app.js?v=20261005-5"></script>
+<script src="az-lmi-explorer.js?v=20261006-1"></script>
 </body>
 </html>
