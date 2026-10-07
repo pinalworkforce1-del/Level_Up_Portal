@@ -22,6 +22,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Build Career Tree county-level Lightcast data
+        run: python3 scripts/build-career-tree-lightcast.py
+
       - name: Expand Opportunity City assets
         run: |
           mkdir -p public/opportunity-city
@@ -143,6 +146,32 @@ jobs:
         env:
           VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
           VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
+
+      - name: Verify Career Tree LMI is included in deployment
+        run: |
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+
+          path = Path("dist/career-skill-tree/data/lightcast-lmi.json")
+          if not path.exists():
+              raise SystemExit("Career Tree Lightcast data is missing from the deployment artifact")
+          data = json.loads(path.read_text(encoding="utf-8"))
+          expected = {
+              "pinal", "coconino", "apache", "navajo", "gila", "az",
+              "chaves", "curry", "de-baca", "eddy", "guadalupe", "harding",
+              "lea", "lincoln", "otero", "quay", "roosevelt", "union", "nm",
+          }
+          geographies = data.get("geographies", {})
+          if data.get("sourceStatus") != "loaded" or set(geographies) != expected:
+              raise SystemExit("Career Tree deployment is missing one or more of its 19 validated geographies")
+          if len(data.get("catalog", {})) != 798:
+              raise SystemExit("Career Tree deployment does not contain all 798 occupations")
+          for key, geo in geographies.items():
+              if len(geo.get("occupations", {})) != 798:
+                  raise SystemExit(f"Career Tree deployment has incomplete occupation data for {key}")
+          print("Verified Career Tree deployment: 19 geographies × 798 occupations.")
+          PY
 
       - name: Verify shared offline progress wiring
         run: |
