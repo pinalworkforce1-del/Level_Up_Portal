@@ -157,11 +157,21 @@
 
   function updateTop(){
     const done=milestones();
-    $('progressText').textContent=`${done} of 4 milestones complete`;
-    $('progressBar').style.width=`${done/4*100}%`;
-    $('facilitatedToggle').setAttribute('aria-pressed',String(state.facilitated));
-    $('facilitatedToggle').textContent=state.facilitated?'🎓 Facilitated Mode':'👤 Self-Paced Mode';
-    $$('[data-facilitator]').forEach(el=>el.hidden=!state.facilitated);
+    const progressText=document.getElementById('progressText');
+    const progressBar=document.getElementById('progressBar');
+    const toggle=document.getElementById('facilitatedToggle');
+    if(progressText)progressText.textContent=`${done} of 4 experiences complete`;
+    if(progressBar)progressBar.style.width=`${done/4*100}%`;
+    if(toggle){
+      toggle.setAttribute('aria-pressed',String(state.facilitated));
+      toggle.textContent=state.facilitated?'🎓 Facilitated Mode':'👤 Self-Paced Mode';
+    }
+    const facilitatorNodes=typeof document.querySelectorAll==='function'
+      ?document.querySelectorAll('[data-facilitator]')
+      :null;
+    if(facilitatorNodes){
+      for(const element of facilitatorNodes)element.hidden=!state.facilitated;
+    }
   }
 
   function canView(view){

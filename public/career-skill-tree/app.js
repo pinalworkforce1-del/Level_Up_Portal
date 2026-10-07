@@ -1,5 +1,5 @@
 (() => {
-  const BASE_SRC = 'app-base.js?v=20261007-storagefix';
+  const BASE_SRC = 'app-base.js?v=20261007-renderfix';
 
   function loadBase(){
     const script=document.createElement('script');
