@@ -20,12 +20,34 @@ def replace_once(text, old, new, label):
 # -----------------------------------------------------------------------------
 # Reconstruct the checked-in compact Lightcast payload.
 # Deployment MUST fail rather than publish a partial/empty LMI snapshot.
+# Two upload-corrupted source chunks are replaced by verified half-chunks.
 # -----------------------------------------------------------------------------
 parts = sorted(PARTS.glob("full.part*.b64"))
 if len(parts) != 14:
     raise SystemExit(f"Career Tree requires 14 Lightcast payload parts; found {len(parts)}")
 
-encoded = "".join(p.read_text(encoding="utf-8").strip() for p in parts)
+repair_map = {
+    "full.part08.b64": ["repair08a.b64", "repair08b.b64"],
+    "full.part12.b64": ["repair12a.b64", "repair12b.b64"],
+}
+encoded_parts = []
+for p in parts:
+    repairs = repair_map.get(p.name)
+    if repairs:
+        values = []
+        for name in repairs:
+            repair = PARTS / name
+            if not repair.exists():
+                raise SystemExit(f"Missing verified Lightcast repair chunk: {name}")
+            values.append(repair.read_text(encoding="utf-8").strip())
+        value = "".join(values)
+        if len(value) != 12000:
+            raise SystemExit(f"Verified Lightcast replacement for {p.name} must be 12000 chars; found {len(value)}")
+        encoded_parts.append(value)
+    else:
+        encoded_parts.append(p.read_text(encoding="utf-8").strip())
+encoded = "".join(encoded_parts)
+
 try:
     compact = json.loads(gzip.decompress(base64.b64decode(encoded)).decode("utf-8"))
 except Exception as exc:
