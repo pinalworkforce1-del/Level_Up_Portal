@@ -217,16 +217,20 @@
   }
 
   function nextStageLabel(){
-    if(!state.interest.complete)return'Discover Me';
+    if(!state.interest.complete&&answeredCount()>0)return'Discover Me';
     if(!state.alignment.complete)return'Career Alignment';
     if(!state.lmi.complete)return'LMI Lab';
+    if(!state.tree.complete)return'My Career Tree';
+    if(!state.interest.complete)return'Discover Me';
     return'My Career Tree';
   }
 
   function nextView(){
-    if(!state.interest.complete)return'interest';
+    if(!state.interest.complete&&answeredCount()>0)return'interest';
     if(!state.alignment.complete)return'alignment';
     if(!state.lmi.complete)return'lmi';
+    if(!state.tree.complete)return'tree';
+    if(!state.interest.complete)return'interest';
     return'tree';
   }
 
