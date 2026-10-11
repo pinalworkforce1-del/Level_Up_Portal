@@ -554,8 +554,7 @@
       finally{btn.disabled=false;btn.textContent='Build my career possibilities →';}
     };
     $('alignmentContinue').onclick=()=>{
-      if(state.alignment.selected.length<1){alert('Choose at least one career to explore before completing Career Alignment.');return;}
-      state.alignment.complete=true;state.xp=Math.max(state.xp,250);save();
+      if(state.alignment.selected.length<1){alert('Choose at least one career to include in your summary.');return;}
       renderAlignmentReport();$('alignmentReport').hidden=false;
       $('alignmentReport').scrollIntoView({behavior:'smooth',block:'start'});
     };
