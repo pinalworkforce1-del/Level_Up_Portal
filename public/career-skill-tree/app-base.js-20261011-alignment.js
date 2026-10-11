@@ -176,7 +176,7 @@
 
   function canView(view){
     if(view==='home'||view==='interest')return true;
-    if(view==='alignment')return state.interest.complete;
+    if(view==='alignment')return true;
     if(view==='lmi')return state.alignment.complete;
     if(view==='tree')return state.lmi.complete;
     return false;
@@ -201,14 +201,14 @@
 
   function renderHome(){
     const cards=$$('.journey-card');
-    const allowed={interest:true,alignment:state.interest.complete,lmi:state.alignment.complete,tree:state.lmi.complete};
+    const allowed={interest:true,alignment:true,lmi:state.alignment.complete,tree:state.lmi.complete};
     cards.forEach(card=>{
       const v=card.dataset.view;
       card.disabled=!allowed[v];
       card.classList.toggle('locked',!allowed[v]);
     });
     $('homeInterestStatus').textContent=state.interest.complete?`Complete • ${state.interest.top.join('')}`:'Start →';
-    $('homeAlignmentStatus').textContent=state.alignment.complete?`${state.alignment.selected.length} careers saved ✓`:state.interest.complete?'Available →':'Locked';
+    $('homeAlignmentStatus').textContent=state.alignment.complete?`${state.alignment.selected.length} careers saved ✓`:'Explore independently →';
     $('homeLmiStatus').textContent=state.lmi.complete?'Evidence captured ✓':state.alignment.complete?'Available →':'Locked';
     $('homeTreeStatus').textContent=state.tree.complete?'Career Tree complete ✓':state.lmi.complete?'Available →':'Locked';
     const hasProgress=milestones()>0;
@@ -404,7 +404,8 @@
   function alignmentScore(c){
     const codes=[...new Set(String(c.code||'').split('').filter(code=>RIASEC[code]))];
     const scores=state.interest.scores||blankScores();
-    const interestFit=codes.length?codes.reduce((sum,code)=>sum+Math.max(0,Math.min(20,Number(scores[code]||0))),0)/(codes.length*20):0;
+    const hasInterestProfile=state.interest.complete&&Array.isArray(state.interest.top)&&state.interest.top.length>0;
+    const interestFit=hasInterestProfile&&codes.length?codes.reduce((sum,code)=>sum+Math.max(0,Math.min(20,Number(scores[code]||0))),0)/(codes.length*20):0;
     let preferenceMatches=0,preferenceCount=0;
     const preferenceReasons=[];
     [['style','styles','activity'],['training','training','preparation time'],['environment','env','work environment'],['people','people','people interaction']].forEach(([field,list,label])=>{
@@ -414,11 +415,11 @@
       if(Array.isArray(c[list])&&c[list].includes(value)){preferenceMatches+=1;preferenceReasons.push(label);}
     });
     const preferenceFit=preferenceCount?preferenceMatches/preferenceCount:null;
-    const combinedFit=preferenceFit===null?interestFit:(interestFit*.6+preferenceFit*.4);
-    const top=state.interest.top||[];
+    const combinedFit=!hasInterestProfile?(preferenceFit===null?0:preferenceFit):(preferenceFit===null?interestFit:(interestFit*.6+preferenceFit*.4));
+    const top=hasInterestProfile?state.interest.top:[];
     const alignedAreas=codes.filter(code=>top.includes(code)).map(code=>RIASEC[code].name);
     const reasons=[];
-    if(alignedAreas.length)reasons.push(`${alignedAreas.join(' + ')} O*NET interest${alignedAreas.length>1?'s':''}`);
+    if(!hasInterestProfile)reasons.push('your work preferences and selected location');\n    if(alignedAreas.length)reasons.push(`${alignedAreas.join(' + ')} O*NET interest${alignedAreas.length>1?'s':''}`);
     if(preferenceReasons.length)reasons.push(`your ${preferenceReasons.slice(0,2).join(' + ')} preference${preferenceReasons.length>1?'s':''}`);
     return {score:Math.round(combinedFit*100),interestScore:Math.round(interestFit*100),reasons};
   }
@@ -456,7 +457,7 @@
   async function buildCareerMatches(){const d=await getLaborData(),g=d.geographies?.[alignmentGeoKey()];if(!g)throw Error('Choose a state or county with available occupation data.');const ranked=occupationsForAlignment(d).map(c=>({...c,...alignmentScore(c)})).sort((a,b)=>b.score-a.score).slice(0,9).map(c=>c.soc);if(!ranked.length)throw Error(`No occupations with local labor-market records were found for ${g.label}. Choose a broader geography.`);const byTitle=new Map(Object.entries(d.catalog).map(([code,item])=>[item.title,code]));const alreadySelected=state.alignment.selected.map(title=>byTitle.get(title)).filter(Boolean);state.alignment.matches=[...ranked,...alreadySelected.filter(code=>!ranked.includes(code))];save();return g;}
 
   function renderAlignmentProfile(){
-    const top=state.interest.top||[];
+    const hasInterestProfile=state.interest.complete&&Array.isArray(state.interest.top)&&state.interest.top.length>0;\n    const intro=$('alignmentProfileTitle').parentElement.querySelector('p');\n    intro.textContent=hasInterestProfile?'These six scores come from your 30 answers. Stronger areas are clues we’ll combine with what you like doing and your other preferences.':'Discover Me is optional. You can explore careers now using your work preferences and location, or complete the 30-question O*NET activity later to add interest clues.';\n    $('alignmentRiasec').hidden=!hasInterestProfile;\n    $('alignmentRiasecBars').hidden=!hasInterestProfile;\n    if(!hasInterestProfile){$('alignmentRiasec').innerHTML='';$('alignmentRiasecBars').innerHTML='';return;}\n    const top=state.interest.top||[];
     $('alignmentRiasec').innerHTML=top.map((code,index)=>`<span class="chip ${index===0?'primary':''}">${index+1} • ${RIASEC[code].name}</span>`).join('');
     $('alignmentRiasecBars').innerHTML=Object.entries(RIASEC).map(([code,area])=>{
       const value=Math.max(0,Math.min(20,Number(state.interest.scores?.[code]||0)));
