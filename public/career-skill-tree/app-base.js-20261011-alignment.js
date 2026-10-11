@@ -77,6 +77,10 @@
     {title:'Heavy and Tractor-Trailer Truck Drivers',code:'RC',styles:['hands','organize'],training:['short','open'],env:['active','variety','open'],people:['solo','mix','open'],sector:'Transportation & Logistics',why:'Independent responsibility, equipment, routes, and movement of goods.'}
   ];
 
+  const CAREER_SOC={
+    'Electricians':'47-2111','Heating, Air Conditioning, and Refrigeration Mechanics and Installers':'49-9021','Welders, Cutters, Solderers, and Brazers':'51-4121','Computer Numerically Controlled Tool Operators':'51-9161','Computer User Support Specialists':'15-1232','Computer Network Support Specialists':'15-1231','Medical Assistants':'31-9092','Registered Nurses':'29-1141','Nursing Assistants':'31-1131','Graphic Designers':'27-1024','Public Relations Specialists':'27-3031','Customer Service Representatives':'43-4051','Human Resources Specialists':'13-1071','Sales Representatives':'41-3091','Bookkeeping, Accounting, and Auditing Clerks':'43-3031','Logisticians':'13-1081','Construction Laborers':'47-2061','Heavy and Tractor-Trailer Truck Drivers':'53-3032'
+  };
+
   const SECTORS = [
     {name:'Health Care & Social Assistance',jobs:'+113,466',annual:'2.1% annual growth'},
     {name:'Construction',jobs:'+51,798',annual:'2.1% annual growth'},
@@ -94,7 +98,7 @@
     view:'home',
     facilitated:true,
     interest:{scores:blankScores(),top:[],answers:{},page:0,complete:false},
-    alignment:{style:'',training:'',environment:'',people:'',matches:[],selected:[],complete:false},
+    alignment:{style:'',training:'',environment:'',people:'',geoScope:'state',geoState:'az',geoCounty:'',matches:[],selected:[],browseAll:false,query:'',complete:false},
     lmi:{evidence:{},complete:false},
     tree:{branches:{primary:'',alternate:'',surprise:''},complete:false,completedAt:null},
     xp:0,
@@ -102,6 +106,7 @@
   });
 
   let state = load();
+  let laborData = null;
 
   function load(){
     try{
@@ -424,16 +429,31 @@
     save();
   }
 
-  function buildCareerMatches(){
-    const ranked=CAREERS
-      .map(c=>({...c,...alignmentScore(c)}))
-      .sort((a,b)=>b.score-a.score)
-      .slice(0,9)
-      .map(c=>c.title);
-    const alreadySelected=state.alignment.selected.filter(title=>!ranked.includes(title));
-    state.alignment.matches=[...ranked,...alreadySelected];
-    save();
+  async function getLaborData(){if(laborData)return laborData;const r=await fetch('data/lightcast-lmi.json',{cache:'force-cache'});if(!r.ok)throw Error('Local occupation data could not be loaded.');const d=await r.json();if(d.sourceStatus!=='loaded'||!d.geographies||!d.catalog)throw Error('County and state occupation data is not ready. Refresh and try again.');laborData=d;return d;}
+  function alignmentGeoKey(){return state.alignment.geoScope==='county'?state.alignment.geoCounty:state.alignment.geoState;}
+  function clearAlignmentResults(){state.alignment.matches=[];state.alignment.selected=[];state.alignment.browseAll=false;state.alignment.query='';state.alignment.complete=false;state.lmi={...fresh().lmi};state.tree={...fresh().tree};$('matchResults').hidden=true;save();}
+  async function populateAlignmentCounties(){
+    const d=await getLaborData(),suffix=state.alignment.geoState==='az'?', Arizona':', New Mexico';
+    const rows=Object.entries(d.geographies).filter(([key,g])=>key!==state.alignment.geoState&&g.label?.endsWith(suffix)).sort((a,b)=>a[1].label.localeCompare(b[1].label));
+    const select=$('alignmentCounty');select.innerHTML=rows.map(([k,g])=>`<option value="${escapeAttr(k)}">${escapeText(g.label.replace(/, (Arizona|New Mexico)$/,''))}</option>`).join('');
+    if(!rows.some(([k])=>k===state.alignment.geoCounty))state.alignment.geoCounty=rows[0]?.[0]||'';
+    if(state.alignment.geoScope==='county'&&state.alignment.geoCounty)select.value=state.alignment.geoCounty;
+    select.hidden=state.alignment.geoScope!=='county';$('alignmentCountyLabel').hidden=state.alignment.geoScope!=='county';
+    const byTitle=new Map(Object.entries(d.catalog).map(([k,v])=>[v.title,k]));state.alignment.matches=(state.alignment.matches||[]).map(v=>byTitle.get(v)||v);
   }
+  function updateAlignmentLocationNote(){const g=laborData?.geographies?.[alignmentGeoKey()];$('alignmentLocationNote').textContent=g?`Career possibilities will be limited to occupations represented in ${g.label} labor-market data. Some occupations may not have local wage estimates.`:'Choose a state or county before building possibilities.';}
+  function occupationsForAlignment(d){
+    const g=d.geographies?.[alignmentGeoKey()];if(!g)return [];const styleMap={R:'hands',I:'ideas',A:'create',S:'help',E:'lead',C:'organize'};
+    return Object.entries(d.catalog||{}).flatMap(([soc,meta])=>{
+      const w=g.occupations?.[soc],interests=Array.isArray(meta.interests)?meta.interests:[];if(!w||!interests.length)return [];
+      const pay=[w.entryHourly,w.medianHourly,w.experiencedHourly].some(v=>typeof v==='number'&&v>0),emp=w.employment,represented=(typeof emp==='number'&&emp>0)||emp==='<10';if(!pay&&!represented)return [];
+      const c=CAREERS.find(x=>CAREER_SOC[x.title]===soc),edu=String(meta.typicalEducation||'').toLowerCase(),ojt=String(meta.typicalOjt||'').toLowerCase();
+      const short=/no formal|high school|some high school/.test(edu)&&!/long-term|internship|residency|apprenticeship/.test(ojt),long=/bachelor|master|doctoral|professional degree/.test(edu)||/long-term|internship|residency/.test(ojt);
+      const training=short?['short','open']:long?['long','open']:['mid','open'],styles=[...new Set(interests.map(x=>styleMap[x]).filter(Boolean))],major=soc.slice(0,2),env=['45','47','49','51','53'].includes(major)?['active','variety','open']:['indoor','variety','open'],people=interests.some(x=>x==='S'||x==='E')?['people','mix','open']:['mix','solo','open'];
+      return [{...(c||{}),title:meta.title||soc,soc,code:c?.code||interests.join(''),styles:c?.styles||styles,training:c?.training||training,env:c?.env||env,people:c?.people||people,why:c?.why||'This occupation appears in local labor-market data and shares themes from your O*NET interests.',sector:c?.sector||'Local occupation'}];
+    });
+  }
+  async function buildCareerMatches(){const d=await getLaborData(),g=d.geographies?.[alignmentGeoKey()];if(!g)throw Error('Choose a state or county with available occupation data.');const rows=occupationsForAlignment(d).map(c=>({...c,...alignmentScore(c)})).sort((a,b)=>b.score-a.score).slice(0,9).map(c=>c.soc);if(!rows.length)throw Error(`No occupations with local labor-market records were found for ${g.label}. Choose a broader geography.`);state.alignment.matches=rows;save();return g;}
 
   function renderAlignmentProfile(){
     const top=state.interest.top||[];
@@ -446,71 +466,38 @@
 
   function renderAlignment(){
     renderAlignmentProfile();
-    ['style','training','environment','people'].forEach(k=>{
-      const el=document.querySelector(`input[name="${k}"][value="${state.alignment[k]}"]`);
-      if(el)el.checked=true;
-    });
-    $('alignmentForm').onchange=()=>{
-      readAlignmentForm();
-      if(state.alignment.matches.length){buildCareerMatches();$('matchResults').hidden=false;renderCareerCards();}
+    ['style','training','environment','people'].forEach(k=>{const e=document.querySelector(`input[name="${k}"][value="${state.alignment[k]}"]`);if(e)e.checked=true;});
+    $('alignmentForm').onchange=async()=>{readAlignmentForm();if(state.alignment.matches.length){try{await buildCareerMatches();renderCareerCards();}catch(e){$('alignmentLocationNote').textContent=e.message;}}};
+    $('alignmentScope').value=state.alignment.geoScope||'state';$('alignmentState').value=state.alignment.geoState||'az';
+    $('alignmentScope').onchange=async()=>{state.alignment.geoScope=$('alignmentScope').value;await populateAlignmentCounties();clearAlignmentResults();updateAlignmentLocationNote();};
+    $('alignmentState').onchange=async()=>{state.alignment.geoState=$('alignmentState').value;state.alignment.geoCounty='';await populateAlignmentCounties();clearAlignmentResults();updateAlignmentLocationNote();};
+    $('alignmentCounty').onchange=()=>{state.alignment.geoCounty=$('alignmentCounty').value;clearAlignmentResults();updateAlignmentLocationNote();};
+    const has=state.alignment.matches.length>0;$('matchResults').hidden=!has;
+    $('browseAllCareers').textContent=state.alignment.browseAll?'Show my strongest matches':'Browse all occupations in this area';$('alignmentCareerSearch').hidden=!state.alignment.browseAll;$('alignmentCareerSearch').value=state.alignment.query||'';
+    $('browseAllCareers').onclick=()=>{state.alignment.browseAll=!state.alignment.browseAll;state.alignment.query='';$('alignmentCareerSearch').value='';$('alignmentCareerSearch').hidden=!state.alignment.browseAll;$('browseAllCareers').textContent=state.alignment.browseAll?'Show my strongest matches':'Browse all occupations in this area';renderCareerCards();};
+    $('alignmentCareerSearch').oninput=()=>{state.alignment.query=$('alignmentCareerSearch').value;renderCareerCards();};
+    populateAlignmentCounties().then(()=>{updateAlignmentLocationNote();if(has)renderCareerCards();}).catch(e=>{$('alignmentLocationNote').textContent=e.message;$('buildMatches').disabled=true;});
+    $('buildMatches').onclick=async()=>{
+      readAlignmentForm();if(!state.alignment.style||!state.alignment.training||!state.alignment.environment||!state.alignment.people){alert('Choose one response in each section so Career Tree can layer your interests with your preferences.');return;}
+      const btn=$('buildMatches');btn.disabled=true;btn.textContent='Finding local possibilities…';
+      try{const g=await buildCareerMatches();$('careerResultsDescription').textContent=`Showing occupations represented in ${g.label} labor-market data. Choose careers to explore. Results combine O*NET interest clues with your preferences.`;$('matchResults').hidden=false;renderCareerCards();$('matchResults').scrollIntoView({behavior:'smooth'});}
+      catch(e){alert(e.message||'Career possibilities could not be loaded.');}
+      finally{btn.disabled=false;btn.textContent='Build my career possibilities →';}
     };
-    const has=state.alignment.matches.length>0;
-    $('matchResults').hidden=!has;
-    if(has)renderCareerCards();
-
-    $('buildMatches').onclick=()=>{
-      readAlignmentForm();
-      if(!state.alignment.style||!state.alignment.training||!state.alignment.environment||!state.alignment.people){
-        alert('Choose one response in each section so Career Tree can layer your interests with your preferences.');
-        return;
-      }
-      buildCareerMatches();
-      $('matchResults').hidden=false;
-      renderCareerCards();
-      $('matchResults').scrollIntoView({behavior:'smooth'});
-    };
-
-    $('alignmentContinue').onclick=()=>{
-      if(state.alignment.selected.length<3){
-        alert('Save at least three careers to investigate in the LMI Lab.');
-        return;
-      }
-      state.alignment.complete=true;
-      state.xp=Math.max(state.xp,250);
-      save();
-      show('lmi');
-    };
+    $('alignmentContinue').onclick=()=>{if(state.alignment.selected.length<3){alert('Explore at least three careers before moving to the LMI Lab.');return;}state.alignment.complete=true;state.xp=Math.max(state.xp,250);save();show('lmi');};
   }
 
   function renderCareerCards(){
-    const lookup=new Map(CAREERS.map(c=>[c.title,c]));
-    $('careerCards').innerHTML=state.alignment.matches.map(title=>{
-      const c=lookup.get(title);
-      const calc=alignmentScore(c);
-      const selected=state.alignment.selected.includes(title);
-      const why=calc.reasons.slice(0,2).join(' + ')||c.why;
-      return `<article class="career-card ${selected?'selected':''}">
-        <span class="eyebrow">${c.sector}</span>
-        <h3>${c.title}</h3>
-        <p>${c.why}</p>
-        <div class="career-fit" aria-label="Interest and preference fit ${calc.score} percent"><span>Interest + preference fit</span><strong>${calc.score}%</strong><div class="career-fit-track"><i style="width:${calc.score}%"></i></div></div>
-        <div class="why">Why it surfaced: ${why}</div>
-        <button class="${selected?'secondary-btn':'primary-btn'} career-select" data-career="${escapeAttr(c.title)}" type="button">${selected?'✓ Added to next step':'Explore this career →'}</button>
-      </article>`;
+    const local=occupationsForAlignment(laborData||{}),byCode=new Map(local.map(c=>[c.soc,c]));
+    const rows=(state.alignment.browseAll?local:state.alignment.matches.map(code=>byCode.get(code)).filter(Boolean)).map(c=>({...c,...alignmentScore(c)})).sort((a,b)=>b.score-a.score);
+    const q=String(state.alignment.query||'').trim().toLowerCase(),visible=rows.filter(c=>!q||c.title.toLowerCase().includes(q));
+    $('alignmentCareerCount').textContent=state.alignment.browseAll?`${visible.length.toLocaleString()} of ${rows.length.toLocaleString()} local occupations`:`${visible.length} strongest matches`;
+    $('careerCards').innerHTML=visible.map(c=>{
+      const selected=state.alignment.selected.includes(c.title),why=c.reasons.slice(0,2).join(' + ')||c.why,w=laborData?.geographies?.[alignmentGeoKey()]?.occupations?.[c.soc]||{};
+      const note=[w.entryHourly,w.medianHourly,w.experiencedHourly].some(v=>typeof v==='number'&&v>0)?'<div class="why">Local wage data is available in this area.</div>':'<div class="why">This occupation is represented locally, but a wage estimate is unavailable here.</div>';
+      return `<article class="career-card ${selected?'selected':''}"><span class="eyebrow">${escapeText(c.sector)}</span><h3>${escapeText(c.title)}</h3><p>${escapeText(c.why)}</p><div class="career-fit" aria-label="Interest and preference fit ${c.score} percent"><span>Interest + preference fit</span><strong>${c.score}%</strong><div class="career-fit-track"><i style="width:${c.score}%"></i></div></div><div class="why">Why it surfaced: ${escapeText(why)}</div>${note}<button class="${selected?'secondary-btn':'primary-btn'} career-select" data-career="${escapeAttr(c.title)}" type="button">${selected?'✓ Added to next step':'Explore this career →'}</button></article>`;
     }).join('');
-
-    $$('.career-select').forEach(btn=>btn.onclick=()=>{
-      const title=btn.dataset.career;
-      const i=state.alignment.selected.indexOf(title);
-      if(i>=0)state.alignment.selected.splice(i,1);
-      else if(state.alignment.selected.length<5)state.alignment.selected.push(title);
-      else{
-        alert('Keep the investigation focused: save up to five careers for the LMI Lab.');
-        return;
-      }
-      save();
-      renderCareerCards();
-    });
+    $$('.career-select').forEach(btn=>btn.onclick=()=>{const title=btn.dataset.career,i=state.alignment.selected.indexOf(title);if(i>=0)state.alignment.selected.splice(i,1);else if(state.alignment.selected.length<5)state.alignment.selected.push(title);else{alert('Select up to five careers to explore.');return;}save();renderCareerCards();});
   }
 
   function escapeAttr(s){
