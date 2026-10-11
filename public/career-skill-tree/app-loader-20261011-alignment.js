@@ -1,5 +1,11 @@
 (() => {
   const BASE_SRC = 'app-base.js-20261011-alignment.js';
+  const ALIGNMENT_LEVELS = [
+    {min:85,label:'Strong Alignment',meter:88},
+    {min:70,label:'Good Alignment',meter:72},
+    {min:55,label:'Moderate Alignment',meter:56},
+    {min:0,label:'Possible Alignment',meter:40}
+  ];
 
   function loadBase(){
     const script=document.createElement('script');
@@ -8,6 +14,40 @@
     script.onload=installPassB;
     script.onerror=()=>console.error('Career Tree base app failed to load.');
     document.head.appendChild(script);
+  }
+
+  function alignmentLevel(score){
+    return ALIGNMENT_LEVELS.find(level=>score>=level.min)||ALIGNMENT_LEVELS[ALIGNMENT_LEVELS.length-1];
+  }
+
+  function installQualitativeAlignment(){
+    const results=document.getElementById('matchResults');
+    const cards=document.getElementById('careerCards');
+    if(!results||!cards)return;
+
+    const explainer=results.querySelector('.section-title p');
+    if(explainer)explainer.textContent='Career Tree combines your O*NET interest profile with the preferences you chose and groups the results into alignment levels. Stronger alignment means more of those clues point in the same direction; it is not a probability of success or a promise that a career is right for you. Choose up to five to carry into the next step, where you can explore local pay, openings, growth, and preparation.';
+
+    const apply=()=>{
+      cards.querySelectorAll('.career-fit').forEach(element=>{
+        const valueNode=element.querySelector('strong');
+        if(!valueNode)return;
+        const score=Number.parseInt(valueNode.textContent,10);
+        if(!Number.isFinite(score))return;
+        const level=alignmentLevel(score);
+        const labelNode=element.querySelector('span');
+        const meter=element.querySelector('.career-fit-track i');
+        if(labelNode)labelNode.textContent='Career alignment';
+        valueNode.textContent=level.label;
+        if(meter)meter.style.width=`${level.meter}%`;
+        element.setAttribute('aria-label',`Career alignment: ${level.label}`);
+        element.dataset.alignmentLevel=level.label;
+      });
+    };
+
+    const observer=new MutationObserver(apply);
+    observer.observe(cards,{childList:true,subtree:true});
+    apply();
   }
 
   function installPassB(){
@@ -43,6 +83,7 @@
       }
     `;
     document.head.appendChild(style);
+    installQualitativeAlignment();
 
     const wrap=document.getElementById('ipQuestions');
     const prev=document.getElementById('ipPrev');
