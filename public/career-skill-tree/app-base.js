@@ -466,8 +466,14 @@
       const calc=alignmentScore(c);
       const selected=state.alignment.selected.includes(title);
       const why=calc.reasons.slice(0,2).join(' + ')||c.why;
+      const sectorNote=c.sector==='Business Services'
+        ?'A broad group of customer-facing roles that help people and organizations. These jobs can be found across many industries.'
+        :c.sector==='Local Occupation'
+          ?'This occupation is available in your selected area but does not fit one of the specific career groups shown here.'
+          :'';
       return `<article class="career-card ${selected?'selected':''}">
         <span class="eyebrow">${c.sector}</span>
+        ${sectorNote?`<p class="career-sector-note">${sectorNote}</p>`:''}
         <h3>${c.title}</h3>
         <p>${c.why}</p>
         <div class="why">Why it surfaced: ${why}</div>
