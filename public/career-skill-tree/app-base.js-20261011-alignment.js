@@ -541,7 +541,7 @@
     $('browseAllCareers').textContent=state.alignment.browseAll?'Show my strongest matches':'Browse all occupations in this area';$('alignmentCareerSearch').hidden=!state.alignment.browseAll;$('alignmentCareerSearch').value=state.alignment.query||'';
     $('browseAllCareers').onclick=()=>{state.alignment.browseAll=!state.alignment.browseAll;state.alignment.query='';$('alignmentCareerSearch').value='';$('alignmentCareerSearch').hidden=!state.alignment.browseAll;$('browseAllCareers').textContent=state.alignment.browseAll?'Show my strongest matches':'Browse all occupations in this area';renderCareerCards();};
     $('alignmentCareerSearch').oninput=()=>{state.alignment.query=$('alignmentCareerSearch').value;renderCareerCards();};
-    populateAlignmentCounties().then(()=>{updateAlignmentLocationNote();if(has)renderCareerCards();}).catch(e=>{$('alignmentLocationNote').textContent=e.message;$('buildMatches').disabled=true;});
+    populateAlignmentCounties().then(()=>{updateAlignmentLocationNote();if(has)renderCareerCards();renderAlignmentReport();}).catch(e=>{$('alignmentLocationNote').textContent=e.message;$('buildMatches').disabled=true;});
     $('buildMatches').onclick=async()=>{
       readAlignmentForm();if(!state.alignment.style||!state.alignment.training||!state.alignment.environment||!state.alignment.people){alert('Choose one response in each section so Career Tree can layer your interests with your preferences.');return;}
       const btn=$('buildMatches');btn.disabled=true;btn.textContent='Finding local possibilities…';
@@ -555,8 +555,6 @@
       renderAlignmentReport();$('alignmentReport').hidden=false;
       $('alignmentReport').scrollIntoView({behavior:'smooth',block:'start'});
     };
-    $('printAlignmentReport').onclick=()=>window.print();
-    $('returnToCareerMap').onclick=()=>show('home');
     renderAlignmentReport();
   }
 
