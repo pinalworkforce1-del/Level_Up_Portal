@@ -11,9 +11,18 @@
   }
 
   function updateExplainer() {
-    const paragraph = document.querySelector('#matchResults .section-title p');
-    if (!paragraph) return;
-    paragraph.textContent = 'Career Tree combines your O*NET interest profile with the preferences you chose and groups the results into alignment levels. Stronger alignment means more of those clues point in the same direction; it is not a probability of success or a promise that a career is right for you. Choose up to five to carry into the next step, where you can explore local pay, openings, growth, and preparation.';
+    const section = document.querySelector('#matchResults .section-title');
+    if (!section) return;
+    const paragraph = section.querySelector('p');
+    if (paragraph) paragraph.textContent = 'Choose up to five possibilities to carry into the next step, where you can compare local pay, openings, growth, and preparation.';
+
+    let note = section.querySelector('.alignment-surface-note');
+    if (!note) {
+      note = document.createElement('div');
+      note.className = 'alignment-surface-note';
+      section.appendChild(note);
+    }
+    note.innerHTML = '<strong>Why these careers surfaced</strong><span>Career Tree combined your O*NET interest clues with the work preferences you selected. Careers appear higher when more of those clues point in the same direction. These are possibilities to explore—not recommendations or guarantees.</span>';
   }
 
   function updateCareerFitLabels(root = document) {
@@ -34,20 +43,45 @@
       element.setAttribute('aria-label', `Career alignment: ${level.label}`);
       element.dataset.alignmentLevel = level.label;
     });
+
+    root.querySelectorAll?.('#careerCards .career-card .why').forEach(element => {
+      element.hidden = true;
+      element.setAttribute('aria-hidden', 'true');
+    });
+  }
+
+  function addStyles() {
+    if (document.getElementById('alignment-surface-note-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'alignment-surface-note-styles';
+    style.textContent = `
+      #matchResults .alignment-surface-note{margin-top:16px;padding:16px 18px;border:1px solid rgba(114,215,255,.28);border-radius:16px;background:rgba(114,215,255,.07);display:grid;gap:5px;max-width:900px}
+      #matchResults .alignment-surface-note strong{color:#dff7ff;font-size:.95rem}
+      #matchResults .alignment-surface-note span{color:#b9c7df;line-height:1.5;font-size:.9rem}
+      #careerCards .career-card .why[hidden]{display:none!important}
+    `;
+    document.head.appendChild(style);
   }
 
   function refresh(root = document) {
+    addStyles();
     updateExplainer();
     updateCareerFitLabels(root);
   }
 
   const observer = new MutationObserver(mutations => {
+    let needsRefresh = false;
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (!(node instanceof Element)) continue;
-        if (node.matches?.('.career-fit') || node.querySelector?.('.career-fit')) refresh(node);
+        if (node.matches?.('.career-card,.career-fit,.section-title') || node.querySelector?.('.career-card,.career-fit,.section-title')) {
+          needsRefresh = true;
+          break;
+        }
       }
+      if (needsRefresh) break;
     }
+    if (needsRefresh) refresh();
   });
 
   if (document.readyState === 'loading') {
