@@ -97,4 +97,19 @@
     get,
     list
   };
+
+  // Career Tree keeps geography as a shared participant context across
+  // Alignment -> LMI -> Work + Life. Load this only on Career Tree pages so
+  // other Level Up experiences remain untouched.
+  if (location.pathname.includes('/career-skill-tree/')) {
+    const existing = document.querySelector('script[data-career-tree-geography]');
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = 'alignment-geography-20261011.js?v=20261011-geo1';
+      script.defer = true;
+      script.dataset.careerTreeGeography = '1';
+      script.onerror = () => console.error('Career Tree geography enhancement failed to load.');
+      document.head.appendChild(script);
+    }
+  }
 })();
