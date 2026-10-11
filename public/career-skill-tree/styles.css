@@ -13,3 +13,13 @@
 .career-fit-track{grid-column:1/-1;height:8px;border-radius:99px;background:#1b294d;overflow:hidden}
 .career-fit-track i{display:block;height:100%;border-radius:inherit;background:linear-gradient(90deg,#45d8f4,#a78bfa)}
 @media(max-width:700px){.alignment-riasec-bars{grid-template-columns:1fr}}
+
+/* Optional O*NET results placeholder in independent Career Alignment */
+.alignment-onet-placeholder{flex:1 1 100%;display:grid;grid-template-columns:minmax(0,1.4fr) minmax(230px,1fr);gap:16px 24px;align-items:center;padding:18px 20px;border:1px dashed rgba(114,215,255,.45);border-radius:16px;background:rgba(6,15,35,.48)}
+.alignment-onet-placeholder-copy{display:grid;gap:7px}
+.alignment-onet-placeholder-copy strong{color:#f4f7ff;font-size:1rem}
+.alignment-onet-placeholder-copy p{margin:0;color:#b9c5dc;line-height:1.5}
+.alignment-onet-areas{display:flex;flex-wrap:wrap;gap:7px}
+.alignment-onet-areas span{padding:6px 9px;border:1px solid rgba(114,215,255,.2);border-radius:999px;color:#9faec6;background:rgba(16,27,57,.55);font-size:.78rem}
+.alignment-onet-placeholder .primary-btn{justify-self:start;grid-column:1/-1}
+@media(max-width:700px){.alignment-onet-placeholder{grid-template-columns:1fr}.alignment-onet-placeholder .primary-btn{grid-column:auto}}
