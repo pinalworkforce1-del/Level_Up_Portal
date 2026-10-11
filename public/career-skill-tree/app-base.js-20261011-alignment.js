@@ -460,10 +460,19 @@
   function renderAlignmentProfile(){
     const hasInterestProfile=state.interest.complete&&Array.isArray(state.interest.top)&&state.interest.top.length>0;
     const intro=$('alignmentProfileTitle').parentElement.querySelector('p');
-    intro.textContent=hasInterestProfile?'These six scores come from your 30 answers. Stronger areas are clues we’ll combine with what you like doing and your other preferences.':'Discover Me is optional. You can explore careers now using your work preferences and location, or complete the 30-question O*NET activity later to add interest clues.';
-    $('alignmentRiasec').hidden=!hasInterestProfile;
+    intro.textContent=hasInterestProfile?'These six scores come from your 30 answers. Stronger areas are clues we’ll combine with what you like doing and your other preferences.':'Discover Me is optional. Explore careers now using your work preferences and location, or complete the 30-question O*NET activity to add your interest clues.';
+    $('alignmentRiasec').hidden=false;
     $('alignmentRiasecBars').hidden=!hasInterestProfile;
-    if(!hasInterestProfile){$('alignmentRiasec').innerHTML='';$('alignmentRiasecBars').innerHTML='';return;}
+    if(!hasInterestProfile){
+      $('alignmentRiasec').innerHTML=`<div class="alignment-onet-placeholder" role="status">
+        <div class="alignment-onet-placeholder-copy"><span class="eyebrow">OPTIONAL • 30 QUESTIONS</span><strong>Your O*NET interest results will appear here</strong><p>Complete Discover Me to add your interest clues to career matches. You can explore by location and work preferences without it.</p></div>
+        <div class="alignment-onet-areas" aria-label="RIASEC interest areas"><span>Realistic</span><span>Investigative</span><span>Artistic</span><span>Social</span><span>Enterprising</span><span>Conventional</span></div>
+        <button id="alignmentCompleteOnet" class="primary-btn" type="button">Complete Discover Me →</button>
+      </div>`;
+      $('alignmentRiasecBars').innerHTML='';
+      $('alignmentCompleteOnet').onclick=()=>show('interest');
+      return;
+    }
     const top=state.interest.top||[];
     $('alignmentRiasec').innerHTML=top.map((code,index)=>`<span class="chip ${index===0?'primary':''}">${index+1} • ${RIASEC[code].name}</span>`).join('');
     $('alignmentRiasecBars').innerHTML=Object.entries(RIASEC).map(([code,area])=>{
