@@ -549,7 +549,53 @@
       catch(e){alert(e.message||'Career possibilities could not be loaded.');}
       finally{btn.disabled=false;btn.textContent='Build my career possibilities →';}
     };
-    $('alignmentContinue').onclick=()=>{if(state.alignment.selected.length<3){alert('Explore at least three careers before moving to the LMI Lab.');return;}state.alignment.complete=true;state.xp=Math.max(state.xp,250);save();show('lmi');};
+    $('alignmentContinue').onclick=()=>{
+      if(state.alignment.selected.length<1){alert('Choose at least one career to explore before completing Career Alignment.');return;}
+      state.alignment.complete=true;state.xp=Math.max(state.xp,250);save();
+      renderAlignmentReport();$('alignmentReport').hidden=false;
+      $('alignmentReport').scrollIntoView({behavior:'smooth',block:'start'});
+    };
+    $('printAlignmentReport').onclick=()=>window.print();
+    $('returnToCareerMap').onclick=()=>show('home');
+    renderAlignmentReport();
+  }
+
+  function alignmentResponseLabel(field,value){
+    const labels={
+      style:{hands:'Hands-on / build / fix',ideas:'Investigate / solve / analyze',create:'Create / design / express',help:'Help / teach / support',lead:'Lead / persuade / sell',organize:'Organize / track / detail'},
+      training:{short:'Start soon; short preparation',mid:'Up to 1–2 years could work',long:'Several years could be okay',open:'Not sure — show me the range'},
+      environment:{active:'Active / moving / field or shop',indoor:'Mostly indoors',variety:'Variety / changes day to day',open:'No strong preference'},
+      people:{people:'A lot — people energize me',mix:'A mix of people and independent work',solo:'More independent / focused work',open:'No strong preference'}
+    };
+    return labels[field]?.[value]||'Not answered';
+  }
+  function renderAlignmentReport(){
+    const report=$('alignmentReport');if(!report)return;
+    const selected=state.alignment.selected||[];
+    report.hidden=selected.length===0;
+    if(!selected.length)return;
+    const geo=laborData?.geographies?.[alignmentGeoKey()];
+    const scope=state.alignment.geoScope==='county'?'County':'Statewide';
+    const geography=geo?.label||alignmentGeoKey()||'Not selected';
+    const responses=[['Activities you want to spend time doing','style'],['Preparation time that feels realistic','training'],['Preferred work environment','environment'],['People interaction','people']]
+      .map(([label,key])=>`<div class="alignment-report-response"><dt>${label}</dt><dd>${escapeText(alignmentResponseLabel(key,state.alignment[key]))}</dd></div>`).join('');
+    const hasProfile=state.interest.complete&&Array.isArray(state.interest.top)&&state.interest.top.length>0;
+    const top=hasProfile?state.interest.top.map(code=>RIASEC[code]?.name||code).join(' • '):'Not completed — optional';
+    const scores=hasProfile?Object.entries(RIASEC).map(([code,area])=>`<div class="alignment-report-score"><strong>${code} • ${area.name}</strong><span>${Math.max(0,Math.min(20,Number(state.interest.scores?.[code]||0)))}/20</span></div>`).join(''):'<p class="alignment-report-muted">Career possibilities were built from your location and work preferences. Complete Discover Me later if you want to add O*NET interest clues.</p>';
+    const local=occupationsForAlignment(laborData||{});
+    const chosen=selected.map(title=>{
+      const career=local.find(item=>item.title===title);
+      return `<li><strong>${escapeText(title)}</strong>${career?.soc?` <span class="alignment-report-muted">• ${escapeText(career.soc)}</span>`:''}</li>`;
+    }).join('');
+    report.innerHTML=`<div class="alignment-report-head"><div><span class="eyebrow">CAREER TREE • MODULE 2</span><h2 id="alignmentReportTitle">My Career Alignment Summary</h2><p>A snapshot of what I chose to explore and the clues I used.</p></div><span class="alignment-report-date">${new Date().toLocaleDateString()}</span></div>
+      <section class="alignment-report-section"><h3>O*NET® interest profile</h3><p><strong>Top interest clues:</strong> ${escapeText(top)}</p><div class="alignment-report-scores">${scores}</div></section>
+      <section class="alignment-report-section"><h3>Geography used</h3><p><strong>${escapeText(scope)}:</strong> ${escapeText(geography)}</p><p class="alignment-report-muted">Career possibilities were limited to occupations represented in this selected labor market.</p></section>
+      <section class="alignment-report-section"><h3>My responses</h3><dl class="alignment-report-responses">${responses}</dl></section>
+      <section class="alignment-report-section"><h3>Occupations I chose to explore</h3><ol class="alignment-report-careers">${chosen}</ol></section>
+      <div class="alignment-report-actions"><button id="printAlignmentReport" class="primary-btn" type="button">Print / Save as PDF</button><button id="returnToCareerMap" class="secondary-btn" type="button">Complete & return to Career Tree map →</button></div>
+      <p class="alignment-report-footnote">This summary records exploration choices. It is not a career recommendation or a guarantee of employment or wages.</p>`;
+    $('printAlignmentReport').onclick=()=>window.print();
+    $('returnToCareerMap').onclick=()=>{state.alignment.complete=true;state.xp=Math.max(state.xp,250);save();show('home');};
   }
 
   function renderCareerCards(){
@@ -562,7 +608,7 @@
       const note=[w.entryHourly,w.medianHourly,w.experiencedHourly].some(v=>typeof v==='number'&&v>0)?'<div class="why">Local wage data is available in this area.</div>':'<div class="why">This occupation is represented locally, but a wage estimate is unavailable here.</div>';
       return `<article class="career-card ${selected?'selected':''}"><span class="eyebrow">${escapeText(c.sector)}</span><h3>${escapeText(c.title)}</h3><p>${escapeText(c.why)}</p><div class="career-fit" aria-label="Interest and preference fit ${c.score} percent"><span>Interest + preference fit</span><strong>${c.score}%</strong><div class="career-fit-track"><i style="width:${c.score}%"></i></div></div><div class="why">Why it surfaced: ${escapeText(why)}</div>${note}<button class="${selected?'secondary-btn':'primary-btn'} career-select" data-career="${escapeAttr(c.title)}" type="button">${selected?'✓ Added to next step':'Explore this career →'}</button></article>`;
     }).join('');
-    $$('.career-select').forEach(btn=>btn.onclick=()=>{const title=btn.dataset.career,i=state.alignment.selected.indexOf(title);if(i>=0)state.alignment.selected.splice(i,1);else if(state.alignment.selected.length<5)state.alignment.selected.push(title);else{alert('Select up to five careers to explore.');return;}save();renderCareerCards();});
+    $$('.career-select').forEach(btn=>btn.onclick=()=>{const title=btn.dataset.career,i=state.alignment.selected.indexOf(title);if(i>=0)state.alignment.selected.splice(i,1);else if(state.alignment.selected.length<5)state.alignment.selected.push(title);else{alert('Select up to five careers to explore.');return;}save();renderCareerCards();renderAlignmentReport();});
   }
 
   function escapeAttr(s){
