@@ -1,9 +1,9 @@
 (() => {
   const LEVELS = [
-    { min: 85, label: 'Strong Alignment', meter: 88 },
-    { min: 70, label: 'Good Alignment', meter: 72 },
-    { min: 55, label: 'Moderate Alignment', meter: 56 },
-    { min: 0, label: 'Possible Alignment', meter: 40 }
+    { min: 85, label: 'Strong', meter: 88 },
+    { min: 70, label: 'Good', meter: 72 },
+    { min: 55, label: 'Moderate', meter: 56 },
+    { min: 0, label: 'Possible', meter: 40 }
   ];
 
   function levelFor(score) {
@@ -30,17 +30,18 @@
       const valueNode = element.querySelector('strong');
       if (!valueNode) return;
 
-      const score = Number.parseInt(valueNode.textContent, 10);
+      const rawText = valueNode.textContent || '';
+      const score = Number.parseInt(rawText, 10);
       if (!Number.isFinite(score)) return;
 
       const level = levelFor(score);
       const labelNode = element.querySelector('span');
       const meter = element.querySelector('.career-fit-track i');
 
-      if (labelNode) labelNode.textContent = 'Career alignment';
+      if (labelNode) labelNode.textContent = 'Interest Alignment:';
       valueNode.textContent = level.label;
       if (meter) meter.style.width = `${level.meter}%`;
-      element.setAttribute('aria-label', `Career alignment: ${level.label}`);
+      element.setAttribute('aria-label', `Interest alignment: ${level.label}`);
       element.dataset.alignmentLevel = level.label;
     });
 
@@ -59,6 +60,10 @@
       #matchResults .alignment-surface-note strong{color:#dff7ff;font-size:.95rem}
       #matchResults .alignment-surface-note span{color:#b9c7df;line-height:1.5;font-size:.9rem}
       #careerCards .career-card .why[hidden]{display:none!important}
+      #careerCards .career-fit{display:grid;grid-template-columns:1fr auto;gap:5px 12px;align-items:center;margin-top:14px}
+      #careerCards .career-fit>span{color:#d7e2f5;font-size:.9rem}
+      #careerCards .career-fit>strong{color:#f6fbff;font-size:.95rem;white-space:nowrap}
+      #careerCards .career-fit-track{grid-column:1/-1;width:100%}
     `;
     document.head.appendChild(style);
   }
