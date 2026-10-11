@@ -491,7 +491,7 @@
     const local=occupationsForAlignment(laborData||{}),byCode=new Map(local.map(c=>[c.soc,c]));
     const rows=(state.alignment.browseAll?local:state.alignment.matches.map(code=>byCode.get(code)).filter(Boolean)).map(c=>({...c,...alignmentScore(c)})).sort((a,b)=>b.score-a.score);
     const q=String(state.alignment.query||'').trim().toLowerCase(),visible=rows.filter(c=>!q||c.title.toLowerCase().includes(q));
-    $('alignmentCareerCount').textContent=state.alignment.browseAll?`${visible.length.toLocaleString()} of ${rows.length.toLocaleString()} local occupations`:`${visible.length} strongest matches`;
+    $('alignmentCareerCount').textContent=state.alignment.browseAll?`${visible.length.toLocaleString()} of ${rows.length.toLocaleString()} local occupations`:`${visible.length} career possibilities`;
     $('careerCards').innerHTML=visible.map(c=>{
       const selected=state.alignment.selected.includes(c.title),why=c.reasons.slice(0,2).join(' + ')||c.why,w=laborData?.geographies?.[alignmentGeoKey()]?.occupations?.[c.soc]||{};
       const note=[w.entryHourly,w.medianHourly,w.experiencedHourly].some(v=>typeof v==='number'&&v>0)?'<div class="why">Local wage data is available in this area.</div>':'<div class="why">This occupation is represented locally, but a wage estimate is unavailable here.</div>';
