@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#071126">
   <title>Level Up • Career Skill Tree</title>
-  <link rel="stylesheet" href="styles.css?v=20261005-1">
+  <link rel="stylesheet" href="styles.css?v=20261011-alignment">
   <link rel="stylesheet" href="open-hub.css?v=20261005-1">
   <link rel="stylesheet" href="az-lmi-explorer.css?v=20261007-lifeplan-1">
 </head>
@@ -61,15 +61,19 @@
   <main id="viewAlignment" class="view" hidden>
     <section class="stage-shell">
       <div class="stage-head"><div><span class="eyebrow">DESTINATION • CAREER ALIGNMENT</span><h1>Interests are one layer. Add the rest of you.</h1><p>There is no perfect career match. These choices help Career Tree surface possibilities that are worth investigating—not jobs you “should” do.</p></div><button class="ghost-btn" data-view="home">Career Tree home</button></div>
-      <div class="profile-chip-row" id="alignmentRiasec"></div>
+      <section class="alignment-profile-panel" aria-labelledby="alignmentProfileTitle">
+        <div><span class="eyebrow">YOUR O*NET® INTEREST CLUES</span><h2 id="alignmentProfileTitle">Your profile, at a glance</h2><p>These six scores come from your 30 answers. Stronger areas are clues we’ll combine with what you like doing and your other preferences.</p></div>
+        <div class="profile-chip-row" id="alignmentRiasec"></div>
+        <div id="alignmentRiasecBars" class="riasec-bars alignment-riasec-bars" role="img" aria-label="Your six O*NET interest scores from zero to twenty"></div>
+      </section>
       <form id="alignmentForm" class="alignment-form">
-        <fieldset><legend>How do you like to spend your workday?</legend><div class="choice-grid" data-field="style"><label><input type="radio" name="style" value="hands"><span>🛠️ Hands-on / build / fix</span></label><label><input type="radio" name="style" value="ideas"><span>🔎 Investigate / solve / analyze</span></label><label><input type="radio" name="style" value="create"><span>🎨 Create / design / express</span></label><label><input type="radio" name="style" value="help"><span>🤝 Help / teach / support</span></label><label><input type="radio" name="style" value="lead"><span>📣 Lead / persuade / sell</span></label><label><input type="radio" name="style" value="organize"><span>📋 Organize / track / detail</span></label></div></fieldset>
-        <fieldset><legend>How much preparation feels realistic right now?</legend><div class="choice-grid compact"><label><input type="radio" name="training" value="short"><span>Start earning soon / short training</span></label><label><input type="radio" name="training" value="mid"><span>About 1–2 years</span></label><label><input type="radio" name="training" value="long"><span>4+ years could be okay</span></label><label><input type="radio" name="training" value="open"><span>I’m open — show me options</span></label></div></fieldset>
-        <fieldset><legend>What kind of environment sounds best?</legend><div class="choice-grid compact"><label><input type="radio" name="environment" value="active"><span>Active / moving / field or shop</span></label><label><input type="radio" name="environment" value="indoor"><span>Mostly indoors</span></label><label><input type="radio" name="environment" value="variety"><span>Variety / changes day to day</span></label><label><input type="radio" name="environment" value="open"><span>No strong preference</span></label></div></fieldset>
+        <fieldset><legend>Which activities would you like to spend more time doing?</legend><p class="alignment-help">No work history is needed. Think about tasks you enjoy in school, at home, with friends, in a hobby, or at work.</p><div class="choice-grid" data-field="style"><label><input type="radio" name="style" value="hands"><span>🛠️ Hands-on / build / fix</span></label><label><input type="radio" name="style" value="ideas"><span>🔎 Investigate / solve / analyze</span></label><label><input type="radio" name="style" value="create"><span>🎨 Create / design / express</span></label><label><input type="radio" name="style" value="help"><span>🤝 Help / teach / support</span></label><label><input type="radio" name="style" value="lead"><span>📣 Lead / persuade / sell</span></label><label><input type="radio" name="style" value="organize"><span>📋 Organize / track / detail</span></label></div></fieldset>
+        <fieldset><legend>How much time feels realistic for preparing for a career right now?</legend><p class="alignment-help">Preparation can mean learning on the job, a short course or license, an apprenticeship, a certificate, or college. This is about time—not a commitment or a promise that you must pay for training.</p><div class="choice-grid compact"><label><input type="radio" name="training" value="short"><span>I’d like to start soon; short preparation feels best</span></label><label><input type="radio" name="training" value="mid"><span>Up to 1–2 years could work</span></label><label><input type="radio" name="training" value="long"><span>Several years could be okay</span></label><label><input type="radio" name="training" value="open"><span>I’m not sure — show me the range</span></label></div></fieldset>
+        <fieldset><legend>What kind of work environment sounds best?</legend><div class="choice-grid compact"><label><input type="radio" name="environment" value="active"><span>Active / moving / field or shop</span></label><label><input type="radio" name="environment" value="indoor"><span>Mostly indoors</span></label><label><input type="radio" name="environment" value="variety"><span>Variety / changes day to day</span></label><label><input type="radio" name="environment" value="open"><span>No strong preference</span></label></div></fieldset>
         <fieldset><legend>How much people interaction do you want?</legend><div class="choice-grid compact"><label><input type="radio" name="people" value="people"><span>A lot — people energize me</span></label><label><input type="radio" name="people" value="mix"><span>A mix of people + independent work</span></label><label><input type="radio" name="people" value="solo"><span>More independent / focused work</span></label><label><input type="radio" name="people" value="open"><span>No strong preference</span></label></div></fieldset>
       </form>
       <div class="stage-action-row"><button id="buildMatches" class="primary-btn" type="button">Build my career possibilities →</button></div>
-      <section id="matchResults" hidden><div class="section-title"><span class="eyebrow">CAREER POSSIBILITIES</span><h2>Choose at least three careers worth investigating.</h2><p>These are exploration leads based on your interest profile and preferences. A “match” is a reason to investigate—not a promise that the career is right for you.</p></div><div id="careerCards" class="career-grid"></div><div class="stage-action-row"><button id="alignmentContinue" class="primary-btn" type="button">Take my careers to the LMI Lab →</button></div></section>
+      <section id="matchResults" hidden><div class="section-title"><span class="eyebrow">CAREER POSSIBILITIES</span><h2>Explore careers that connect with your interests and preferences.</h2><p>The fit indicator weights your O*NET interest profile at 60% and your selected preferences at 40%. It helps compare possibilities; it is not a probability of success or a promise that a career is right for you. Choose up to five to carry into the next step, where you can explore local pay, openings, growth, and preparation.</p></div><div id="careerCards" class="career-grid"></div><div class="stage-action-row"><button id="alignmentContinue" class="primary-btn" type="button">Take my careers to the LMI Lab →</button></div></section>
       <aside class="facilitator-pause" data-facilitator><span>🎓 FACILITATOR PAUSE</span><strong>Ask: “Did the computer choose your career?”</strong><p>Correct answer: no. Interest alignment generates possibilities. Students still need labor-market evidence, firsthand information, and real-world exploration before making decisions.</p></aside>
     </section>
   </main>
@@ -105,7 +109,7 @@
 <script defer src="../offline-client.js"></script>
 <script defer src="../offline-progress.js?v=20261007-2"></script>
 <script src="open-hub-map-route-20261007-completion.js"></script>
-<script src="app-loader-20261007.js"></script>
+<script src="app-loader-20261011-alignment.js"></script>
 <script src="az-lmi-explorer.js?v=20261007-lifeplan-1"></script>
 </body>
 </html>
