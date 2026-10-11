@@ -53,3 +53,5 @@
   #alignmentReport .eyebrow{color:#144975!important}
   #alignmentReport .alignment-report-actions{display:none!important}
 }
+
+.career-fit-note{grid-column:1/-1;color:#b9c9e2;font-size:.76rem;line-height:1.4}
