@@ -1,5 +1,6 @@
 (() => {
   const STORAGE_KEY='level-up-career-skill-tree-v1';
+  const GEO_KEY='level-up-career-tree-geography-v1';
   const DATA_URL='data/lightcast-lmi.json';
   const AZ_KEYS=new Set(['pinal','coconino','apache','navajo','gila','az']);
   let lmiData=null;
@@ -7,10 +8,27 @@
 
   const $=s=>document.querySelector(s);
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
-  function readState(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}catch{return {}}}
+
+  function readState(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}')}
+    catch{return {}}
+  }
+
+  function readGeoKey(){
+    try{return String(localStorage.getItem(GEO_KEY)||'').trim()}
+    catch{return ''}
+  }
+
+  function writeGeoKey(geo){
+    try{localStorage.setItem(GEO_KEY,geo||'')}
+    catch(err){console.warn('Career Tree geography context could not be saved.',err)}
+  }
+
   function writeState(state){
-    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch(err){console.warn('Career Tree geography could not be saved.',err)}
-    window.dispatchEvent(new CustomEvent('career-tree-geography-updated',{detail:{geography:state?.alignment?.geography||''}}));
+    try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}
+    catch(err){console.warn('Career Tree geography could not be saved.',err)}
+    const geo=readGeoKey()||state?.alignment?.geography||'';
+    window.dispatchEvent(new CustomEvent('career-tree-geography-updated',{detail:{geography:geo}}));
   }
 
   function entryArea(state){
@@ -36,21 +54,27 @@
     return AZ_KEYS.has(key)?'az':'nm';
   }
 
+  function defaultGeography(state,allowed){
+    const area=entryArea(state);
+    if(area==='Pinal'&&allowed.includes('pinal'))return 'pinal';
+    if(area==='Northern'&&allowed.includes('coconino'))return 'coconino';
+    if(area==='UFO - Eastern New Mexico'&&allowed.includes('chaves'))return 'chaves';
+    if(allowed.includes('az'))return 'az';
+    if(allowed.includes('nm'))return 'nm';
+    return allowed[0]||'';
+  }
+
   function ensureSharedGeography(state){
     state.alignment=state.alignment||{};
     state.lmi=state.lmi||{};
     state.lmi.explorer=state.lmi.explorer||{geography:'',viewed:[],saved:[],completed:false};
     const allowed=allowedGeographies(state);
-    let geo=state.alignment.geography||state.lmi.explorer.geography||'';
-    if(!allowed.includes(geo)){
-      const area=entryArea(state);
-      if(area==='Pinal'&&allowed.includes('pinal'))geo='pinal';
-      else if(area==='Northern'&&allowed.includes('coconino'))geo='coconino';
-      else if(area==='UFO - Eastern New Mexico'&&allowed.includes('chaves'))geo='chaves';
-      else if(allowed.includes('az'))geo='az';
-      else if(allowed.includes('nm'))geo='nm';
-      else geo=allowed[0]||'';
-    }
+    const keyed=readGeoKey();
+    let geo=allowed.includes(keyed)?keyed:'';
+    if(!geo)geo=allowed.includes(state.alignment.geography)?state.alignment.geography:'';
+    if(!geo)geo=allowed.includes(state.lmi.explorer.geography)?state.lmi.explorer.geography:'';
+    if(!geo)geo=defaultGeography(state,allowed);
+    writeGeoKey(geo);
     state.alignment.geography=geo;
     state.alignment.geographyLabel=lmiData?.geographies?.[geo]?.label||geo;
     state.lmi.explorer.geography=geo;
@@ -103,19 +127,16 @@
 
   function changeGeography(geo){
     const state=readState();
+    const allowed=allowedGeographies(state);
+    if(!allowed.includes(geo))return;
+    const current=readGeoKey()||state.alignment?.geography||state.lmi?.explorer?.geography||'';
+    if(current===geo)return;
+
     state.alignment=state.alignment||{};
     state.lmi=state.lmi||{};
-    state.lmi.explorer=state.lmi.explorer||{geography:'',viewed:[],saved:[],completed:false};
-    const old=state.alignment.geography||state.lmi.explorer.geography||'';
-    if(old===geo)return;
+    state.lmi.explorer=state.lmi.explorer||{};
 
-    const hadLocationDependentWork=Boolean(
-      state.alignment.matches?.length||
-      state.alignment.selected?.length||
-      Object.keys(state.lmi.evidence||{}).length||
-      state.alignment.complete||state.lmi.complete
-    );
-
+    writeGeoKey(geo);
     state.alignment.geography=geo;
     state.alignment.geographyLabel=lmiData?.geographies?.[geo]?.label||geo;
     state.alignment.matches=[];
@@ -128,12 +149,12 @@
     state.lmi.complete=false;
     writeState(state);
 
-    if(hadLocationDependentWork){
-      sessionStorage.removeItem('career-tree-lmi-active');
-      location.reload();
-      return;
-    }
-    geographyPanel();
+    sessionStorage.removeItem('career-tree-lmi-active');
+    const next=new URL(location.href);
+    next.hash='alignment';
+    next.searchParams.set('geo',geo);
+    next.searchParams.set('v','20261011-geo2');
+    location.replace(next.toString());
   }
 
   function summaryPanel(geo,removed){
@@ -198,6 +219,7 @@
     document.addEventListener('change',event=>{
       if(event.target?.id!=='azGeo'||!lmiData)return;
       const geo=event.target.value;
+      writeGeoKey(geo);
       setTimeout(()=>{
         const state=readState();
         state.alignment=state.alignment||{};
