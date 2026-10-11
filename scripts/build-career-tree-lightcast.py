@@ -138,5 +138,55 @@ for key, geo in check["geographies"].items():
     if len(geo.get("occupations", {})) != 798:
         raise SystemExit(f"Expanded Career Tree Lightcast {key} does not contain 798 occupations")
 
+# -----------------------------------------------------------------------------
+# Shared geography context: Career Alignment -> LMI -> Work + Life Simulator.
+# Keep these as deployment-time patches so the large participant pages remain
+# readable source files while every published build gets the current behavior.
+# -----------------------------------------------------------------------------
+index_path = ROOT / "index.html"
+index = index_path.read_text(encoding="utf-8")
+index = index.replace(
+    '../offline-progress.js?v=20261007-2',
+    '../offline-progress.js?v=20261011-geo2',
+)
+index_path.write_text(index, encoding="utf-8")
 
-print("Career Tree Lightcast data built and verified: 19 geographies × 798 occupations.")
+life_paths = [
+    ROOT / "life-plan-completion.html",
+    ROOT / "life-plan.html",
+    ROOT / "life-plan-narration.html",
+]
+
+old_entry = """  function entryCounty(){let entry=localStorage.getItem('level-up-pending-county')||'';try{entry ||= JSON.parse(localStorage.getItem('level-up-career-skill-tree-v1')||'{}')?.profile?.county||''}catch{};const n=entry.toLowerCase().replace(/[^a-z]/g,'');return Object.keys(labels).find(k=>n.includes(k.replace(/[^a-z]/g,''))||n.includes(labels[k].toLowerCase().replace(/[^a-z]/g,'')))||''}"""
+new_entry = """  function sharedCareerGeo(){try{const s=JSON.parse(localStorage.getItem('level-up-career-skill-tree-v1')||'{}');return s?.alignment?.geography||s?.lmi?.explorer?.geography||''}catch{return ''}}\n  function entryCounty(){const shared=sharedCareerGeo();if(Object.hasOwn(labels,shared))return shared;let entry=localStorage.getItem('level-up-pending-county')||'';try{entry ||= JSON.parse(localStorage.getItem('level-up-career-skill-tree-v1')||'{}')?.profile?.county||''}catch{};const n=entry.toLowerCase().replace(/[^a-z]/g,'');return Object.keys(labels).find(k=>n.includes(k.replace(/[^a-z]/g,''))||n.includes(labels[k].toLowerCase().replace(/[^a-z]/g,'')))||''}"""
+
+old_area = """  function areaFromEntry(){let entry=localStorage.getItem('level-up-pending-county')||'';try{entry ||= JSON.parse(localStorage.getItem('level-up-career-skill-tree-v1')||'{}')?.profile?.county||''}catch{};if(Object.hasOwn(AREA_GEOS,entry))return entry;if(/northern|apache|coconino|navajo|gila/i.test(entry))return 'Northern';if(/eastern|ufo|new mexico|chaves|curry|de.?baca|eddy|guadalupe|harding|lea|lincoln|otero|quay|roosevelt|union/i.test(entry))return 'UFO - Eastern New Mexico';return 'Pinal'}"""
+new_area = """  function areaFromEntry(){const shared=sharedCareerGeo();if(shared==='pinal'||shared==='az')return 'Pinal';if(['coconino','apache','navajo','gila'].includes(shared))return 'Northern';if(shared==='nm'||['chaves','curry','de-baca','eddy','guadalupe','harding','lea','lincoln','otero','quay','roosevelt','union'].includes(shared))return 'UFO - Eastern New Mexico';let entry=localStorage.getItem('level-up-pending-county')||'';try{entry ||= JSON.parse(localStorage.getItem('level-up-career-skill-tree-v1')||'{}')?.profile?.county||''}catch{};if(Object.hasOwn(AREA_GEOS,entry))return entry;if(/northern|apache|coconino|navajo|gila/i.test(entry))return 'Northern';if(/eastern|ufo|new mexico|chaves|curry|de.?baca|eddy|guadalupe|harding|lea|lincoln|otero|quay|roosevelt|union/i.test(entry))return 'UFO - Eastern New Mexico';return 'Pinal'}"""
+
+old_county_row = """    <div class=\"county-row\"><div class=\"field\"><label for=\"areaSelect\">Career Tree area</label><select id=\"areaSelect\"></select></div><div class=\"field\"><label for=\"countySelect\">County for local wages and housing</label><select id=\"countySelect\"></select></div></div>"""
+new_county_row = """    <div class=\"county-row\"><div class=\"field\"><label for=\"areaSelect\">Career Tree area</label><select id=\"areaSelect\"></select></div><div class=\"field\"><label for=\"countySelect\">County for local wages and housing</label><select id=\"countySelect\"></select></div></div><div id=\"sharedGeoNote\" class=\"hint hidden\"></div>"""
+
+old_init = """  function initAreas(){const area=$('#areaSelect');area.innerHTML=Object.keys(AREA_GEOS).map(k=>`<option value=\"${esc(k)}\">${esc(AREA_LABELS[k])}</option>`).join('');state.area=areaFromEntry();area.value=state.area;fillCounties();area.addEventListener('change',()=>{state.area=area.value;fillCounties();state.selectedJob=null;state.query='';render();updateSummary()});$('#countySelect').addEventListener('change',e=>{state.county=e.target.value;state.rent=null;state.selectedJob=null;render();updateSummary()})}"""
+new_init = """  function initAreas(){const area=$('#areaSelect');area.innerHTML=Object.keys(AREA_GEOS).map(k=>`<option value=\"${esc(k)}\">${esc(AREA_LABELS[k])}</option>`).join('');state.area=areaFromEntry();area.value=state.area;fillCounties();const shared=sharedCareerGeo(),note=$('#sharedGeoNote');if(note){if(Object.hasOwn(labels,shared)){note.classList.remove('hidden');note.innerHTML=`<strong>Carried forward from Career Alignment:</strong> ${esc(labels[shared])}. Local wages and housing use this same county.`}else if(shared==='az'||shared==='nm'){note.classList.remove('hidden');note.innerHTML=`<strong>Career Alignment used ${shared==='az'?'Arizona':'New Mexico'} statewide.</strong> Choose a county here because housing and cost-of-living estimates require a local market.`}else note.classList.add('hidden')}area.addEventListener('change',()=>{state.area=area.value;fillCounties();state.selectedJob=null;state.query='';render();updateSummary()});$('#countySelect').addEventListener('change',e=>{state.county=e.target.value;state.rent=null;state.selectedJob=null;render();updateSummary()})}"""
+
+for path in life_paths:
+    text = path.read_text(encoding="utf-8")
+    if old_entry in text:
+        text = text.replace(old_entry, new_entry, 1)
+    elif 'function sharedCareerGeo()' not in text:
+        raise SystemExit(f"Career Tree shared geography entry patch could not be applied: {path}")
+    if old_area in text:
+        text = text.replace(old_area, new_area, 1)
+    elif "const shared=sharedCareerGeo()" not in text:
+        raise SystemExit(f"Career Tree shared geography area patch could not be applied: {path}")
+    if old_county_row in text:
+        text = text.replace(old_county_row, new_county_row, 1)
+    elif 'id="sharedGeoNote"' not in text:
+        raise SystemExit(f"Career Tree shared geography note could not be inserted: {path}")
+    if old_init in text:
+        text = text.replace(old_init, new_init, 1)
+    elif 'Carried forward from Career Alignment' not in text:
+        raise SystemExit(f"Career Tree simulator geography init patch could not be applied: {path}")
+    path.write_text(text, encoding="utf-8")
+
+print("Career Tree Lightcast data built and verified: 19 geographies × 798 occupations. Shared geography context patched.")
