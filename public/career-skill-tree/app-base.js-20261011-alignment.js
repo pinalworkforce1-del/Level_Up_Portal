@@ -425,11 +425,13 @@
   }
 
   function buildCareerMatches(){
-    state.alignment.matches=CAREERS
+    const ranked=CAREERS
       .map(c=>({...c,...alignmentScore(c)}))
       .sort((a,b)=>b.score-a.score)
       .slice(0,9)
       .map(c=>c.title);
+    const alreadySelected=state.alignment.selected.filter(title=>!ranked.includes(title));
+    state.alignment.matches=[...ranked,...alreadySelected];
     save();
   }
 
@@ -493,7 +495,7 @@
         <p>${c.why}</p>
         <div class="career-fit" aria-label="Interest and preference fit ${calc.score} percent"><span>Interest + preference fit</span><strong>${calc.score}%</strong><div class="career-fit-track"><i style="width:${calc.score}%"></i></div></div>
         <div class="why">Why it surfaced: ${why}</div>
-        <button class="${selected?'secondary-btn':'primary-btn'} career-select" data-career="${escapeAttr(c.title)}" type="button">${selected?'✓ Added to LMI Lab':'Explore this career →'}</button>
+        <button class="${selected?'secondary-btn':'primary-btn'} career-select" data-career="${escapeAttr(c.title)}" type="button">${selected?'✓ Added to next step':'Explore this career →'}</button>
       </article>`;
     }).join('');
 
