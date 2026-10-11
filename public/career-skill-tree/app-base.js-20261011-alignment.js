@@ -68,7 +68,7 @@
     {title:'Nursing Assistants',code:'SR',styles:['help','hands'],training:['short','open'],env:['active','indoor','open'],people:['people','mix','open'],sector:'Healthcare',why:'Direct care, teamwork, and helping people with everyday needs.'},
     {title:'Graphic Designers',code:'AIE',styles:['create','ideas'],training:['mid','long','open'],env:['indoor','open'],people:['mix','solo','open'],sector:'Creative & Business',why:'Visual creativity combined with technology and client needs.'},
     {title:'Public Relations Specialists',code:'EAS',styles:['lead','create','help'],training:['long','open'],env:['indoor','variety','open'],people:['people','mix','open'],sector:'Business',why:'Communication, storytelling, persuasion, and relationship building.'},
-    {title:'Customer Service Representatives',code:'SEC',styles:['help','lead','organize'],training:['short','open'],env:['indoor','open'],people:['people','mix','open'],sector:'Business Services',why:'Communication, problem solving, and helping customers navigate issues.'},
+    {title:'Customer Service Representatives',code:'SEC',styles:['help','lead','organize'],training:['short','open'],env:['indoor','open'],people:['people','mix','open'],sector:'Customer Service & Support',why:'Communication, problem solving, and helping customers navigate issues.'},
     {title:'Human Resources Specialists',code:'ESC',styles:['help','lead','organize'],training:['long','open'],env:['indoor','open'],people:['people','mix','open'],sector:'Business',why:'People, policies, communication, and organized decision making.'},
     {title:'Sales Representatives',code:'EC',styles:['lead','help'],training:['short','mid','long','open'],env:['indoor','variety','open'],people:['people','mix','open'],sector:'Business',why:'Persuasion, relationships, goals, and understanding customer needs.'},
     {title:'Bookkeeping, Accounting, and Auditing Clerks',code:'C',styles:['organize','ideas'],training:['short','mid','open'],env:['indoor','open'],people:['mix','solo','open'],sector:'Business',why:'Numbers, accuracy, records, and maintaining reliable financial information.'},
@@ -426,7 +426,11 @@
     if(!hasInterestProfile)reasons.push('your work preferences and selected location');
     if(alignedAreas.length)reasons.push(`${alignedAreas.join(' + ')} O*NET interest${alignedAreas.length>1?'s':''}`);
     if(preferenceReasons.length)reasons.push(`your ${preferenceReasons.slice(0,2).join(' + ')} preference${preferenceReasons.length>1?'s':''}`);
-    return {score:Math.round(combinedFit*100),interestScore:Math.round(interestFit*100),reasons};
+    const strength=combinedFit>=.75?'Strong alignment':combinedFit>=.5?'Some alignment':'Worth exploring';
+    const signalBasis=hasInterestProfile
+      ?(preferenceCount?`Based on O*NET interest clues and ${preferenceMatches} of ${preferenceCount} stated work preferences.`:'Based on your O*NET interest clues.')
+      :(preferenceCount?`${preferenceMatches} of ${preferenceCount} stated work preferences match.`:'Shown in your selected area; no strong work preferences were recorded.');
+    return {score:Math.round(combinedFit*100),interestScore:Math.round(interestFit*100),strength,signalBasis,reasons};
   }
 
   function readAlignmentForm(){
@@ -607,7 +611,7 @@
     $('careerCards').innerHTML=visible.map(c=>{
       const selected=state.alignment.selected.includes(c.title),why=c.reasons.slice(0,2).join(' + ')||c.why,w=laborData?.geographies?.[alignmentGeoKey()]?.occupations?.[c.soc]||{};
       const note=[w.entryHourly,w.medianHourly,w.experiencedHourly].some(v=>typeof v==='number'&&v>0)?'<div class="why">Local wage data is available in this area.</div>':'<div class="why">This occupation is represented locally, but a wage estimate is unavailable here.</div>';
-      return `<article class="career-card ${selected?'selected':''}"><span class="eyebrow">${escapeText(c.sector)}</span><h3>${escapeText(c.title)}</h3><p>${escapeText(c.why)}</p><div class="career-fit" aria-label="Interest and preference fit ${c.score} percent"><span>Interest + preference fit</span><strong>${c.score}%</strong><div class="career-fit-track"><i style="width:${c.score}%"></i></div></div><div class="why">Why it surfaced: ${escapeText(why)}</div>${note}<button class="${selected?'secondary-btn':'primary-btn'} career-select" data-career="${escapeAttr(c.title)}" type="button">${selected?'✓ Added to next step':'Explore this career →'}</button></article>`;
+      return `<article class="career-card ${selected?'selected':''}"><span class="eyebrow">${escapeText(c.sector)}</span><h3>${escapeText(c.title)}</h3><p>${escapeText(c.why)}</p><div class="career-fit" aria-label="${escapeAttr(c.strength)}"><span>Alignment signal</span><strong>${escapeText(c.strength)}</strong><small class="career-fit-note">${escapeText(c.signalBasis)}</small></div><div class="why">Why it surfaced: ${escapeText(why)}</div>${note}<button class="${selected?'secondary-btn':'primary-btn'} career-select" data-career="${escapeAttr(c.title)}" type="button">${selected?'✓ Added to next step':'Explore this career →'}</button></article>`;
     }).join('');
     $$('.career-select').forEach(btn=>btn.onclick=()=>{const title=btn.dataset.career,i=state.alignment.selected.indexOf(title);if(i>=0)state.alignment.selected.splice(i,1);else if(state.alignment.selected.length<5)state.alignment.selected.push(title);else{alert('Select up to five careers to explore.');return;}save();renderCareerCards();renderAlignmentReport();});
   }
