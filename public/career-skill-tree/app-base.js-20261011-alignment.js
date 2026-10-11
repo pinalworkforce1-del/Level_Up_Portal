@@ -453,7 +453,7 @@
       return [{...(c||{}),title:meta.title||soc,soc,code:c?.code||interests.join(''),styles:c?.styles||styles,training:c?.training||training,env:c?.env||env,people:c?.people||people,why:c?.why||'This occupation appears in local labor-market data and shares themes from your O*NET interests.',sector:c?.sector||'Local occupation'}];
     });
   }
-  async function buildCareerMatches(){const d=await getLaborData(),g=d.geographies?.[alignmentGeoKey()];if(!g)throw Error('Choose a state or county with available occupation data.');const rows=occupationsForAlignment(d).map(c=>({...c,...alignmentScore(c)})).sort((a,b)=>b.score-a.score).slice(0,9).map(c=>c.soc);if(!rows.length)throw Error(`No occupations with local labor-market records were found for ${g.label}. Choose a broader geography.`);state.alignment.matches=rows;save();return g;}
+  async function buildCareerMatches(){const d=await getLaborData(),g=d.geographies?.[alignmentGeoKey()];if(!g)throw Error('Choose a state or county with available occupation data.');const ranked=occupationsForAlignment(d).map(c=>({...c,...alignmentScore(c)})).sort((a,b)=>b.score-a.score).slice(0,9).map(c=>c.soc);if(!ranked.length)throw Error(`No occupations with local labor-market records were found for ${g.label}. Choose a broader geography.`);const byTitle=new Map(Object.entries(d.catalog).map(([code,item])=>[item.title,code]));const alreadySelected=state.alignment.selected.map(title=>byTitle.get(title)).filter(Boolean);state.alignment.matches=[...ranked,...alreadySelected.filter(code=>!ranked.includes(code))];save();return g;}
 
   function renderAlignmentProfile(){
     const top=state.interest.top||[];
