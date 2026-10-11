@@ -500,7 +500,7 @@
       const c=CAREERS.find(x=>CAREER_SOC[x.title]===soc),edu=String(meta.typicalEducation||'').toLowerCase(),ojt=String(meta.typicalOjt||'').toLowerCase();
       const short=/no formal|high school|some high school/.test(edu)&&!/long-term|internship|residency|apprenticeship/.test(ojt),long=/bachelor|master|doctoral|professional degree/.test(edu)||/long-term|internship|residency/.test(ojt);
       const training=short?['short','open']:long?['long','open']:['mid','open'],styles=[...new Set(interests.map(x=>styleMap[x]).filter(Boolean))],major=soc.slice(0,2),env=['45','47','49','51','53'].includes(major)?['active','variety','open']:['indoor','variety','open'],people=interests.some(x=>x==='S'||x==='E')?['people','mix','open']:['mix','solo','open'];
-      return [{...(c||{}),title:meta.title||soc,soc,code:c?.code||interests.join(''),styles:c?.styles||styles,training:c?.training||training,env:c?.env||env,people:c?.people||people,why:c?.why||'This occupation appears in local labor-market data and shares themes from your O*NET interests.',sector:c?.sector||'Local occupation'}];
+      return [{...(c||{}),title:meta.title||soc,soc,code:c?.code||interests.join(''),styles:c?.styles||styles,training:c?.training||training,env:c?.env||env,people:c?.people||people,why:c?.why||'This occupation appears in local labor-market data and may connect with your work preferences.',sector:c?.sector||'Local occupation'}];
     });
   }
   async function buildCareerMatches(){const d=await getLaborData(),g=d.geographies?.[alignmentGeoKey()];if(!g)throw Error('Choose a state or county with available occupation data.');const ranked=occupationsForAlignment(d).map(c=>({...c,...alignmentScore(c)})).sort((a,b)=>b.score-a.score).slice(0,9).map(c=>c.soc);if(!ranked.length)throw Error(`No occupations with local labor-market records were found for ${g.label}. Choose a broader geography.`);const byTitle=new Map(Object.entries(d.catalog).map(([code,item])=>[item.title,code]));const alreadySelected=state.alignment.selected.map(title=>byTitle.get(title)).filter(Boolean);state.alignment.matches=[...ranked,...alreadySelected.filter(code=>!ranked.includes(code))];save();return g;}
@@ -545,7 +545,7 @@
     $('buildMatches').onclick=async()=>{
       readAlignmentForm();if(!state.alignment.style||!state.alignment.training||!state.alignment.environment||!state.alignment.people){alert('Choose one response in each section so Career Tree can layer your interests with your preferences.');return;}
       const btn=$('buildMatches');btn.disabled=true;btn.textContent='Finding local possibilities…';
-      try{const g=await buildCareerMatches();$('careerResultsDescription').textContent=`Showing occupations represented in ${g.label} labor-market data. Choose careers to explore. Results combine O*NET interest clues with your preferences.`;$('matchResults').hidden=false;renderCareerCards();$('matchResults').scrollIntoView({behavior:'smooth'});}
+      try{const g=await buildCareerMatches();$('careerResultsDescription').textContent=`Showing occupations represented in ${g.label} labor-market data. Choose careers to explore. Discover Me is optional. These matches use your work preferences and selected location; complete the profiler anytime to add your O*NET interest clues.`;$('matchResults').hidden=false;renderCareerCards();$('matchResults').scrollIntoView({behavior:'smooth'});}
       catch(e){alert(e.message||'Career possibilities could not be loaded.');}
       finally{btn.disabled=false;btn.textContent='Build my career possibilities →';}
     };
