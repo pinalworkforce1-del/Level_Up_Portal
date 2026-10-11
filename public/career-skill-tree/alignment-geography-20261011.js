@@ -4,7 +4,6 @@
   const AZ_KEYS=new Set(['pinal','coconino','apache','navajo','gila','az']);
   let lmiData=null;
   let filtering=false;
-  let removedLastPass=0;
 
   const $=s=>document.querySelector(s);
   const esc=s=>String(s??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
@@ -77,20 +76,9 @@
   function representedLocally(title,geo){
     const code=occupationCodeByTitle(title);
     if(!code)return false;
-    const m=lmiData?.geographies?.[geo]?.occupations?.[code];
-    if(!m)return false;
-    return [m.employment,m.annualOpenings,m.recentHires].some(v=>Number(v)>0);
-  }
-
-  function filterSavedState(state,geo){
-    const selected=Array.isArray(state.alignment?.selected)?state.alignment.selected:[];
-    const matches=Array.isArray(state.alignment?.matches)?state.alignment.matches:[];
-    const nextSelected=selected.filter(title=>representedLocally(title,geo));
-    const nextMatches=matches.filter(title=>representedLocally(title,geo));
-    const changed=nextSelected.length!==selected.length||nextMatches.length!==matches.length;
-    state.alignment.selected=nextSelected;
-    state.alignment.matches=nextMatches;
-    return changed;
+    const metrics=lmiData?.geographies?.[geo]?.occupations?.[code];
+    if(!metrics)return false;
+    return [metrics.employment,metrics.annualOpenings,metrics.recentHires].some(v=>Number(v)>0);
   }
 
   function geographyPanel(){
@@ -110,38 +98,47 @@
     }
     panel.innerHTML=`<div><span class="eyebrow">YOUR LABOR MARKET</span><h2>Where do you want to explore opportunities?</h2><p>Your O*NET interests and work preferences determine alignment. This location filters the results so the primary career possibilities are represented in the labor market you choose.</p></div><label for="alignmentGeography">State or county<select id="alignmentGeography">${optionsHtml(state,geo)}</select></label><div class="alignment-geo-context">📍 Exploring: <strong>${esc(lmiData.geographies[geo]?.label||geo)}</strong></div>`;
     const select=$('#alignmentGeography');
-    if(select)select.onchange=()=>changeGeography(select.value,true);
+    if(select)select.onchange=()=>changeGeography(select.value);
   }
 
-  function changeGeography(geo,rebuild){
+  function changeGeography(geo){
     const state=readState();
     state.alignment=state.alignment||{};
     state.lmi=state.lmi||{};
     state.lmi.explorer=state.lmi.explorer||{geography:'',viewed:[],saved:[],completed:false};
-    const old=state.alignment.geography||'';
+    const old=state.alignment.geography||state.lmi.explorer.geography||'';
+    if(old===geo)return;
+
+    const hadLocationDependentWork=Boolean(
+      state.alignment.matches?.length||
+      state.alignment.selected?.length||
+      Object.keys(state.lmi.evidence||{}).length||
+      state.alignment.complete||state.lmi.complete
+    );
+
     state.alignment.geography=geo;
     state.alignment.geographyLabel=lmiData?.geographies?.[geo]?.label||geo;
+    state.alignment.matches=[];
+    state.alignment.selected=[];
+    state.alignment.complete=false;
     state.lmi.explorer.geography=geo;
-    if(old&&old!==geo){
-      filterSavedState(state,geo);
-      state.lmi.evidence={};
-      state.lmi.complete=false;
-      state.alignment.complete=false;
-    }
+    state.lmi.explorer.saved=[];
+    state.lmi.explorer.viewed=[];
+    state.lmi.evidence={};
+    state.lmi.complete=false;
     writeState(state);
-    geographyPanel();
-    if(rebuild){
-      const form=$('#alignmentForm');
-      const ready=form&&['style','training','environment','people'].every(name=>form.querySelector(`input[name="${name}"]:checked`));
-      if(ready)$('#buildMatches')?.click();
-      else filterCareerCards();
+
+    if(hadLocationDependentWork){
+      sessionStorage.removeItem('career-tree-lmi-active');
+      location.reload();
+      return;
     }
+    geographyPanel();
   }
 
   function summaryPanel(geo,removed){
-    const results=$('#matchResults');
     const cards=$('#careerCards');
-    if(!results||!cards)return;
+    if(!cards)return;
     let summary=$('#alignmentGeoSummary');
     if(!summary){
       summary=document.createElement('div');
@@ -153,20 +150,21 @@
     const label=lmiData?.geographies?.[geo]?.label||geo;
     const stateGeo=stateGeographyFor(geo,state);
     const canBroaden=geo!==stateGeo&&lmiData?.geographies?.[stateGeo];
-    summary.innerHTML=`<div><strong>📍 Showing opportunities represented in ${esc(label)}</strong><span>Interest Alignment still reflects your O*NET scores and work preferences. Location only determines which occupations are shown here.</span>${removed?`<small>${removed} otherwise-aligned ${removed===1?'occupation was':'occupations were'} not shown because this Lightcast snapshot did not report local employment, openings, or recent hires.</small>`:''}</div>${canBroaden?`<button type="button" class="secondary-btn" id="broadenAlignmentGeo">Explore ${esc(lmiData.geographies[stateGeo].label)} instead</button>`:''}`;
-    $('#broadenAlignmentGeo')?.addEventListener('click',()=>changeGeography(stateGeo,true),{once:true});
+    summary.innerHTML=`<div><strong>📍 Showing opportunities represented in ${esc(label)}</strong><span>Interest Alignment still reflects your O*NET scores and work preferences. Location only determines which occupations are shown here.</span>${removed?`<small>${removed} otherwise-aligned ${removed===1?'occupation was':'occupations were'} not shown because this Lightcast snapshot did not report employment, openings, or recent hires in this market.</small>`:''}</div>${canBroaden?`<button type="button" class="secondary-btn" id="broadenAlignmentGeo">Explore ${esc(lmiData.geographies[stateGeo].label)} instead</button>`:''}`;
+    $('#broadenAlignmentGeo')?.addEventListener('click',()=>changeGeography(stateGeo),{once:true});
   }
 
   function filterCareerCards(){
     if(filtering||!lmiData)return;
-    const cardsHost=$('#careerCards');
-    if(!cardsHost)return;
-    const cards=[...cardsHost.querySelectorAll('.career-card')];
+    const host=$('#careerCards');
+    if(!host)return;
+    const cards=[...host.querySelectorAll('.career-card')];
     if(!cards.length)return;
     filtering=true;
     try{
       const state=readState();
       const geo=ensureSharedGeography(state);
+      writeState(state);
       let removed=0;
       cards.forEach(card=>{
         const title=card.querySelector('h3')?.textContent?.trim()||'';
@@ -175,13 +173,9 @@
           removed+=1;
         }
       });
-      const changed=filterSavedState(state,geo);
-      if(changed)writeState(state);
-      removedLastPass=removed;
       summaryPanel(geo,removed);
-      const remaining=cardsHost.querySelectorAll('.career-card').length;
-      if(!remaining){
-        cardsHost.innerHTML='<div class="alignment-no-local"><strong>No primary matches were represented in this labor market.</strong><p>Try the statewide option to broaden the search, or change your preferences and build possibilities again.</p></div>';
+      if(!host.querySelector('.career-card')){
+        host.innerHTML='<div class="alignment-no-local"><strong>No primary matches were represented in this labor market.</strong><p>Try the statewide option to broaden the search, or change your preferences and build possibilities again.</p></div>';
       }
     }finally{filtering=false;}
   }
