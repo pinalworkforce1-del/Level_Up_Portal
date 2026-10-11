@@ -1,10 +1,10 @@
 (() => {
   const BASE_SRC = 'app-base.js-20261011-alignment.js';
   const ALIGNMENT_LEVELS = [
-    {min:85,label:'Strong Alignment',meter:88},
-    {min:70,label:'Good Alignment',meter:72},
-    {min:55,label:'Moderate Alignment',meter:56},
-    {min:0,label:'Possible Alignment',meter:40}
+    {min:85,label:'Strong',meter:88},
+    {min:70,label:'Good',meter:72},
+    {min:55,label:'Moderate',meter:56},
+    {min:0,label:'Possible',meter:40}
   ];
 
   function loadBase(){
@@ -26,7 +26,7 @@
     if(!results||!cards)return;
 
     const explainer=results.querySelector('.section-title p');
-    if(explainer)explainer.textContent='Career Tree combines your O*NET interest profile with the preferences you chose and groups the results into alignment levels. Stronger alignment means more of those clues point in the same direction; it is not a probability of success or a promise that a career is right for you. Choose up to five to carry into the next step, where you can explore local pay, openings, growth, and preparation.';
+    if(explainer)explainer.textContent='Choose up to five possibilities to carry into the next step, where you can explore local pay, openings, growth, and preparation.';
 
     const apply=()=>{
       cards.querySelectorAll('.career-fit').forEach(element=>{
@@ -37,10 +37,10 @@
         const level=alignmentLevel(score);
         const labelNode=element.querySelector('span');
         const meter=element.querySelector('.career-fit-track i');
-        if(labelNode)labelNode.textContent='Career alignment';
+        if(labelNode)labelNode.textContent='Interest Alignment:';
         valueNode.textContent=level.label;
         if(meter)meter.style.width=`${level.meter}%`;
-        element.setAttribute('aria-label',`Career alignment: ${level.label}`);
+        element.setAttribute('aria-label',`Interest alignment: ${level.label}`);
         element.dataset.alignmentLevel=level.label;
       });
     };
