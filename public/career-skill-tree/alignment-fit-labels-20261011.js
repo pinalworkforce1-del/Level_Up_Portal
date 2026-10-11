@@ -1,13 +1,36 @@
 (() => {
+  const STORAGE_KEY = 'level-up-career-skill-tree-v1';
   const LEVELS = [
     { min: 85, label: 'Strong', meter: 88 },
     { min: 70, label: 'Good', meter: 72 },
     { min: 55, label: 'Moderate', meter: 56 },
     { min: 0, label: 'Possible', meter: 40 }
   ];
+  const RIASEC = {
+    R:'Realistic', I:'Investigative', A:'Artistic', S:'Social', E:'Enterprising', C:'Conventional'
+  };
+  const PREF_LABELS = {
+    style:{hands:'Hands-on / build / fix',ideas:'Investigate / solve / analyze',create:'Create / design / express',help:'Help / teach / support',lead:'Lead / persuade / sell',organize:'Organize / track / detail'},
+    training:{short:'Short preparation / start soon',mid:'Up to 1–2 years',long:'Several years could be okay',open:'Open / not sure'},
+    environment:{active:'Active / moving / field or shop',indoor:'Mostly indoors',variety:'Variety / changes day to day',open:'No strong preference'},
+    people:{people:'A lot of people interaction',mix:'Mix of people + independent work',solo:'More independent / focused work',open:'No strong preference'}
+  };
 
   function levelFor(score) {
     return LEVELS.find(level => score >= level.min) || LEVELS[LEVELS.length - 1];
+  }
+
+  function readState(){
+    try{return JSON.parse(localStorage.getItem(STORAGE_KEY)||'{}');}
+    catch{return {};}
+  }
+
+  function esc(value){
+    return String(value??'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function preferenceLabel(field,value){
+    return PREF_LABELS[field]?.[value] || value || 'Not answered';
   }
 
   function updateExplainer() {
@@ -43,12 +66,111 @@
       if (meter) meter.style.width = `${level.meter}%`;
       element.setAttribute('aria-label', `Interest alignment: ${level.label}`);
       element.dataset.alignmentLevel = level.label;
+      element.dataset.alignmentScore = String(score);
     });
 
     root.querySelectorAll?.('#careerCards .career-card .why').forEach(element => {
       element.hidden = true;
       element.setAttribute('aria-hidden', 'true');
     });
+  }
+
+  function interestSection(state){
+    const scores=state.interest?.scores||{};
+    const top=Array.isArray(state.interest?.top)?state.interest.top:[];
+    const hasScores=Object.values(scores).some(v=>Number(v)>0);
+    if(!hasScores&&!top.length)return '';
+    const rows=Object.entries(RIASEC).map(([code,name])=>`<tr><td>${esc(code)} • ${esc(name)}</td><td>${esc(scores[code]??0)} / 20</td></tr>`).join('');
+    return `<section><h2>1 • Discover Me — O*NET® Interest Profile</h2><p><strong>Top interest clues:</strong> ${top.length?esc(top.map(c=>`${c} • ${RIASEC[c]||c}`).join(' | ')):'Not yet calculated'}</p><table><thead><tr><th>Interest area</th><th>Score</th></tr></thead><tbody>${rows}</tbody></table></section>`;
+  }
+
+  function alignmentSection(state){
+    const a=state.alignment||{};
+    const hasPrefs=['style','training','environment','people'].some(k=>a[k]);
+    const selected=Array.isArray(a.selected)?a.selected:[];
+    const matches=Array.isArray(a.matches)?a.matches:[];
+    if(!hasPrefs&&!selected.length&&!matches.length)return '';
+
+    const visibleCards=[...document.querySelectorAll('#careerCards .career-card')];
+    const levels=new Map();
+    visibleCards.forEach(card=>{
+      const title=card.querySelector('h3')?.textContent?.trim();
+      const fit=card.querySelector('.career-fit');
+      const label=fit?.dataset?.alignmentLevel || fit?.querySelector('strong')?.textContent?.trim();
+      if(title&&label)levels.set(title,label);
+    });
+    const occupationRows=(matches.length?matches:selected).map(title=>`<tr><td>${esc(title)}</td><td>${esc(levels.get(title)||'')}</td><td>${selected.includes(title)?'Saved for LMI':'Surfaced'}</td></tr>`).join('');
+
+    return `<section><h2>2 • Career Alignment</h2><div class="grid"><div><strong>Preferred activity</strong><span>${esc(preferenceLabel('style',a.style))}</span></div><div><strong>Preparation time</strong><span>${esc(preferenceLabel('training',a.training))}</span></div><div><strong>Work environment</strong><span>${esc(preferenceLabel('environment',a.environment))}</span></div><div><strong>People interaction</strong><span>${esc(preferenceLabel('people',a.people))}</span></div></div>${occupationRows?`<h3>Career possibilities</h3><table><thead><tr><th>Occupation</th><th>Interest Alignment</th><th>Status</th></tr></thead><tbody>${occupationRows}</tbody></table>`:''}</section>`;
+  }
+
+  function lmiSection(state){
+    const evidence=state.lmi?.evidence||{};
+    const entries=Object.entries(evidence).filter(([,e])=>e&&typeof e==='object'&&Object.keys(e).length);
+    const geo=state.lmi?.explorer?.geography||entries[0]?.[1]?.geographyLabel||entries[0]?.[1]?.geography||'';
+    if(!entries.length&&!geo)return '';
+    const cards=entries.map(([title,e])=>`<article class="evidence"><h3>${esc(title)}</h3><p class="muted">${esc(e.geographyLabel||e.geography||geo||'Geography not saved')}</p><div class="metrics"><span><b>Employment</b>${esc(e.employment||'Not available')}</span><span><b>Entry / P25</b>${esc(e.entry||'Not available')}</span><span><b>Median</b>${esc(e.median||'Not available')}</span><span><b>Experienced / P75</b>${esc(e.experienced||'Not available')}</span><span><b>Outlook</b>${esc(e.outlook||'Not available')}</span><span><b>Annual openings</b>${esc(e.openings||'Not available')}</span></div><p><strong>Preparation:</strong> ${esc(e.prep||'Not available')}</p>${e.takeaway?`<p><strong>My takeaway:</strong> ${esc(e.takeaway)}</p>`:''}<p class="source">Source: ${esc(e.source||'Career Tree local labor-market source')}</p></article>`).join('');
+    return `<section><h2>3 • LMI Lab</h2>${geo?`<p><strong>Geography used:</strong> ${esc(entries[0]?.[1]?.geographyLabel||geo)}</p>`:''}${cards}</section>`;
+  }
+
+  function treeSection(state){
+    const b=state.tree?.branches||{};
+    const items=[['Explore Now',b.primary],['Keep Open',b.alternate],['Surprise Me',b.surprise]].filter(([,v])=>v);
+    if(!items.length)return '';
+    return `<section><h2>4 • My Career Tree</h2><div class="grid">${items.map(([label,value])=>`<div><strong>${esc(label)}</strong><span>${esc(value)}</span></div>`).join('')}</div></section>`;
+  }
+
+  function buildReport(){
+    const state=readState();
+    const participant=state.profile?.name||state.participantName||localStorage.getItem('level-up-participant-name')||'';
+    const body=[interestSection(state),alignmentSection(state),lmiSection(state),treeSection(state)].filter(Boolean).join('');
+    const now=new Date();
+    return `<!doctype html><html><head><meta charset="utf-8"><title>Career Tree Results</title><style>
+      @page{size:letter;margin:.55in}*{box-sizing:border-box}body{font-family:Arial,Helvetica,sans-serif;color:#14213d;margin:0;font-size:11pt;line-height:1.42}.header{border-bottom:4px solid #3bbcf5;padding-bottom:16px;margin-bottom:22px}.eyebrow{font-size:9pt;font-weight:800;letter-spacing:.12em;color:#1675a9}.header h1{margin:5px 0 3px;font-size:24pt}.header p{margin:2px 0;color:#53627a}section{break-inside:avoid;margin:0 0 24px}section h2{font-size:16pt;margin:0 0 10px;color:#14213d}h3{font-size:12pt;margin:12px 0 6px}table{width:100%;border-collapse:collapse;margin:8px 0 12px}th,td{text-align:left;border-bottom:1px solid #dce4ee;padding:7px 6px;vertical-align:top}th{font-size:9pt;text-transform:uppercase;letter-spacing:.04em;color:#526278}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:8px 0 12px}.grid>div{border:1px solid #dce4ee;border-radius:8px;padding:9px}.grid strong,.grid span{display:block}.grid span{margin-top:3px;color:#44536a}.evidence{border:1px solid #dce4ee;border-radius:10px;padding:12px;margin:10px 0;break-inside:avoid}.metrics{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:8px 0}.metrics span{background:#f4f7fb;border-radius:7px;padding:7px}.metrics b{display:block;font-size:8pt;text-transform:uppercase;color:#61728a;margin-bottom:2px}.muted,.source{color:#61728a}.source{font-size:8.5pt}.footer{border-top:1px solid #dce4ee;padding-top:10px;margin-top:24px;font-size:8.5pt;color:#68778d}.no-print{margin:0 0 18px;padding:10px;background:#eef8fd;border:1px solid #b9e7fb;border-radius:8px}@media print{.no-print{display:none}.evidence,section{break-inside:avoid}}@media(max-width:700px){.grid,.metrics{grid-template-columns:1fr}}
+    </style></head><body><div class="no-print">Use your browser’s print window to print this report or choose <strong>Save as PDF</strong>.</div><header class="header"><div class="eyebrow">LEVEL UP • CAREER TREE</div><h1>Career Exploration Results</h1>${participant?`<p><strong>Participant:</strong> ${esc(participant)}</p>`:''}<p>Generated ${esc(now.toLocaleDateString())} at ${esc(now.toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}))}</p></header>${body||'<p>No Career Tree results have been saved yet.</p>'}<footer class="footer">Career Tree results are exploration evidence, not a guarantee of employment, training eligibility, funding, or career success. O*NET® is a trademark of the U.S. Department of Labor, Employment and Training Administration.</footer><script>window.addEventListener('load',()=>setTimeout(()=>window.print(),250));<\/script></body></html>`;
+  }
+
+  function printResults(){
+    const win=window.open('','_blank','noopener,noreferrer');
+    if(!win){alert('Please allow pop-ups for this page so Career Tree can open your printable results.');return;}
+    win.document.open();
+    win.document.write(buildReport());
+    win.document.close();
+  }
+
+  function addExportButton(container,id){
+    if(!container||document.getElementById(id))return;
+    const row=document.createElement('div');
+    row.className='career-results-export-row';
+    const btn=document.createElement('button');
+    btn.id=id;
+    btn.type='button';
+    btn.className='secondary-btn';
+    btn.textContent='🖨️ Print / Save Results';
+    btn.addEventListener('click',printResults);
+    row.appendChild(btn);
+    container.appendChild(row);
+  }
+
+  function installExportButtons(){
+    const interest=document.querySelector('#interestResults .results-actions');
+    if(interest)addExportButton(interest,'printInterestResults');
+
+    const alignment=document.querySelector('#matchResults .stage-action-row');
+    if(alignment)addExportButton(alignment,'printAlignmentResults');
+
+    const lmi=document.querySelector('#viewLmi .lmi-workbench');
+    if(lmi)addExportButton(lmi,'printLmiResults');
+
+    const tree=document.querySelector('#viewTree .career-summary');
+    if(tree&&!document.getElementById('printCareerTreeResults')){
+      const existing=document.getElementById('printSummary');
+      if(existing){
+        existing.textContent='🖨️ Print / Save Results';
+        existing.onclick=printResults;
+        existing.id='printCareerTreeResults';
+      }else addExportButton(tree,'printCareerTreeResults');
+    }
   }
 
   function addStyles() {
@@ -64,6 +186,8 @@
       #careerCards .career-fit>span{color:#d7e2f5;font-size:.9rem}
       #careerCards .career-fit>strong{color:#f6fbff;font-size:.95rem;white-space:nowrap}
       #careerCards .career-fit-track{grid-column:1/-1;width:100%}
+      .career-results-export-row{display:flex;align-items:center;gap:10px;margin-top:12px}
+      #matchResults .stage-action-row .career-results-export-row{margin-top:0}
     `;
     document.head.appendChild(style);
   }
@@ -72,6 +196,7 @@
     addStyles();
     updateExplainer();
     updateCareerFitLabels(root);
+    installExportButtons();
   }
 
   const observer = new MutationObserver(mutations => {
@@ -79,7 +204,7 @@
     for (const mutation of mutations) {
       for (const node of mutation.addedNodes) {
         if (!(node instanceof Element)) continue;
-        if (node.matches?.('.career-card,.career-fit,.section-title') || node.querySelector?.('.career-card,.career-fit,.section-title')) {
+        if (node.matches?.('.career-card,.career-fit,.section-title,.results-actions,.lmi-workbench,.career-summary') || node.querySelector?.('.career-card,.career-fit,.section-title,.results-actions,.lmi-workbench,.career-summary')) {
           needsRefresh = true;
           break;
         }
