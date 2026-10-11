@@ -419,7 +419,8 @@
     const top=hasInterestProfile?state.interest.top:[];
     const alignedAreas=codes.filter(code=>top.includes(code)).map(code=>RIASEC[code].name);
     const reasons=[];
-    if(!hasInterestProfile)reasons.push('your work preferences and selected location');\n    if(alignedAreas.length)reasons.push(`${alignedAreas.join(' + ')} O*NET interest${alignedAreas.length>1?'s':''}`);
+    if(!hasInterestProfile)reasons.push('your work preferences and selected location');
+    if(alignedAreas.length)reasons.push(`${alignedAreas.join(' + ')} O*NET interest${alignedAreas.length>1?'s':''}`);
     if(preferenceReasons.length)reasons.push(`your ${preferenceReasons.slice(0,2).join(' + ')} preference${preferenceReasons.length>1?'s':''}`);
     return {score:Math.round(combinedFit*100),interestScore:Math.round(interestFit*100),reasons};
   }
@@ -457,7 +458,13 @@
   async function buildCareerMatches(){const d=await getLaborData(),g=d.geographies?.[alignmentGeoKey()];if(!g)throw Error('Choose a state or county with available occupation data.');const ranked=occupationsForAlignment(d).map(c=>({...c,...alignmentScore(c)})).sort((a,b)=>b.score-a.score).slice(0,9).map(c=>c.soc);if(!ranked.length)throw Error(`No occupations with local labor-market records were found for ${g.label}. Choose a broader geography.`);const byTitle=new Map(Object.entries(d.catalog).map(([code,item])=>[item.title,code]));const alreadySelected=state.alignment.selected.map(title=>byTitle.get(title)).filter(Boolean);state.alignment.matches=[...ranked,...alreadySelected.filter(code=>!ranked.includes(code))];save();return g;}
 
   function renderAlignmentProfile(){
-    const hasInterestProfile=state.interest.complete&&Array.isArray(state.interest.top)&&state.interest.top.length>0;\n    const intro=$('alignmentProfileTitle').parentElement.querySelector('p');\n    intro.textContent=hasInterestProfile?'These six scores come from your 30 answers. Stronger areas are clues we’ll combine with what you like doing and your other preferences.':'Discover Me is optional. You can explore careers now using your work preferences and location, or complete the 30-question O*NET activity later to add interest clues.';\n    $('alignmentRiasec').hidden=!hasInterestProfile;\n    $('alignmentRiasecBars').hidden=!hasInterestProfile;\n    if(!hasInterestProfile){$('alignmentRiasec').innerHTML='';$('alignmentRiasecBars').innerHTML='';return;}\n    const top=state.interest.top||[];
+    const hasInterestProfile=state.interest.complete&&Array.isArray(state.interest.top)&&state.interest.top.length>0;
+    const intro=$('alignmentProfileTitle').parentElement.querySelector('p');
+    intro.textContent=hasInterestProfile?'These six scores come from your 30 answers. Stronger areas are clues we’ll combine with what you like doing and your other preferences.':'Discover Me is optional. You can explore careers now using your work preferences and location, or complete the 30-question O*NET activity later to add interest clues.';
+    $('alignmentRiasec').hidden=!hasInterestProfile;
+    $('alignmentRiasecBars').hidden=!hasInterestProfile;
+    if(!hasInterestProfile){$('alignmentRiasec').innerHTML='';$('alignmentRiasecBars').innerHTML='';return;}
+    const top=state.interest.top||[];
     $('alignmentRiasec').innerHTML=top.map((code,index)=>`<span class="chip ${index===0?'primary':''}">${index+1} • ${RIASEC[code].name}</span>`).join('');
     $('alignmentRiasecBars').innerHTML=Object.entries(RIASEC).map(([code,area])=>{
       const value=Math.max(0,Math.min(20,Number(state.interest.scores?.[code]||0)));
