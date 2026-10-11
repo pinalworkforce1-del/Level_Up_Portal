@@ -431,7 +431,55 @@
     save();
   }
 
-  async function getLaborData(){if(laborData)return laborData;const r=await fetch('data/lightcast-lmi.json',{cache:'force-cache'});if(!r.ok)throw Error('Local occupation data could not be loaded.');const d=await r.json();if(d.sourceStatus!=='loaded'||!d.geographies||!d.catalog)throw Error('County and state occupation data is not ready. Refresh and try again.');laborData=d;return d;}
+  async function getLaborData(){
+    if(laborData)return laborData;
+    const r=await fetch('data/lightcast-lmi.json',{cache:'force-cache'});
+    if(r.ok){
+      const d=await r.json();
+      if(d.sourceStatus==='loaded'&&d.geographies&&d.catalog){laborData=d;return d;}
+    }
+    laborData=await loadLightcastFromParts();
+    return laborData;
+  }
+  async function loadLightcastFromParts(){
+    const names=Array.from({length:14},(_,i)=>`full.part${String(i+1).padStart(2,'0')}.b64`);
+    const repairs={'full.part08.b64':['repair08a.b64','repair08b.b64'],'full.part12.b64':['repair12a.b64','repair12b.b64']};
+    const read=async name=>{
+      const response=await fetch(`data/lightcast/${name}`,{cache:'force-cache'});
+      if(!response.ok)throw Error(`Missing Lightcast data part: ${name}`);
+      return (await response.text()).trim();
+    };
+    const chunks=await Promise.all(names.map(async name=>{
+      if(!repairs[name])return read(name);
+      const pair=await Promise.all(repairs[name].map(read));
+      return pair.join('');
+    }));
+    const binary=atob(chunks.join(''));
+    const bytes=Uint8Array.from(binary,char=>char.charCodeAt(0));
+    if(typeof DecompressionStream==='undefined')throw Error('This browser cannot open the compressed county occupation data.');
+    const stream=new Blob([bytes]).stream().pipeThrough(new DecompressionStream('gzip'));
+    const compact=JSON.parse(await new Response(stream).text());
+    const rows=compact.c||[], geoRows=compact.g||{}, labels=compact.l||{};
+    if(rows.length!==798)throw Error('The Lightcast occupation catalog is incomplete.');
+    const catalog={};
+    for(const [soc,title,interests,education,experience,ojt] of rows){
+      catalog[soc]={title,interests,typicalEducation:education,workExperience:experience,typicalOjt:ojt};
+    }
+    const wage=value=>typeof value==='number'?value/100:value;
+    const growth=value=>typeof value==='number'?value/10:value;
+    const geographies={};
+    for(const [geo,metricsRows] of Object.entries(geoRows)){
+      if(metricsRows.length!==rows.length)throw Error(`The Lightcast data for ${labels[geo]||geo} is incomplete.`);
+      const occupations={};
+      rows.forEach(([soc,_title,_interests,education,experience,ojt],index)=>{
+        const [employment,p25,average,hires,p75,openings,median,growthValue]=metricsRows[index];
+        occupations[soc]={employment,entryHourly:wage(p25),averageHourly:wage(average),recentHires:hires,experiencedHourly:wage(p75),annualOpenings:openings,medianHourly:wage(median),growthPct:growth(growthValue),typicalEducation:education,workExperience:experience,typicalOjt:ojt};
+      });
+      geographies[geo]={label:labels[geo]||geo,sourceLabel:`Lightcast ${compact.d||'2026.4'} • ${labels[geo]||geo}`,projectionPeriod:compact.p||'2026–2035',occupations};
+    }
+    if(Object.keys(geographies).length!==19)throw Error('The Lightcast county and state catalog is incomplete.');
+    return {sourceStatus:'loaded',catalog,geographies,areas:compact.a||{}};
+  }
   function alignmentGeoKey(){return state.alignment.geoScope==='county'?state.alignment.geoCounty:state.alignment.geoState;}
   function clearAlignmentResults(){state.alignment.matches=[];state.alignment.selected=[];state.alignment.browseAll=false;state.alignment.query='';state.alignment.complete=false;state.lmi={...fresh().lmi};state.tree={...fresh().tree};$('matchResults').hidden=true;save();}
   async function populateAlignmentCounties(){
