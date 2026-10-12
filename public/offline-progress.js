@@ -98,9 +98,30 @@
     list
   };
 
-  // Stable Career Tree geography context only. LMI enhancements are intentionally
-  // not injected here; Career Tree owns its LMI runtime directly.
   if (location.pathname.includes('/career-skill-tree/')) {
+    const facilitatedRequested = new URLSearchParams(location.search).get('facilitated') === '1';
+
+    // Participant Career Tree is self-paced by default. Facilitator prompts are
+    // only shown when an explicit facilitated URL is used.
+    try {
+      const careerKey='level-up-career-skill-tree-v1';
+      const raw=localStorage.getItem(careerKey);
+      const state=raw?JSON.parse(raw):{};
+      state.facilitated=facilitatedRequested;
+      localStorage.setItem(careerKey,JSON.stringify(state));
+    } catch (_) {}
+
+    const enforceMode=()=>{
+      document.querySelectorAll('[data-facilitator]').forEach(el=>{el.hidden=!facilitatedRequested;});
+      const toggle=document.getElementById('facilitatedToggle');
+      if(toggle){
+        toggle.setAttribute('aria-pressed',String(facilitatedRequested));
+        if(!facilitatedRequested)toggle.hidden=true;
+      }
+    };
+    if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceMode,{once:true});
+    else enforceMode();
+
     const existing = document.querySelector('script[data-career-tree-geography]');
     if (!existing) {
       const script = document.createElement('script');
