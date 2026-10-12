@@ -102,7 +102,7 @@
     const scripts = [
       ['alignment-geography-20261011.js?v=20261011-geo2','careerTreeGeography'],
       ['lmi-lab-20261011.js?v=20261011-lmi3','careerTreeLmiLab'],
-      ['lmi-video-cleanup-20261011.js?v=20261011-video1','careerTreeLmiVideoCleanup']
+      ['lmi-video-cleanup-20261011.js?v=20261011-video2','careerTreeLmiVideoCleanup']
     ];
     scripts.forEach(([src,key])=>{
       if(document.querySelector(`script[data-${key.replace(/[A-Z]/g,m=>'-'+m.toLowerCase())}]`))return;
