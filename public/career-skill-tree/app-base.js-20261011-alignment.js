@@ -203,7 +203,7 @@
       card.classList.toggle('locked',!allowed[v]);
     });
     $('homeInterestStatus').textContent=state.interest.complete?`Complete • ${state.interest.top.join('')}`:'Start →';
-    $('homeAlignmentStatus').textContent=state.alignment.complete?`${state.alignment.selected.length} careers saved ✓`:state.interest.complete?'Available →':'Locked';
+    $('homeAlignmentStatus').textContent=state.alignment.complete?'Preferences saved ✓':state.interest.complete?'Available →':'Locked';
     $('homeLmiStatus').textContent=state.lmi.complete?'Evidence captured ✓':state.alignment.complete?'Available →':'Locked';
     $('homeTreeStatus').textContent=state.tree.complete?'Career Tree complete ✓':state.lmi.complete?'Available →':'Locked';
     const hasProgress=milestones()>0;
@@ -450,67 +450,24 @@
       const el=document.querySelector(`input[name="${k}"][value="${state.alignment[k]}"]`);
       if(el)el.checked=true;
     });
-    $('alignmentForm').onchange=()=>{
+    const results=$('matchResults');
+    if(results)results.hidden=true;
+    const proceed=()=>{
       readAlignmentForm();
-      if(state.alignment.matches.length){buildCareerMatches();$('matchResults').hidden=false;renderCareerCards();}
-    };
-    const has=state.alignment.matches.length>0;
-    $('matchResults').hidden=!has;
-    if(has)renderCareerCards();
-
-    $('buildMatches').onclick=()=>{
-      readAlignmentForm();
-      if(!state.alignment.style||!state.alignment.training||!state.alignment.environment||!state.alignment.people){
-        alert('Choose one response in each section so Career Tree can layer your interests with your preferences.');
-        return;
-      }
-      buildCareerMatches();
-      $('matchResults').hidden=false;
-      renderCareerCards();
-      $('matchResults').scrollIntoView({behavior:'smooth'});
-    };
-
-    $('alignmentContinue').onclick=()=>{
-      if(state.alignment.selected.length<3){
-        alert('Save at least three careers to investigate in the LMI Lab.');
-        return;
-      }
       state.alignment.complete=true;
       state.xp=Math.max(state.xp,250);
       save();
       show('lmi');
     };
+    $('alignmentForm').onchange=readAlignmentForm;
+    $('buildMatches').textContent='Save My Preferences & Explore Local Careers →';
+    $('buildMatches').onclick=proceed;
+    $('alignmentContinue').onclick=proceed;
   }
 
   function renderCareerCards(){
-    const lookup=new Map(CAREERS.map(c=>[c.title,c]));
-    $('careerCards').innerHTML=state.alignment.matches.map(title=>{
-      const c=lookup.get(title);
-      const calc=alignmentScore(c);
-      const selected=state.alignment.selected.includes(title);
-      const why=calc.reasons.slice(0,2).join(' + ')||c.why;
-      return `<article class="career-card ${selected?'selected':''}">
-        <span class="eyebrow">${c.sector}</span>
-        <h3>${c.title}</h3>
-        <p>${c.why}</p>
-        <div class="career-fit" aria-label="Interest and preference fit ${calc.score} percent"><span>Interest + preference fit</span><strong>${calc.score}%</strong><div class="career-fit-track"><i style="width:${calc.score}%"></i></div></div>
-        <div class="why">Why it surfaced: ${why}</div>
-        <button class="${selected?'secondary-btn':'primary-btn'} career-select" data-career="${escapeAttr(c.title)}" type="button">${selected?'✓ Added to next step':'Explore this career →'}</button>
-      </article>`;
-    }).join('');
-
-    $$('.career-select').forEach(btn=>btn.onclick=()=>{
-      const title=btn.dataset.career;
-      const i=state.alignment.selected.indexOf(title);
-      if(i>=0)state.alignment.selected.splice(i,1);
-      else if(state.alignment.selected.length<5)state.alignment.selected.push(title);
-      else{
-        alert('Keep the investigation focused: save up to five careers for the LMI Lab.');
-        return;
-      }
-      save();
-      renderCareerCards();
-    });
+    const cards=$('careerCards');
+    if(cards)cards.innerHTML='';
   }
 
   function escapeAttr(s){
@@ -520,14 +477,14 @@
   function renderLmi(){
     $('sectorCards').innerHTML=SECTORS.map(s=>`<article class="sector-card"><span class="eyebrow">${s.name}</span><strong>${s.jobs}</strong><p>${s.annual} • projected employment change, 2024–2034</p></article>`).join('');
     const careers=state.alignment.selected;
-    if(!careers.length){show('alignment');return;}
+    // LMI Lab now owns occupation discovery and selection.
     careers.forEach(t=>{if(!state.lmi.evidence[t])state.lmi.evidence[t]=blankEvidence();});
     const active=sessionStorage.getItem('career-tree-lmi-active')||careers[0];
     renderLmiTabs(careers.includes(active)?active:careers[0]);
     $('lmiContinue').onclick=()=>{
-      const filled=careers.filter(t=>evidenceCount(state.lmi.evidence[t])>=2);
-      if(filled.length<3){
-        alert('Capture at least two pieces of LMI evidence for at least three careers before building your tree.');
+      const filled=careers.filter(t=>Boolean(state.lmi.evidence[t]?.exploration?.saved));
+      if(!careers.length||filled.length<Math.min(3,careers.length)){
+        alert('Save the required career explorations in LMI Lab before continuing.');
         return;
       }
       state.lmi.complete=true;
