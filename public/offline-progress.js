@@ -101,7 +101,7 @@
   if (location.pathname.includes('/career-skill-tree/')) {
     const scripts = [
       ['alignment-geography-20261011.js?v=20261011-geo2','careerTreeGeography'],
-      ['lmi-lab-20261011.js?v=20261011-lmi2','careerTreeLmiLab']
+      ['lmi-lab-20261011.js?v=20261011-lmi3','careerTreeLmiLab']
     ];
     scripts.forEach(([src,key])=>{
       if(document.querySelector(`script[data-${key.replace(/[A-Z]/g,m=>'-'+m.toLowerCase())}]`))return;
