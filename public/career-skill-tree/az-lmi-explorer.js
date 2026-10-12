@@ -6,7 +6,7 @@
   let lmiData=null;
   let occupations=[];
   let state=null;
-  let mode='carried';
+  let mode='available';
   let query='';
   let activeIndex=0;
 
@@ -149,12 +149,13 @@
     if(activeIndex>=codes.length)activeIndex=Math.max(0,codes.length-1);
     const explored=state.alignment.selected.filter(t=>explorationComplete(state.lmi.evidence[t]?.exploration||{})).length;
     const required=Math.min(3,codes.length);
-    host.innerHTML=`<div class="az-lmi-head"><div><span class="eyebrow">STAGE 3 • LMI LAB</span><h2>Investigate careers. Build evidence. Decide what stays.</h2><p>Your careers came forward from Alignment. Compare the local market, then explore each one deeply enough to explain why it should stay—or go.</p></div><div class="az-lmi-xp">${explored} explored • 200 XP</div></div>
+    if(!codes.length)mode='available';
+    host.innerHTML=`<div class="az-lmi-head"><div><span class="eyebrow">STAGE 3 • LMI LAB</span><h2>Investigate careers. Build evidence. Decide what stays.</h2><p>Explore occupations represented in your chosen labor market, select up to five, and investigate the evidence behind each choice.</p></div><div class="az-lmi-xp">${explored} explored • 200 XP</div></div>
       <div class="lmi-context"><span>📍 Labor market: <strong>${esc(geoLabel(geo))}</strong></span><button type="button" id="lmiChangeGeo">Change in Career Alignment</button></div>
       ${dashboard()}
       <div class="az-lmi-controls lmi-modebar"><div class="az-lmi-control"><span class="label">LMI Lab</span><div class="az-lmi-mode-row"><button class="az-lmi-mode ${mode==='carried'?'active':''}" type="button" data-mode="carried">Explore My Careers (${codes.length})</button><button class="az-lmi-mode ${mode==='available'?'active':''}" type="button" data-mode="available">Browse Available in ${esc(geoLabel(geo))}</button></div></div><div class="az-lmi-control lmi-progress"><span>Exploration progress</span><strong>${explored} of ${codes.length}</strong><small>${required?`Explore at least ${required} ${required===1?'career':'careers'} to continue.`:'Add careers to begin exploring.'}</small></div></div>
       <div class="az-lmi-saved"><div class="az-lmi-saved-head"><strong>My careers</strong><span>${state.alignment.selected.length} / ${MAX_SAVED}</span></div><div class="az-lmi-saved-list">${state.alignment.selected.length?state.alignment.selected.map(title=>`<span class="az-lmi-chip ${explorationComplete(state.lmi.evidence[title]?.exploration||{})?'explored':''}">${explorationComplete(state.lmi.evidence[title]?.exploration||{})?'✓ ':''}${esc(title)}<button type="button" data-remove-title="${esc(title)}" aria-label="Remove ${esc(title)}">×</button></span>`).join(''):'<span style="color:#9fb0ca">No careers carried forward yet.</span>'}</div></div>
-      ${mode==='carried'?(codes.length?workspace(codes[activeIndex],activeIndex,codes.length):'<div class="lmi-empty"><strong>No carried careers are represented in this labor market.</strong><p>Return to Career Alignment or browse occupations available here.</p></div>'):availableBrowser()}
+      ${mode==='carried'?(codes.length?workspace(codes[activeIndex],activeIndex,codes.length):'<div class="lmi-empty"><strong>No careers selected yet.</strong><p>Browse locally represented occupations to choose careers for exploration.</p></div>'):availableBrowser()}
       <div class="lmi-gate ${required&&explored>=required?'ready':''}"><span class="eyebrow">LMI LAB PROGRESS</span><strong>${required&&explored>=required?'Exploration requirement met ✓':`${explored} of ${required||3} required careers explored`}</strong><p>${required&&explored>=required?'You have enough completed exploration to move forward. You can keep exploring or continue when ready.':'Complete all five questions for the required careers before moving to the Work + Life Simulator.'}</p></div>`;
     const continueBtn=$('#lmiContinue');
     if(continueBtn){continueBtn.textContent='Continue to Work + Life Simulator →';continueBtn.disabled=!(required&&explored>=required)}
