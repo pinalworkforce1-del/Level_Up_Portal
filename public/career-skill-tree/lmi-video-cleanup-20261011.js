@@ -1,6 +1,12 @@
 (() => {
   const $=s=>document.querySelector(s);
 
+  function directCareerOneStopVideo(code){
+    const soc=String(code||'').trim();
+    if(!/^\d{2}-\d{4}$/.test(soc))return '';
+    return `https://cdn.careeronestop.org/OccVids/OccupationVideos/${soc}.00.mp4`;
+  }
+
   function exactCareerOneStopProfile(code,title){
     const onet=String(code||'').replace(/\D/g,'')+'00';
     const params=new URLSearchParams({keyword:title||code||'',lang:'en',location:'US',onetcode:onet});
@@ -30,21 +36,36 @@
       const card=link.closest('.career-data-card');
       const title=card?.querySelector('.career-data-head h2')?.textContent?.trim()||'';
       if(!code)return;
-      link.href=exactCareerOneStopProfile(code,title);
-      link.textContent='▶ Watch occupation video ↗';
-      link.title=`Open the CareerOneStop profile and video for ${title||'this occupation'}`;
+
+      const direct=directCareerOneStopVideo(code);
+      if(direct){
+        link.href=direct;
+        link.textContent='▶ Watch CareerOneStop occupation video ↗';
+        link.title=`Watch the CareerOneStop video for ${title||'this occupation'}`;
+        link.dataset.directVideo='1';
+      }else{
+        link.href=exactCareerOneStopProfile(code,title);
+        link.textContent='▶ Open CareerOneStop occupation profile ↗';
+        link.title=`Open the CareerOneStop occupation profile for ${title||'this occupation'}`;
+        link.dataset.directVideo='0';
+      }
     });
 
     host.querySelectorAll('.career-video-status').forEach(status=>{
-      if(/optional/i.test(status.textContent||''))status.textContent='Opens the CareerOneStop page for this occupation, where the career video appears when available.';
+      const link=host.querySelector('[data-career-video]');
+      if(link?.dataset.directVideo==='1'){
+        if(/optional/i.test(status.textContent||''))status.textContent='Opens the CareerOneStop video for this occupation.';
+      }else if(/optional/i.test(status.textContent||'')){
+        status.textContent='A direct CareerOneStop video was not resolved; the occupation profile is available instead.';
+      }
     });
   }
 
   function install(){
     cleanWorkspace();
     const body=document.body;
-    if(!body||body.dataset.lmiVideoCleanup==='1')return;
-    body.dataset.lmiVideoCleanup='1';
+    if(!body||body.dataset.lmiVideoCleanup==='2')return;
+    body.dataset.lmiVideoCleanup='2';
     const observer=new MutationObserver(()=>queueMicrotask(cleanWorkspace));
     observer.observe(body,{childList:true,subtree:true});
   }
