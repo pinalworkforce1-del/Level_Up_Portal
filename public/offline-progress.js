@@ -98,20 +98,17 @@
     list
   };
 
+  // Stable Career Tree geography context only. LMI enhancements are intentionally
+  // not injected here; Career Tree owns its LMI runtime directly.
   if (location.pathname.includes('/career-skill-tree/')) {
-    const scripts = [
-      ['alignment-geography-20261011.js?v=20261011-geo2','careerTreeGeography'],
-      ['lmi-lab-20261011.js?v=20261011-lmi3','careerTreeLmiLab'],
-      ['lmi-video-cleanup-20261011.js?v=20261011-video2','careerTreeLmiVideoCleanup']
-    ];
-    scripts.forEach(([src,key])=>{
-      if(document.querySelector(`script[data-${key.replace(/[A-Z]/g,m=>'-'+m.toLowerCase())}]`))return;
-      const script=document.createElement('script');
-      script.src=src;
-      script.defer=true;
-      script.dataset[key]='1';
-      script.onerror=()=>console.error(`Career Tree enhancement failed to load: ${src}`);
+    const existing = document.querySelector('script[data-career-tree-geography]');
+    if (!existing) {
+      const script = document.createElement('script');
+      script.src = 'alignment-geography-20261011.js?v=20261011-geo2';
+      script.defer = true;
+      script.dataset.careerTreeGeography = '1';
+      script.onerror = () => console.error('Career Tree geography enhancement failed to load.');
       document.head.appendChild(script);
-    });
+    }
   }
 })();
