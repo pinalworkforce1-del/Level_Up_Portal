@@ -22,11 +22,12 @@
   if(state.interest.complete)page=4;else page=Math.max(0,Math.min(4,Number(state.interest.page||0)));
   function save(){state.updatedAt=new Date().toISOString();state.interest.page=page;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}catch{}}
   function answeredCount(){return QUESTIONS.filter(q=>Number(state.interest.answers[q.index])>=1).length;}
+  function imageUrl(index){return`../../career-skill-tree/assets/onet/onet-${String(index).padStart(2,'0')}.webp`;}
   function render(){
     if(state.interest.complete){renderResults();return;}
     $('resultsPanel').hidden=true;$('questionPanel').hidden=false;
     const start=page*PAGE_SIZE,items=QUESTIONS.slice(start,start+PAGE_SIZE);
-    $('questions').innerHTML=items.map(q=>`<div class="question"><span class="question-number">QUESTION ${q.index} OF 30</span><h2>${q.text}</h2><div class="answers">${ANSWERS.map(a=>`<label class="answer"><input type="radio" name="q${q.index}" value="${a.value}" ${Number(state.interest.answers[q.index])===a.value?'checked':''}><span><em>${a.emoji}</em>${a.label}</span></label>`).join('')}</div></div>`).join('');
+    $('questions').innerHTML=items.map(q=>`<div class="question"><div class="question-layout"><img class="question-image" src="${imageUrl(q.index)}" alt="Illustration for ${q.text}" loading="lazy"><div class="question-body"><span class="question-number">QUESTION ${q.index} OF 30</span><h2>${q.text}</h2><div class="answers">${ANSWERS.map(a=>`<label class="answer"><input type="radio" name="q${q.index}" value="${a.value}" ${Number(state.interest.answers[q.index])===a.value?'checked':''}><span><em>${a.emoji}</em>${a.label}</span></label>`).join('')}</div></div></div></div>`).join('');
     items.forEach(q=>document.querySelectorAll(`input[name="q${q.index}"]`).forEach(input=>input.addEventListener('change',()=>{state.interest.answers[q.index]=Number(input.value);save();updateProgress();})));
     $('backBtn').disabled=page===0;$('backBtn').onclick=()=>{if(page>0){page--;save();render();window.scrollTo({top:0,behavior:'smooth'});}};
     $('nextBtn').textContent=page===4?'See My Results →':'Next →';
