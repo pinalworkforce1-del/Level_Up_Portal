@@ -1,6 +1,6 @@
 (() => {
   if (!("serviceWorker" in navigator)) return;
-  const CLIENT_ENGINE_VERSION="1.0.6";
+  const CLIENT_ENGINE_VERSION="1.0.7";
   const script=document.currentScript;
   const localRoot=script?new URL("./",script.src).pathname:new URL("./",location.href).pathname;
 
