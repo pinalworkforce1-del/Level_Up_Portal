@@ -44,6 +44,48 @@
     requestAnimationFrame(()=>map.scrollIntoView({behavior:'auto',block:'start'}));
   }
 
+  function findLegacyStepStrip(){
+    const terms=['Discover Me','Career Alignment','LMI Lab','Work + Life Simulator'];
+    const candidates=[...document.querySelectorAll('nav,section,div')].filter(el=>{
+      const text=(el.innerText||'').replace(/\s+/g,' ').trim();
+      if(text.length<20||text.length>260)return false;
+      return terms.every(term=>text.includes(term));
+    });
+    candidates.sort((a,b)=>(a.innerText||'').length-(b.innerText||'').length);
+    return candidates[0]||null;
+  }
+
+  function applyExploreCareersChrome(){
+    const view=(location.hash||'').replace('#','');
+    const unified=view==='alignment'||view==='lmi';
+    document.body.classList.toggle('career-tree-unified-explore',unified);
+
+    const progress=document.querySelector('.top-progress');
+    if(progress)progress.style.display=unified?'none':'';
+
+    const brand=document.querySelector('.topbar .brand');
+    if(brand){
+      brand.textContent=unified?'LEVEL UP • EXPLORE CAREERS':'LEVEL UP • CAREER SKILL TREE';
+      brand.setAttribute('aria-label',unified?'Return to Career Tree map':'Career Skill Tree home');
+    }
+
+    const strip=findLegacyStepStrip();
+    if(strip)strip.style.display=unified?'none':'';
+
+    if(unified){
+      const active=view==='alignment'?document.getElementById('viewAlignment'):document.getElementById('viewLmi');
+      const eyebrow=active?.querySelector('.stage-head .eyebrow');
+      if(eyebrow)eyebrow.textContent=view==='alignment'?'EXPLORE CAREERS • FIND POSSIBILITIES':'EXPLORE CAREERS • LABOR MARKET';
+      const homeBtn=active?.querySelector('.stage-head [data-view="home"]');
+      if(homeBtn)homeBtn.textContent='← Career Tree Map';
+    }
+
+    const interestContinue=document.getElementById('interestContinue');
+    if(interestContinue)interestContinue.textContent='Explore careers with these clues →';
+    const alignmentContinue=document.getElementById('alignmentContinue');
+    if(alignmentContinue)alignmentContinue.textContent='Review labor-market information →';
+  }
+
   function addHomeCard(){
     const grid=document.getElementById('journeyGrid');
     if(!grid||document.getElementById('careerQuestHomeCard'))return;
@@ -74,6 +116,8 @@
       .career-quest-card-visual span{position:absolute;left:18%;bottom:18%;font-size:2rem}.career-quest-card-visual b{position:absolute;right:18%;top:18%;font-size:2rem}
       .career-quest-map-entry{margin:18px 0 30px;padding:20px 22px;border:1px solid rgba(112,215,255,.25);border-radius:20px;background:linear-gradient(135deg,#102744,#0a172d);display:flex;align-items:center;justify-content:space-between;gap:20px;box-shadow:0 18px 55px rgba(0,0,0,.22)}
       .career-quest-map-entry h3{margin:.25rem 0 .4rem;font-size:1.45rem}.career-quest-map-entry p{margin:0;color:#b9c6dc;max-width:820px}.career-quest-map-entry .link-btn{white-space:nowrap;text-decoration:none}
+      body.career-tree-unified-explore .topbar{grid-template-columns:1fr auto}
+      body.career-tree-unified-explore .stage-shell{padding-top:14px}
       @media(max-width:760px){.career-quest-map-entry{align-items:flex-start;flex-direction:column}.career-quest-map-entry .link-btn{width:100%;text-align:center}}
     `;document.head.appendChild(style);
   }
@@ -83,6 +127,7 @@
     addHomeCard();
     addMapEntry();
     mapFirst();
+    applyExploreCareersChrome();
   }
 
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{install();setTimeout(install,300);setTimeout(install,900);setTimeout(install,1800)},{once:true});
@@ -91,11 +136,13 @@
   window.addEventListener('hashchange',()=>{
     const hash=(location.hash||'').replace('#','');
     if(hash==='home'||!hash)setTimeout(mapFirst,0);
+    setTimeout(applyExploreCareersChrome,0);
   });
 
   new MutationObserver(()=>{
     addHomeCard();
     addMapEntry();
     if(homeIsActive())collapseLegacyHero();
+    applyExploreCareersChrome();
   }).observe(document.documentElement,{childList:true,subtree:true});
 })();
