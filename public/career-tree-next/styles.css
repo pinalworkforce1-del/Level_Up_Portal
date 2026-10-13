@@ -1,0 +1,29 @@
+:root{
+  color-scheme:dark;
+  --bg:#05091d;
+  --panel:#0b1430;
+  --line:rgba(125,205,255,.28);
+  --text:#f8fbff;
+  --muted:#b9c7df;
+  --cyan:#6ee7ff;
+  --violet:#9b79ff;
+  --gold:#ffc85a;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:radial-gradient(circle at 50% -10%,#18275c 0,#08122d 34%,var(--bg) 72%);color:var(--text)}
+body{min-height:100vh}
+a{color:inherit}
+.topbar{position:sticky;top:0;z-index:20;min-height:64px;padding:10px clamp(14px,2.5vw,32px);display:flex;align-items:center;justify-content:space-between;gap:18px;background:rgba(4,9,28,.9);border-bottom:1px solid rgba(111,199,255,.18);backdrop-filter:blur(16px)}
+.brand-wrap{display:flex;align-items:center;gap:10px;flex-wrap:wrap}.brand-kicker{font-size:.72rem;letter-spacing:.14em;font-weight:900;color:var(--cyan)}.brand-wrap strong{font-size:.96rem;letter-spacing:.06em}.freeplay-pill{padding:5px 8px;border-radius:999px;border:1px solid rgba(155,121,255,.5);background:rgba(155,121,255,.14);font-size:.68rem;font-weight:900;letter-spacing:.08em;color:#decfff}.city-link{text-decoration:none;padding:9px 13px;border:1px solid rgba(120,194,255,.24);border-radius:12px;background:rgba(15,32,69,.75);font-weight:800;white-space:nowrap}.city-link:hover,.city-link:focus-visible{border-color:rgba(110,231,255,.8);outline:none}
+.map-page{width:min(1720px,100%);margin:0 auto;padding:clamp(10px,1.8vw,26px)}
+.map-shell{position:relative;width:100%;aspect-ratio:1672/941;border:1px solid rgba(110,231,255,.25);border-radius:24px;overflow:hidden;background:#091432;box-shadow:0 28px 90px rgba(0,0,0,.44),0 0 60px rgba(60,130,255,.12)}
+.career-map{display:block;width:100%;height:100%;object-fit:cover;user-select:none}
+.hotspot{position:absolute;display:block;border:2px solid transparent;border-radius:28px;text-decoration:none;z-index:5;transition:border-color .18s ease,box-shadow .18s ease,background .18s ease,transform .18s ease;-webkit-tap-highlight-color:transparent}
+.hotspot span{position:absolute;left:50%;bottom:10px;transform:translate(-50%,8px);opacity:0;pointer-events:none;white-space:nowrap;padding:7px 11px;border-radius:999px;background:rgba(4,11,30,.92);border:1px solid rgba(110,231,255,.48);font-size:.74rem;font-weight:900;letter-spacing:.05em;transition:.18s ease}
+.hotspot:hover,.hotspot:focus-visible{border-color:rgba(110,231,255,.92);background:rgba(35,118,255,.08);box-shadow:0 0 0 5px rgba(67,151,255,.16),inset 0 0 55px rgba(83,145,255,.12);outline:none;transform:translateY(-1px)}
+.hotspot:hover span,.hotspot:focus-visible span{opacity:1;transform:translate(-50%,0)}
+.discover{left:1.7%;top:60.5%;width:28%;height:22%}.explore{left:30%;top:48%;width:25%;height:18%}.life-plan{left:57%;top:47%;width:22%;height:17%}.quest{left:75.5%;top:1.5%;width:23%;height:31%}
+.destination-bar{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:14px}.destination-bar a{text-decoration:none;display:flex;min-width:0;flex-direction:column;gap:5px;padding:13px 14px;border:1px solid rgba(112,187,255,.2);border-radius:16px;background:linear-gradient(145deg,rgba(15,31,68,.95),rgba(7,16,38,.96));transition:transform .16s ease,border-color .16s ease}.destination-bar a:hover,.destination-bar a:focus-visible{transform:translateY(-2px);border-color:rgba(110,231,255,.72);outline:none}.destination-bar strong{font-size:.98rem}.destination-bar span{font-size:.76rem;color:var(--muted);line-height:1.35}.freeplay-note{text-align:center;color:#c9d5eb;line-height:1.55;margin:16px 0 4px}.freeplay-note strong{color:#fff}.sr-only{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+@media(max-width:900px){.destination-bar{grid-template-columns:repeat(2,minmax(0,1fr))}.hotspot span{display:none}.map-shell{border-radius:18px}}
+@media(max-width:620px){.topbar{align-items:flex-start}.brand-wrap{gap:7px}.city-link{font-size:.84rem}.map-page{padding:8px}.map-shell{border-radius:14px}.destination-bar{grid-template-columns:1fr}.hotspot{border-radius:16px}}
