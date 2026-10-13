@@ -1,4 +1,4 @@
-const ENGINE_VERSION="1.0.6";
+const ENGINE_VERSION="1.0.7";
 const CACHE_PREFIX="level-up-offline";
 const scopeUrl=new URL(self.registration.scope);
 const scopeKey=scopeUrl.pathname.replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")||"root";
@@ -15,7 +15,10 @@ self.addEventListener("install",event=>{
   })());
 });
 
-self.addEventListener("activate",event=>event.waitUntil(self.clients.claim()));
+self.addEventListener("activate",event=>event.waitUntil((async()=>{
+  await self.clients.claim();
+  await retireOld();
+})()));
 
 function inScope(url){return url.origin===scopeUrl.origin&&url.pathname.startsWith(scopeUrl.pathname)}
 function cacheable(r){return r&&r.ok&&r.type!=="opaque"&&r.status!==206}
@@ -70,7 +73,7 @@ self.addEventListener("fetch",event=>{
   if(request.mode==="navigate"){
     event.respondWith((async()=>{
       try{
-        const r=await fetch(request);
+        const r=await fetch(request,{cache:"no-store"});
         if(cacheable(r)){try{await (await caches.open(CACHE_NAME)).put(request,r.clone())}catch(_){}}
         return r;
       }catch(_){
@@ -92,14 +95,14 @@ self.addEventListener("fetch",event=>{
     const hit=await matchAny(request);
     if(hit){
       if(!request.headers.has("range")){
-        event.waitUntil(fetch(request).then(async r=>{
+        event.waitUntil(fetch(request,{cache:"no-store"}).then(async r=>{
           if(cacheable(r)){try{await (await caches.open(CACHE_NAME)).put(request,r.clone())}catch(_){}}
         }).catch(()=>{}));
       }
       return ranged(request,hit);
     }
     try{
-      const r=await fetch(request);
+      const r=await fetch(request,{cache:"no-store"});
       if(cacheable(r)){try{await (await caches.open(CACHE_NAME)).put(request,r.clone())}catch(_){}}
       return r;
     }catch(_){return Response.error()}
