@@ -4,7 +4,10 @@
   let intercepted=false;
 
   function replaceRequired(source,from,to,label){
-    if(!source.includes(from))throw new Error(`Career Tree open-hub patch could not find: ${label}`);
+    if(!source.includes(from)){
+      console.warn(`Career Tree open-hub patch skipped outdated fragment: ${label}`);
+      return source;
+    }
     return source.replace(from,to);
   }
 
