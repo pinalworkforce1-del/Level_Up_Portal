@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#05091d">
+  <title>Level Up • Career Tree</title>
+  <link rel="stylesheet" href="styles.css?v=20261013-1">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand-wrap">
+      <span class="brand-kicker">LEVEL UP</span>
+      <strong>CAREER TREE</strong>
+      <span class="freeplay-pill">FREEPLAY</span>
+    </div>
+    <a class="city-link" href="../">← Opportunity City</a>
+  </header>
+
+  <main class="map-page" aria-labelledby="pageTitle">
+    <h1 id="pageTitle" class="sr-only">Career Tree</h1>
+    <p class="sr-only">Choose Discover Me, Explore Careers, Work and Life Plan, or Career Quest. You may explore in any order.</p>
+
+    <section class="map-shell" aria-label="Career Tree interactive map">
+      <img
+        id="careerTreeMapImage"
+        class="career-map"
+        src="assets/career-tree-map-v2.png"
+        alt="Career Tree map with four destinations: Discover Me, Explore Careers, Work + Life Plan, and Career Quest."
+        draggable="false"
+      >
+
+      <a class="hotspot discover" data-destination="discover" href="../career-skill-tree/#interest" aria-label="Open Discover Me — O*NET Mini Interest Profiler">
+        <span>Open Discover Me</span>
+      </a>
+
+      <a class="hotspot explore" data-destination="explore" href="../career-skill-tree/#alignment" aria-label="Open Explore Careers — interests, work preferences, geography, occupations, and labor market information">
+        <span>Open Explore Careers</span>
+      </a>
+
+      <a class="hotspot life-plan" data-destination="life-plan" href="../career-skill-tree/life-plan-completion.html" aria-label="Open Work and Life Plan">
+        <span>Open Work + Life Plan</span>
+      </a>
+
+      <a class="hotspot quest" data-destination="career-quest" href="../career-skill-tree/career-quest/" aria-label="Open Career Quest">
+        <span>Open Career Quest</span>
+      </a>
+    </section>
+
+    <nav class="destination-bar" aria-label="Career Tree destinations">
+      <a data-destination="discover" href="../career-skill-tree/#interest"><strong>Discover Me</strong><span>O*NET Mini Interest Profiler</span></a>
+      <a data-destination="explore" href="../career-skill-tree/#alignment"><strong>Explore Careers</strong><span>Interests • preferences • geography • LMI</span></a>
+      <a data-destination="life-plan" href="../career-skill-tree/life-plan-completion.html"><strong>Work + Life Plan</strong><span>Wages • housing • transportation • budget</span></a>
+      <a data-destination="career-quest" href="../career-skill-tree/career-quest/"><strong>Career Quest</strong><span>Try the work</span></a>
+    </nav>
+
+    <p class="freeplay-note"><strong>Explore in any order.</strong> Your interests are clues, not commands. Return to Career Tree as your thinking changes.</p>
+  </main>
+
+  <script src="app.js?v=20261013-1"></script>
+</body>
+</html>
