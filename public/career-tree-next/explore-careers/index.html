@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#05091d">
+  <title>Level Up • Explore Careers</title>
+  <link rel="stylesheet" href="styles.css?v=20261013-1">
+</head>
+<body>
+  <header class="topbar">
+    <div><span>LEVEL UP</span><strong>EXPLORE CAREERS</strong></div>
+    <a href="../">← Career Tree Map</a>
+  </header>
+
+  <main class="page">
+    <section class="hero">
+      <span class="eyebrow">EXPLORE CAREERS • FREEPLAY</span>
+      <h1>Turn your clues into career possibilities.</h1>
+      <p>Start with your O*NET® interest profile when it is available, add a few work preferences, choose the labor market you want to explore, then investigate real occupations and local labor-market information.</p>
+    </section>
+
+    <section class="panel" id="interestPanel">
+      <div class="section-head"><div><span class="eyebrow">1 • YOUR INTEREST CLUES</span><h2>What did Discover Me tell you?</h2></div><a class="text-link" href="../../career-skill-tree/#interest">Open Discover Me ↗</a></div>
+      <div id="interestContent" class="interest-content"></div>
+    </section>
+
+    <section class="panel" id="preferencesPanel">
+      <div class="section-head"><div><span class="eyebrow">2 • WORK PREFERENCES</span><h2>Add a little more about how you want to work.</h2><p>These answers help rank possibilities. They do not decide your career for you.</p></div></div>
+      <form id="preferencesForm" class="preference-form">
+        <fieldset><legend>Which activities would you like to spend more time doing?</legend><div class="choice-grid" data-field="activity">
+          <label><input type="radio" name="activity" value="R"><span>🛠️ Hands-on / build / fix</span></label>
+          <label><input type="radio" name="activity" value="I"><span>🔎 Investigate / solve / analyze</span></label>
+          <label><input type="radio" name="activity" value="A"><span>🎨 Create / design / express</span></label>
+          <label><input type="radio" name="activity" value="S"><span>🤝 Help / teach / support</span></label>
+          <label><input type="radio" name="activity" value="E"><span>📣 Lead / persuade / sell</span></label>
+          <label><input type="radio" name="activity" value="C"><span>📋 Organize / track / detail</span></label>
+        </div></fieldset>
+        <fieldset><legend>How much preparation feels realistic right now?</legend><div class="choice-grid compact">
+          <label><input type="radio" name="prep" value="short"><span>Start soon / short preparation</span></label>
+          <label><input type="radio" name="prep" value="mid"><span>Up to 1–2 years</span></label>
+          <label><input type="radio" name="prep" value="long"><span>Several years could work</span></label>
+          <label><input type="radio" name="prep" value="open"><span>Show me the range</span></label>
+        </div></fieldset>
+        <fieldset><legend>What kind of work environment sounds best?</legend><div class="choice-grid compact">
+          <label><input type="radio" name="environment" value="active"><span>Active / field / shop</span></label>
+          <label><input type="radio" name="environment" value="indoor"><span>Mostly indoors</span></label>
+          <label><input type="radio" name="environment" value="variety"><span>Variety / changes day to day</span></label>
+          <label><input type="radio" name="environment" value="open"><span>No strong preference</span></label>
+        </div></fieldset>
+        <fieldset><legend>How much people interaction do you want?</legend><div class="choice-grid compact">
+          <label><input type="radio" name="people" value="people"><span>A lot</span></label>
+          <label><input type="radio" name="people" value="mix"><span>A mix</span></label>
+          <label><input type="radio" name="people" value="solo"><span>More independent work</span></label>
+          <label><input type="radio" name="people" value="open"><span>No strong preference</span></label>
+        </div></fieldset>
+      </form>
+    </section>
+
+    <section class="panel geography-panel" id="geographyPanel">
+      <div><span class="eyebrow">3 • YOUR LABOR MARKET</span><h2>Where do you want to explore opportunities?</h2><p>County and state choices come from the validated Career Tree Lightcast snapshot. Your workforce area is used as the default when it is available.</p></div>
+      <div class="geo-control"><label for="geographySelect">State or county</label><select id="geographySelect"></select><button id="showAllGeographies" class="secondary-btn" type="button">Show all available geographies</button></div>
+    </section>
+
+    <section class="panel" id="resultsPanel">
+      <div class="section-head"><div><span class="eyebrow">4 • CAREER POSSIBILITIES</span><h2>Careers worth exploring.</h2><p id="resultsSummary">Loading labor-market data…</p></div><div class="search-wrap"><label for="careerSearch">Search all occupations</label><input id="careerSearch" type="search" placeholder="Occupation title or SOC code"></div></div>
+      <div id="dataStatus" class="data-status" hidden></div>
+      <div id="careerGrid" class="career-grid"></div>
+    </section>
+
+    <section class="panel saved-panel" id="savedPanel">
+      <div class="section-head"><div><span class="eyebrow">5 • KEEP EXPLORING</span><h2>My career possibilities</h2><p>Save up to five occupations. These choices will be available to Work + Life Plan and the rest of Career Tree.</p></div><a class="primary-link" href="../">Return to Career Tree Map →</a></div>
+      <div id="savedCareers" class="saved-careers"></div>
+    </section>
+  </main>
+
+  <dialog id="careerDialog" class="career-dialog"><div id="careerDialogContent"></div></dialog>
+  <script src="app.js?v=20261013-1"></script>
+</body>
+</html>
