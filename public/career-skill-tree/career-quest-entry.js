@@ -2,23 +2,34 @@
   const HUB_URL='career-quest/';
   const HUB_STORAGE='level-up-career-quest-hub-v1';
 
+  // A plain Career Tree visit should always begin at the hub.
+  // Preserve intentional deep links such as #interest, #alignment and #lmi.
+  if(!location.hash)history.replaceState(null,'','#home');
+
   function readHub(){try{return JSON.parse(localStorage.getItem(HUB_STORAGE)||'{}')}catch{return {}}}
   function electricianStatus(){const e=readHub().electrician||{};if(e.complete)return 'Electrician complete';if(e.day)return `Electrician • Day ${e.day}`;return 'Electrician available';}
 
-  function hideLegacyHero(){
+  function homeIsActive(){
     const home=document.getElementById('viewHome');
-    if(!home)return;
+    return Boolean(home&&!home.hidden);
+  }
+
+  function collapseLegacyHero(){
+    const home=document.getElementById('viewHome');
+    const map=document.getElementById('careerTreeMap');
+    if(!home||!map||home.hidden)return false;
     const hero=home.querySelector('.hero');
     if(hero)hero.style.display='none';
+    return true;
   }
 
   function mapFirst(){
-    hideLegacyHero();
     const hash=(location.hash||'').replace('#','');
     if(hash&&hash!=='home')return;
+    const home=document.getElementById('viewHome');
     const map=document.getElementById('careerTreeMap');
-    if(!map)return;
-    if(location.hash!=='#home')history.replaceState(null,'','#home');
+    if(!home||!map||home.hidden)return;
+    collapseLegacyHero();
     requestAnimationFrame(()=>map.scrollIntoView({behavior:'auto',block:'start'}));
   }
 
@@ -46,7 +57,6 @@
   function installStyles(){
     if(document.getElementById('careerQuestEntryStyles'))return;
     const style=document.createElement('style');style.id='careerQuestEntryStyles';style.textContent=`
-      #viewHome>.hero{display:none!important}
       #careerTreeMap{scroll-margin-top:18px}
       .career-quest-home-card{text-decoration:none;color:inherit;position:relative;overflow:hidden}
       .career-quest-card-visual{min-height:150px;display:grid;place-items:center;font-size:4rem;background:radial-gradient(circle at 50% 40%,rgba(112,215,255,.22),transparent 58%),linear-gradient(145deg,#142c4d,#08152b);position:relative}
@@ -59,7 +69,6 @@
 
   function install(){
     installStyles();
-    hideLegacyHero();
     addHomeCard();
     addMapEntry();
     mapFirst();
@@ -69,14 +78,13 @@
   else{install();setTimeout(install,300);setTimeout(install,900);setTimeout(install,1800)}
 
   window.addEventListener('hashchange',()=>{
-    hideLegacyHero();
     const hash=(location.hash||'').replace('#','');
     if(hash==='home'||!hash)setTimeout(mapFirst,0);
   });
 
   new MutationObserver(()=>{
-    hideLegacyHero();
     addHomeCard();
     addMapEntry();
+    if(homeIsActive())collapseLegacyHero();
   }).observe(document.documentElement,{childList:true,subtree:true});
 })();
