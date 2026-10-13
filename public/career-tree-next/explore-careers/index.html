@@ -6,7 +6,7 @@
   <meta name="theme-color" content="#05091d">
   <title>Level Up • Explore Careers</title>
   <link rel="stylesheet" href="styles.css?v=20261013-1">
-  <link rel="stylesheet" href="reflection.css?v=20261013-reflection1">
+  <link rel="stylesheet" href="reflection.css?v=20261013-reflection2">
 </head>
 <body>
   <header class="topbar">
@@ -70,12 +70,22 @@
     </section>
 
     <section class="panel saved-panel" id="savedPanel">
-      <div class="section-head"><div><span class="eyebrow">5 • KEEP EXPLORING</span><h2>My career possibilities</h2><p>Save up to five occupations. These choices will be available to Work + Life Plan and the rest of Career Tree.</p></div><a class="primary-link" href="../">Return to Career Tree Map →</a></div>
+      <div class="section-head">
+        <div><span class="eyebrow">5 • KEEP EXPLORING</span><h2>My career possibilities</h2><p>Save up to five occupations. These choices will be available to Work + Life Plan and the rest of Career Tree.</p></div>
+        <div class="saved-panel-actions"><button id="viewSavedExplorations" class="secondary-btn saved-explorations-button" type="button">View Saved Explorations (0)</button><a class="primary-link" href="../">Return to Career Tree Map →</a></div>
+      </div>
       <div id="savedCareers" class="saved-careers"></div>
     </section>
   </main>
 
   <dialog id="careerDialog" class="career-dialog"><div id="careerDialogContent"></div></dialog>
+  <dialog id="savedExplorationsDialog" class="career-dialog saved-explorations-dialog">
+    <div class="dialog-inner">
+      <div class="dialog-head"><div><span class="eyebrow">SAVED EXPLORATIONS</span><h2>My Career Explorations</h2><p>Review what you learned, what surprised you, and what you may want to discuss with your career coach.</p></div><button class="dialog-close saved-explorations-close" type="button">Close</button></div>
+      <div id="savedExplorationsList" class="saved-explorations-list"></div>
+    </div>
+  </dialog>
   <script src="app-stable2.js?v=20261013-reflection1"></script>
+  <script src="saved-explorations.js?v=20261013-saved1"></script>
 </body>
 </html>
