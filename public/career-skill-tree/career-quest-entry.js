@@ -1,6 +1,17 @@
 (()=>{
   const HUB_URL='career-quest/';
   const HUB_STORAGE='level-up-career-quest-hub-v1';
+  const NEW_TREE_URL='../career-tree-next/';
+
+  // Career Tree Next is now the canonical home/map. Any legacy module control
+  // that says "Career Tree home" or links to #home should exit to the new map.
+  document.addEventListener('click',evt=>{
+    const target=evt.target.closest?.('[data-view="home"],.brand[href="#home"]');
+    if(!target)return;
+    evt.preventDefault();
+    evt.stopImmediatePropagation();
+    window.location.href=NEW_TREE_URL;
+  },true);
 
   // A plain Career Tree visit should always begin at the hub.
   // Preserve intentional deep links such as #interest, #alignment and #lmi.
