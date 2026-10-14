@@ -8,21 +8,29 @@
   function normalize(){
     const interest=read().interest||{};
     const answers=interest.answers&&typeof interest.answers==='object'?interest.answers:{};
+    const answeredCount=Object.values(answers).filter(v=>Number(v)>=1).length;
+    const isComplete=Boolean(interest.complete);
     return {
+      progress:{
+        status:isComplete?'complete':(answeredCount>0?'in_progress':'not_started'),
+        answered:answeredCount,
+        total_questions:30
+      },
       riasec_scores:{R:Number(interest.scores?.R||0),I:Number(interest.scores?.I||0),A:Number(interest.scores?.A||0),S:Number(interest.scores?.S||0),E:Number(interest.scores?.E||0),C:Number(interest.scores?.C||0)},
       top_3:Array.isArray(interest.top)?interest.top.slice(0,3):[],
       answers:{...answers},
-      answered_count:Object.values(answers).filter(v=>Number(v)>=1).length,
+      answered_count:answeredCount,
       completion_timestamp:interest.completedAt||null
     };
   }
   function complete(){return Boolean(read().interest?.complete)}
   function sync(){
     const data=normalize();
-    const fingerprint=JSON.stringify({data,complete:complete()});
+    const isComplete=complete();
+    const fingerprint=JSON.stringify({data,isComplete});
     if(fingerprint===last)return;
     last=fingerprint;
-    void window.LevelUpCareerTreeSync?.save(MODULE_ID,data,{isComplete:complete(),completedAt:data.completion_timestamp});
+    void window.LevelUpCareerTreeSync?.save(MODULE_ID,data,{xp:0,isComplete,completedAt:data.completion_timestamp});
   }
   sync();
   setInterval(sync,700);
