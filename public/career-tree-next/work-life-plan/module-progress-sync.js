@@ -6,8 +6,9 @@
   let last='';
 
   function read(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}}
-  function normalize(plan){
+  function normalize(plan,isComplete){
     return {
+      progress:{status:isComplete?'complete':'in_progress',activity_complete:Boolean(isComplete)},
       area:plan.area||'',
       county:{key:plan.county||'',label:plan.countyLabel||''},
       housing:{selection:plan.housing||'',monthly:Number(plan.housingMonthly||0)},
@@ -30,11 +31,11 @@
     const legacy=read(LEGACY_KEY);
     const isComplete=Boolean(legacy.tree?.complete);
     const completedAt=isComplete?(legacy.tree?.completedAt||plan.savedAt):null;
-    const data=normalize(plan);
+    const data=normalize(plan,isComplete);
     const fingerprint=JSON.stringify({data,isComplete,completedAt});
     if(fingerprint===last)return;
     last=fingerprint;
-    void window.LevelUpCareerTreeSync?.save(MODULE_ID,data,{isComplete,completedAt});
+    void window.LevelUpCareerTreeSync?.save(MODULE_ID,data,{xp:0,isComplete,completedAt});
   }
 
   const frame=document.getElementById('experience');
