@@ -18,7 +18,13 @@
     const legacy=read(LEGACY_KEY),next=read(NEXT_KEY);
     const current=next.exploreCareers||{};
     const reflections=current.reflections&&typeof current.reflections==='object'?Object.values(current.reflections):[];
+    const savedCareers=Array.isArray(current.saved)?current.saved.slice(0,5):Array.isArray(legacy.alignment?.selected)?legacy.alignment.selected.slice(0,5):[];
     return {
+      progress:{
+        status:reflections.length>0?'complete':(savedCareers.length>0?'in_progress':'not_started'),
+        careers_saved:savedCareers.length,
+        occupations_reflected:reflections.length
+      },
       preferences:{
         activity:current.activity||legacy.alignment?.style||'',
         preparation:current.prep||legacy.alignment?.training||'',
@@ -30,17 +36,20 @@
         label:legacy.alignment?.geographyLabel||'',
         workforce_area:workforceArea()
       },
-      saved_careers:Array.isArray(current.saved)?current.saved.slice(0,5):Array.isArray(legacy.alignment?.selected)?legacy.alignment.selected.slice(0,5):[],
+      saved_careers:savedCareers,
       occupation_reflections:reflections,
       interest_context:legacy.interest?.complete?{riasec_scores:legacy.interest.scores||{},top_3:Array.isArray(legacy.interest.top)?legacy.interest.top.slice(0,3):[]}:null
     };
   }
   function sync(){
     const data=normalize();
-    const fingerprint=JSON.stringify(data);
+    const isComplete=data.occupation_reflections.length>0;
+    const reflectedDates=data.occupation_reflections.map(item=>item?.savedAt).filter(Boolean).sort();
+    const completedAt=isComplete?(reflectedDates[0]||new Date().toISOString()):null;
+    const fingerprint=JSON.stringify({data,isComplete,completedAt});
     if(fingerprint===last)return;
     last=fingerprint;
-    void window.LevelUpCareerTreeSync?.save(MODULE_ID,data,{isComplete:false});
+    void window.LevelUpCareerTreeSync?.save(MODULE_ID,data,{xp:0,isComplete,completedAt});
   }
   sync();
   setInterval(sync,700);
