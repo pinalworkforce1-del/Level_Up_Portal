@@ -6,6 +6,7 @@
   const TAKE_HOME_RATE=0.78;
   const HOURS_PER_MONTH=40*52/12;
   let last='';
+  let observer=null;
 
   function read(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}}
   function roundMoney(value){return Math.round((Number(value)||0)*100)/100}
@@ -63,6 +64,48 @@
     void window.LevelUpCareerTreeSync?.save(MODULE_ID,data,{xp:0,isComplete,completedAt});
   }
 
+  function buttonText(el){return String(el?.textContent||el?.value||'').trim().replace(/\s+/g,' ')}
+  function setButtonText(el,text){
+    if(!el)return;
+    if(el.tagName==='INPUT')el.value=text;
+    else el.textContent=text;
+    el.setAttribute('aria-label',text);
+    el.setAttribute('title',text);
+  }
+  function relabelSaveActions(doc){
+    if(!doc)return;
+    doc.querySelectorAll('button,input[type="button"],input[type="submit"],a').forEach(el=>{
+      const text=buttonText(el).toLowerCase();
+      if(text==='save this plan')setButtonText(el,'Save progress');
+      if(text==='save my plan')setButtonText(el,'Complete & Save My Plan');
+    });
+  }
+  function scheduleSync(){
+    sync();
+    setTimeout(sync,100);
+    setTimeout(sync,500);
+  }
+  function wireFrame(){
+    const frame=document.getElementById('experience');
+    if(!frame)return;
+    try{
+      const win=frame.contentWindow;
+      const doc=win?.document;
+      relabelSaveActions(doc);
+      observer?.disconnect();
+      if(doc?.body){
+        observer=new MutationObserver(()=>relabelSaveActions(doc));
+        observer.observe(doc.body,{childList:true,subtree:true});
+        doc.addEventListener('click',event=>{
+          const el=event.target?.closest?.('button,input[type="button"],input[type="submit"],a');
+          const text=buttonText(el).toLowerCase();
+          if(text==='save progress'||text==='complete & save my plan')scheduleSync();
+        },true);
+      }
+      win?.addEventListener('career-tree-life-plan-updated',scheduleSync);
+    }catch(_){}
+  }
+
   const frame=document.getElementById('experience');
   frame?.addEventListener('load',()=>{
     try{
@@ -72,9 +115,12 @@
         return;
       }
     }catch(_){}
-    sync();
+    wireFrame();
+    scheduleSync();
   });
+  wireFrame();
   sync();
   setInterval(sync,700);
+  window.addEventListener('storage',sync);
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')sync();});
 })();
