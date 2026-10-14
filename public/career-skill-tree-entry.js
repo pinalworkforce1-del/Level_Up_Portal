@@ -1,42 +1,30 @@
 (() => {
   const CAREER_URL = new URL('career-tree-next/', document.baseURI).href;
 
-  function isCareerButton(target){
-    const button=target?.closest?.('.district-card .district-actions button');
-    if(!button) return null;
-    const card=button.closest('.district-card');
-    const title=card?.querySelector('#district-title, h2')?.textContent?.trim();
-    if(title!=='Career Skill Tree') return null;
-    return button;
+  function replaceCareerHotspot(){
+    const stage=document.querySelector('.opportunity-stage');
+    if(!stage) return;
+    if(stage.querySelector('.career-tree-direct-icon')) return;
+
+    const original=[...stage.querySelectorAll('button.explore-icon')].find(button=>
+      /career skill tree/i.test(button.getAttribute('aria-label')||'')
+    );
+    if(!original) return;
+
+    const link=document.createElement('a');
+    link.className=`${original.className} career-tree-direct-icon`;
+    link.href=CAREER_URL;
+    link.setAttribute('aria-label','Open Career Tree');
+    link.setAttribute('data-label','Open');
+    link.style.cssText=original.style.cssText;
+    link.style.textDecoration='none';
+    link.innerHTML=original.innerHTML;
+
+    original.replaceWith(link);
   }
 
-  function activateCareerButton(){
-    document.querySelectorAll('.district-card').forEach(card=>{
-      const title=card.querySelector('#district-title, h2')?.textContent?.trim();
-      if(title!=='Career Skill Tree') return;
-      const actions=card.querySelector('.district-actions');
-      if(!actions) return;
-      const button=[...actions.querySelectorAll('button')].find(b=>/pathway module coming later|explore now|enter career skill tree|enter career tree/i.test(b.textContent||''));
-      if(!button) return;
-      button.disabled=false;
-      button.classList.remove('locked-action');
-      button.classList.add('primary-action');
-      button.textContent='Enter Career Tree →';
-      const note=card.querySelector('.progress-note');
-      if(note) note.textContent='Career Tree is an optional exploration experience. It does not change your core Level Up progression.';
-    });
-  }
-
-  document.addEventListener('click',event=>{
-    const button=isCareerButton(event.target);
-    if(!button){setTimeout(activateCareerButton,0);return;}
-    event.preventDefault();
-    event.stopPropagation();
-    event.stopImmediatePropagation();
-    window.location.assign(CAREER_URL);
-  },true);
-
-  const observer=new MutationObserver(activateCareerButton);
+  const observer=new MutationObserver(()=>replaceCareerHotspot());
   observer.observe(document.documentElement,{childList:true,subtree:true});
-  activateCareerButton();
+  document.addEventListener('DOMContentLoaded',replaceCareerHotspot,{once:true});
+  replaceCareerHotspot();
 })();
