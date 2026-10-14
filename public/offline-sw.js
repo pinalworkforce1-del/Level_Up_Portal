@@ -1,8 +1,9 @@
 const ENGINE_VERSION="1.0.7";
+const CACHE_REVISION="20261013-2";
 const CACHE_PREFIX="level-up-offline";
 const scopeUrl=new URL(self.registration.scope);
 const scopeKey=scopeUrl.pathname.replace(/[^a-z0-9]+/gi,"-").replace(/^-|-$/g,"")||"root";
-const CACHE_NAME=`${CACHE_PREFIX}-${scopeKey}-v${ENGINE_VERSION}`;
+const CACHE_NAME=`${CACHE_PREFIX}-${scopeKey}-v${ENGINE_VERSION}-${CACHE_REVISION}`;
 const MANIFEST_URL=new URL("offline-manifest.json",self.registration.scope).toString();
 
 self.addEventListener("install",event=>{
@@ -30,7 +31,7 @@ async function matchAny(request){
   const names=await scopeCaches();
   names.sort((a,b)=>a===CACHE_NAME?-1:b===CACHE_NAME?1:0);
   for(const name of names){
-    const hit=await (await caches.open(name)).match(request,{ignoreSearch:true,ignoreVary:true});
+    const hit=await (await caches.open(name)).match(request,{ignoreSearch:false,ignoreVary:true});
     if(hit)return hit;
   }
   return null;
