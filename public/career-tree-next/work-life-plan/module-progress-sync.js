@@ -3,10 +3,27 @@
   const PLAN_KEY='levelup_career_tree_life_plan_v1';
   const LEGACY_KEY='level-up-career-skill-tree-v1';
   const MODULE_ID='work-life-plan';
+  const TAKE_HOME_RATE=0.78;
+  const HOURS_PER_MONTH=40*52/12;
   let last='';
 
   function read(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}}
+  function roundMoney(value){return Math.round((Number(value)||0)*100)/100}
+  function selectedHourly(plan){
+    const job=plan.job||{};
+    switch(plan.selectedWageLevel){
+      case 'median': return Number(job.medianHourly||0);
+      case 'experienced': return Number(job.experiencedHourly||0);
+      case 'entry':
+      default: return Number(job.entryHourly||0);
+    }
+  }
   function normalize(plan,isComplete){
+    const monthlyPlan=Number(plan.monthlyLivingPlan||0);
+    const hourly=selectedHourly(plan);
+    const estimatedTakeHome=hourly>0?roundMoney(hourly*HOURS_PER_MONTH*TAKE_HOME_RATE):0;
+    const monthlyGap=roundMoney(monthlyPlan-estimatedTakeHome);
+    const gapStatus=monthlyGap>0.5?'shortfall':monthlyGap<-0.5?'surplus':'meets';
     return {
       progress:{status:isComplete?'complete':'in_progress',activity_complete:Boolean(isComplete)},
       area:plan.area||'',
@@ -14,13 +31,21 @@
       housing:{selection:plan.housing||'',monthly:Number(plan.housingMonthly||0)},
       transportation:{selection:plan.transport||'',monthly:Number(plan.transportMonthly||0)},
       monthly_plan:{
-        total:Number(plan.monthlyLivingPlan||0),
+        total:monthlyPlan,
         housing:Number(plan.housingMonthly||0),
         transportation:Number(plan.transportMonthly||0)
       },
       selected_occupation:plan.job||null,
       selected_wage_level:plan.selectedWageLevel||'',
       target_hourly_wage:Number(plan.targetHourlyGross||0),
+      affordability:{
+        selected_hourly_wage:hourly,
+        estimated_take_home_monthly:estimatedTakeHome,
+        monthly_gap:monthlyGap,
+        gap_status:gapStatus,
+        annual_gap_equivalent:roundMoney(monthlyGap*12),
+        take_home_rate_assumption:TAKE_HOME_RATE
+      },
       reflections:plan.reflection||{},
       saved_at:plan.savedAt||null
     };
