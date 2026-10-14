@@ -5,6 +5,7 @@
   const MODULE_ID='work-life-plan';
   const TAKE_HOME_RATE=0.78;
   const HOURS_PER_MONTH=40*52/12;
+  const PENDING_LENS_KEY='levelup_work_life_pending_lens_v1';
   let last='';
   let observer=null;
 
@@ -27,6 +28,7 @@
     const gapStatus=monthlyGap>0.5?'shortfall':monthlyGap<-0.5?'surplus':'meets';
     return {
       progress:{status:isComplete?'complete':'in_progress',activity_complete:Boolean(isComplete)},
+      pathway:plan.lens||'',
       area:plan.area||'',
       county:{key:plan.county||'',label:plan.countyLabel||''},
       housing:{selection:plan.housing||'',monthly:Number(plan.housingMonthly||0)},
@@ -64,6 +66,46 @@
     void window.LevelUpCareerTreeSync?.save(MODULE_ID,data,{xp:0,isComplete,completedAt});
   }
 
+  function hasModuleProgress(){
+    const plan=read(PLAN_KEY);
+    const legacy=read(LEGACY_KEY);
+    return Boolean(plan?.savedAt||legacy.lifePlan||legacy.tree?.lifePlan||legacy.tree?.complete);
+  }
+  function currentLens(doc){
+    const plan=read(PLAN_KEY);
+    if(plan?.lens)return plan.lens;
+    if(doc?.getElementById('workLens')?.getAttribute('aria-pressed')==='true')return 'work';
+    if(doc?.getElementById('lifeLens')?.getAttribute('aria-pressed')==='true')return 'life';
+    return '';
+  }
+  function clearLocalModule(){
+    localStorage.removeItem(PLAN_KEY);
+    const legacy=read(LEGACY_KEY);
+    if(legacy&&typeof legacy==='object'){
+      delete legacy.lifePlan;
+      if(legacy.tree&&typeof legacy.tree==='object'){
+        delete legacy.tree.lifePlan;
+        delete legacy.tree.complete;
+        delete legacy.tree.completedAt;
+      }
+      localStorage.setItem(LEGACY_KEY,JSON.stringify(legacy));
+    }
+    last='';
+  }
+  async function resetModule(nextLens=''){
+    const now=new Date().toISOString();
+    clearLocalModule();
+    if(nextLens)sessionStorage.setItem(PENDING_LENS_KEY,nextLens);
+    else sessionStorage.removeItem(PENDING_LENS_KEY);
+    await window.LevelUpCareerTreeSync?.save(MODULE_ID,{
+      progress:{status:'not_started',activity_complete:false},
+      pathway:nextLens||'',
+      reset_at:now
+    },{xp:0,isComplete:false,completedAt:null,updatedAt:now});
+    const frame=document.getElementById('experience');
+    frame?.contentWindow?.location.reload();
+  }
+
   function buttonText(el){return String(el?.textContent||el?.value||'').trim().replace(/\s+/g,' ')}
   function setButtonText(el,text){
     if(!el)return;
@@ -80,6 +122,21 @@
       if(text==='save my plan')setButtonText(el,'Complete & Save My Plan');
     });
   }
+  function injectClearButton(doc){
+    const tools=doc?.querySelector('.topline-tools');
+    if(!tools||doc.getElementById('careerTreeClearModule'))return;
+    const button=doc.createElement('button');
+    button.id='careerTreeClearModule';
+    button.type='button';
+    button.textContent='Clear Module / Start Over';
+    button.style.cssText='border:1px solid #704c61;background:#331e36;color:#ffe8ef;border-radius:999px;padding:8px 12px;font:inherit;font-size:13px;font-weight:800;cursor:pointer';
+    button.addEventListener('click',async()=>{
+      if(!hasModuleProgress())return;
+      const ok=window.confirm('Clear Work + Life Plan and start over? This will remove all responses in this module. Your Discover Me, Explore Careers, Career Quest, and core Level Up progress will not be affected.');
+      if(ok)await resetModule('');
+    });
+    tools.insertBefore(button,tools.lastElementChild||null);
+  }
   function scheduleSync(){
     sync();
     setTimeout(sync,100);
@@ -92,17 +149,38 @@
       const win=frame.contentWindow;
       const doc=win?.document;
       relabelSaveActions(doc);
+      injectClearButton(doc);
       observer?.disconnect();
       if(doc?.body){
-        observer=new MutationObserver(()=>relabelSaveActions(doc));
+        observer=new MutationObserver(()=>{relabelSaveActions(doc);injectClearButton(doc)});
         observer.observe(doc.body,{childList:true,subtree:true});
         doc.addEventListener('click',event=>{
           const el=event.target?.closest?.('button,input[type="button"],input[type="submit"],a');
+          if(!el)return;
+          const targetLens=el.id==='lifeLens'?'life':el.id==='workLens'?'work':'';
+          if(targetLens){
+            const active=currentLens(doc);
+            if(hasModuleProgress()&&active&&targetLens!==active){
+              event.preventDefault();
+              event.stopImmediatePropagation();
+              const fromLabel=active==='life'?'Life I want':'Available opportunities';
+              const toLabel=targetLens==='life'?'Life I want':'Available opportunities';
+              const ok=window.confirm(`Switch pathways? You are currently using “${fromLabel}”. Switching to “${toLabel}” will clear all responses in Work + Life Plan and start this module over. Your other Career Tree activities will not be affected.`);
+              if(ok)void resetModule(targetLens);
+              return;
+            }
+          }
           const text=buttonText(el).toLowerCase();
           if(text==='save progress'||text==='complete & save my plan')scheduleSync();
         },true);
       }
       win?.addEventListener('career-tree-life-plan-updated',scheduleSync);
+
+      const pending=sessionStorage.getItem(PENDING_LENS_KEY);
+      if(pending){
+        sessionStorage.removeItem(PENDING_LENS_KEY);
+        setTimeout(()=>doc.getElementById(pending==='work'?'workLens':'lifeLens')?.click(),50);
+      }
     }catch(_){}
   }
 
