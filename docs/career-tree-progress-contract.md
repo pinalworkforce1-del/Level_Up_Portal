@@ -9,6 +9,8 @@ Career Tree experiences use the existing `public.module_progress` table. No new 
 - `work-life-plan`
 - `career-quest:electrician`
 
+All four Career Tree experiences intentionally keep `module_progress.xp = 0`. Career Tree progress is represented by each experience's native activity model rather than the core Level Up XP system.
+
 ## Shared `journey_state` envelope
 
 ```json
@@ -23,59 +25,48 @@ Career Tree experiences use the existing `public.module_progress` table. No new 
 
 `module_progress.is_complete` and `module_progress.completed_at` remain the canonical completion fields. `started_at` is supplied by the existing database default on first insert.
 
-Career Tree does not use XP as its participant progress model. Career Tree records save `xp = 0`; each experience exposes native progress inside `journey_state.data.progress` instead.
+## Authentication and offline-first behavior
 
-## Offline-first behavior
+1. Career Tree requires a Level Up participant login.
+2. A participant with a previously cached authenticated session may continue Career Tree while offline.
+3. A participant without a cached authenticated session is redirected to the existing Opportunity City sign-in.
+4. Each experience continues to write its existing localStorage state.
+5. A normalized Career Tree record is mirrored into `LevelUpOfflineProgress` first.
+6. When an authenticated Supabase session and network connection are available, the normalized row is upserted into `module_progress` on `(user_id,module_id)`.
+7. Failed/offline writes remain pending in the existing Level Up offline queue and are retried when the browser returns online or when the main Level Up app flushes offline progress.
 
-1. Career Tree requires an authenticated Level Up participant session. A cached authenticated session may continue offline on the same device.
-2. The experience continues to write its existing localStorage state.
-3. A normalized Career Tree record is mirrored into `LevelUpOfflineProgress` first.
-4. When an authenticated Supabase session and network connection are available, the normalized row is upserted into `module_progress` on `(user_id,module_id)`.
-5. Failed/offline writes remain pending in the existing Level Up offline queue and are retried when the browser returns online or when the main Level Up app flushes offline progress.
+Career Tree does not alter the existing Level Up `CORE_SEQUENCE`, module unlock rules, or XP progression.
 
-## Completion and native progress rules
+## Experience payloads and completion semantics
 
 ### Discover Me
 
-Native progress:
-- answered questions out of 30
-- status: `not_started`, `in_progress`, or `complete`
-
 `data` contains:
-- `progress`
+- `progress` (`status`, `answered`, `total_questions`)
 - `riasec_scores`
 - `top_3`
 - `answers`
 - `answered_count`
 - `completion_timestamp`
 
-Completion occurs when the existing Discover Me assessment completion flag is set after all 30 questions are completed.
+Progress is `answered_count / 30`. Completion maps to the existing Discover Me completion flag and timestamp.
 
 ### Explore Careers
 
-Native progress:
-- saved career count
-- reflected occupation count
-- status: `not_started`, `in_progress`, or `complete`
-
 `data` contains:
-- `progress`
+- `progress` (`status`, `careers_saved`, `occupations_reflected`)
 - `preferences` (`activity`, `preparation`, `environment`, `people`)
 - `geography` (`key`, `label`, `workforce_area`)
 - `saved_careers`
 - `occupation_reflections` (including each saved reflection's LMI snapshot)
 - optional `interest_context`
 
-Completion occurs when the participant has saved at least one occupation reflection. The participant may continue to return, change preferences/geography, save additional occupations, and create additional reflections after completion.
+Explore Careers remains freeplay. It becomes complete when the participant saves the first occupation reflection. Participants may continue to explore, save careers, and add additional reflections after completion.
 
 ### Work + Life Plan
 
-Native progress:
-- status: `in_progress` or `complete`
-- activity-complete flag
-
 `data` contains:
-- `progress`
+- `progress` (`status`)
 - `area`
 - `county`
 - `housing`
@@ -87,23 +78,33 @@ Native progress:
 - `reflections`
 - `saved_at`
 
-Completion maps to the existing final **Save my plan** path. Later edits preserve the existing completion state. No XP is awarded.
+Completion maps to the existing final **Save my plan** path. Later edits preserve the existing completion state.
 
 ### Career Quest: Electrician
 
-Career Quest uses its own work-and-earnings progression rather than XP.
+`data` contains:
+- `progress`
+  - `status`
+  - `current_day`
+  - `completed_days`
+  - `total_days` = 10
+  - `earnings_earned`
+  - `earnings_possible`
+- `occupation`
+- existing Career Quest hub state
+- existing quest-specific local state
+- visible Day/Earnings snapshot from the same-origin quest screen when available
+- completion timestamp
 
-The participant-facing and coach-facing native progress should include:
-- current day out of 10
-- completed days/scenes
-- earnings earned out of possible earnings
-- work evidence and decisions
-- reflections
-- Life Happens events
-- final completion status/timestamp
+Career Quest uses its native 10-day work simulation rather than XP. Coach-facing progress should display **Day X of 10** and **earnings earned out of possible earnings**. Completion occurs when the Electrician quest itself reports completion. Progress is synced incrementally so participants can return on the same device offline and cloud-sync when a connection becomes available.
 
-The module ID is `career-quest:electrician`. It should save incrementally after meaningful quest actions, restore the participant to the correct point when returning, remain usable offline for an already authenticated participant, and set `module_progress.is_complete=true` only when the 10-day quest is completed.
+## Coach-facing interpretation
 
-## Relationship to core Level Up progression
+The four Career Tree records should later be presented as informational coaching signals, not prerequisite or compliance flags:
 
-Career Tree is freeplay. These four records do not change or depend on the core Level Up sequence, district unlocking, checkpoint logic, or Work Ready Series completion. Coaches may view Career Tree activity alongside core Level Up progress, but Career Tree completion is informational and exploratory rather than a prerequisite for progression.
+- Discover Me — assessment progress / complete
+- Explore Careers — careers saved, occupations reflected / complete after first reflection
+- Work + Life Plan — in progress / complete
+- Career Quest: Electrician — Day X of 10, earnings earned out of possible / complete
+
+Coach access should be provided through the existing staff/participant assignment model and a controlled server-side read path. Do not broaden participant-owned `module_progress` RLS to allow unrestricted coach SELECT access.
