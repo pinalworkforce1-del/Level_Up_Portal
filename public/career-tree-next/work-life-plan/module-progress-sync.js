@@ -2,6 +2,7 @@
   'use strict';
   const PLAN_KEY='levelup_career_tree_life_plan_v1';
   const LEGACY_KEY='level-up-career-skill-tree-v1';
+  const EXPLORE_KEY='level-up-career-tree-next-v1';
   const MODULE_ID='work-life-plan';
   const TAKE_HOME_RATE=0.78;
   const HOURS_PER_MONTH=40*52/12;
@@ -11,6 +12,8 @@
 
   function read(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}}
   function roundMoney(value){return Math.round((Number(value)||0)*100)/100}
+  function esc(value){return String(value??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function money(value){const n=Number(value);return Number.isFinite(n)?`$${n.toFixed(2)}/hr`:'Not available'}
   function selectedHourly(plan){
     const job=plan.job||{};
     switch(plan.selectedWageLevel){
@@ -106,6 +109,117 @@
     frame?.contentWindow?.location.reload();
   }
 
+  function exploredCareers(){
+    const state=read(EXPLORE_KEY);
+    const raw=state?.exploreCareers?.reflections;
+    if(!raw||typeof raw!=='object')return [];
+    return Object.values(raw)
+      .filter(record=>record&&record.code&&record.title&&record.savedAt)
+      .sort((a,b)=>String(b.savedAt).localeCompare(String(a.savedAt)))
+      .slice(0,5);
+  }
+  function occupationStep(doc){
+    const text=String(doc?.getElementById('stepContent')?.textContent||'').replace(/\s+/g,' ').toUpperCase();
+    if(!text.includes('OCCUPATION'))return null;
+    const work=doc.getElementById('workLens')?.getAttribute('aria-pressed')==='true';
+    const life=doc.getElementById('lifeLens')?.getAttribute('aria-pressed')==='true';
+    if(work&&text.includes('STEP 1 OF 5'))return 'work';
+    if(life&&text.includes('STEP 4 OF 5'))return 'life';
+    return null;
+  }
+  function targetHourly(doc){
+    const text=String(doc?.getElementById('targetWage')?.textContent||'');
+    const match=text.match(/\$([\d,.]+(?:\.\d+)?)/);
+    return match?Number(match[1].replace(/,/g,''))||0:0;
+  }
+  function reflectionSignal(record){
+    const a=record?.answers||{};
+    if(a.picture==='yes')return 'You said you could see yourself doing this work.';
+    if(a.picture==='maybe')return 'You said this career might be worth considering.';
+    if(a.opportunity==='more')return 'Local opportunity increased your interest.';
+    if(record.fitLabel)return record.fitLabel;
+    return 'Previously explored in Explore Careers.';
+  }
+  function ensureExploredStyles(doc){
+    if(!doc||doc.getElementById('workLifeExploredStyles'))return;
+    const style=doc.createElement('style');
+    style.id='workLifeExploredStyles';
+    style.textContent=`
+      .explored-careers-handoff{margin:14px 0 18px;padding:15px;border:1px solid #477091;border-radius:16px;background:linear-gradient(145deg,#102747,#0a1932)}
+      .explored-careers-handoff h3{margin:0 0 5px;font-size:18px}.explored-careers-handoff>p{margin:0 0 12px;color:#b9c9e2;font-size:13px}
+      .explored-career-list{display:grid;gap:10px}.explored-career-card{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 12px;align-items:center;border:1px solid #345276;border-radius:13px;background:#091832;padding:12px 13px}
+      .explored-career-card h4{margin:0 0 3px;font-size:15px}.explored-career-meta{color:#9fb3cf;font-size:12px}.explored-career-signal{color:#61e1d0;font-size:12px;font-weight:750;margin-top:4px}
+      .explored-career-wages{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;font-size:12px;color:#c9d8ef}.explored-career-wages b{color:#ffc96b}
+      .explored-career-gap{margin-top:7px;font-size:12px;font-weight:800}.explored-career-gap.short{color:#ffd08c}.explored-career-gap.good{color:#8bf0cf}
+      .explored-career-action{border:1px solid #4d6d94;background:#132c50;color:#f0f6ff;border-radius:11px;padding:10px 13px;font-weight:850;cursor:pointer;white-space:nowrap}
+      @media(max-width:620px){.explored-career-card{grid-template-columns:1fr}.explored-career-action{width:100%}}
+    `;
+    doc.head.appendChild(style);
+  }
+  function handoffHtml(records,mode,target){
+    const intro=mode==='work'
+      ?'These are careers you previously reflected on in Explore Careers. You can compare one here or keep browsing the local options below.'
+      :'You already explored these careers. Compare them with the hourly target created by your lifestyle choices, then choose the work direction you want to carry forward.';
+    return `<section class="explored-careers-handoff" id="exploredCareersHandoff"><h3>Careers You Already Explored</h3><p>${esc(intro)}</p><div class="explored-career-list">${records.map((record,index)=>{
+      const s=record.snapshot||{};
+      const entry=Number(s.entryHourly);
+      let gap='';
+      if(mode==='life'&&target>0&&Number.isFinite(entry)){
+        const diff=entry-target;
+        gap=diff>=0
+          ?`<div class="explored-career-gap good">Entry estimate is $${diff.toFixed(2)}/hr above your lifestyle target.</div>`
+          :`<div class="explored-career-gap short">Entry estimate is $${Math.abs(diff).toFixed(2)}/hr below your lifestyle target.</div>`;
+      }
+      return `<article class="explored-career-card"><div><h4>${esc(record.title)}</h4><div class="explored-career-meta">${esc(record.geographyLabel||'Earlier exploration')} · ${esc(record.code)}</div><div class="explored-career-signal">${esc(reflectionSignal(record))}</div><div class="explored-career-wages"><span>Entry <b>${esc(money(s.entryHourly))}</b></span><span>Typical <b>${esc(money(s.medianHourly))}</b></span><span>Higher-end <b>${esc(money(s.experiencedHourly))}</b></span></div>${gap}</div><button type="button" class="explored-career-action" data-explored-index="${index}">Compare in Work + Life Plan</button></article>`;
+    }).join('')}</div></section>`;
+  }
+  function findOccupationButton(doc,code){
+    return [...doc.querySelectorAll('[data-job]')].find(el=>String(el.dataset.job||'')===String(code))||null;
+  }
+  function selectExploredCareer(doc,record){
+    const direct=findOccupationButton(doc,record.code);
+    if(direct){direct.click();return;}
+    const explorer=doc.getElementById('explorerToggle');
+    if(explorer)explorer.click();
+    setTimeout(()=>{
+      const search=doc.getElementById('jobSearch');
+      if(search){
+        search.value=record.code||record.title||'';
+        const EventCtor=doc.defaultView?.Event||Event;
+        search.dispatchEvent(new EventCtor('input',{bubbles:true}));
+      }
+      setTimeout(()=>{
+        const button=findOccupationButton(doc,record.code);
+        if(button){button.click();return;}
+        doc.defaultView?.alert?.('This career is still saved in Explore Careers, but it is not available in the current county occupation list. Choose another explored career or use Search any occupation.');
+      },80);
+    },50);
+  }
+  function injectExploredCareers(doc){
+    if(!doc)return;
+    const mode=occupationStep(doc);
+    const existing=doc.getElementById('exploredCareersHandoff');
+    if(!mode){existing?.remove();return;}
+    const records=exploredCareers();
+    if(!records.length){existing?.remove();return;}
+    ensureExploredStyles(doc);
+    const target=targetHourly(doc);
+    const signature=JSON.stringify({mode,target:mode==='life'?target:0,ids:records.map(r=>`${r.code}:${r.savedAt}`)});
+    if(existing?.dataset.signature===signature)return;
+    existing?.remove();
+    const toolbar=doc.querySelector('.occupation-toolbar');
+    const host=doc.getElementById('stepContent');
+    if(!host)return;
+    const wrap=doc.createElement('div');
+    wrap.innerHTML=handoffHtml(records,mode,target);
+    const section=wrap.firstElementChild;
+    section.dataset.signature=signature;
+    if(toolbar)toolbar.insertAdjacentElement('beforebegin',section);else host.prepend(section);
+    section.querySelectorAll('[data-explored-index]').forEach(button=>{
+      button.addEventListener('click',()=>selectExploredCareer(doc,records[Number(button.dataset.exploredIndex)]));
+    });
+  }
+
   function buttonText(el){return String(el?.textContent||el?.value||'').trim().replace(/\s+/g,' ')}
   function setButtonText(el,text){
     if(!el)return;
@@ -160,22 +274,22 @@
     setTimeout(sync,100);
     setTimeout(sync,500);
   }
+  function enhanceFrame(doc){
+    relabelSaveActions(doc);
+    injectClearButton(doc);
+    injectOpportunityAssumptionNote(doc);
+    injectExploredCareers(doc);
+  }
   function wireFrame(){
     const frame=document.getElementById('experience');
     if(!frame)return;
     try{
       const win=frame.contentWindow;
       const doc=win?.document;
-      relabelSaveActions(doc);
-      injectClearButton(doc);
-      injectOpportunityAssumptionNote(doc);
+      enhanceFrame(doc);
       observer?.disconnect();
       if(doc?.body){
-        observer=new MutationObserver(()=>{
-          relabelSaveActions(doc);
-          injectClearButton(doc);
-          injectOpportunityAssumptionNote(doc);
-        });
+        observer=new MutationObserver(()=>enhanceFrame(doc));
         observer.observe(doc.body,{childList:true,subtree:true});
         doc.addEventListener('click',event=>{
           const el=event.target?.closest?.('button,input[type="button"],input[type="submit"],a');
@@ -192,10 +306,11 @@
               if(ok)void resetModule(targetLens);
               return;
             }
-            setTimeout(()=>injectOpportunityAssumptionNote(doc),0);
+            setTimeout(()=>enhanceFrame(doc),0);
           }
           const text=buttonText(el).toLowerCase();
           if(text==='save progress'||text==='complete & save my plan')scheduleSync();
+          setTimeout(()=>injectExploredCareers(doc),0);
         },true);
       }
       win?.addEventListener('career-tree-life-plan-updated',scheduleSync);
@@ -223,6 +338,6 @@
   wireFrame();
   sync();
   setInterval(sync,700);
-  window.addEventListener('storage',sync);
+  window.addEventListener('storage',()=>{sync();try{injectExploredCareers(document.getElementById('experience')?.contentWindow?.document)}catch(_){}});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')sync();});
 })();
