@@ -152,6 +152,7 @@
       .explored-career-wages{display:flex;gap:12px;flex-wrap:wrap;margin-top:7px;font-size:12px;color:#c9d8ef}.explored-career-wages b{color:#ffc96b}
       .explored-career-gap{margin-top:7px;font-size:12px;font-weight:800}.explored-career-gap.short{color:#ffd08c}.explored-career-gap.good{color:#8bf0cf}
       .explored-career-action{border:1px solid #4d6d94;background:#132c50;color:#f0f6ff;border-radius:11px;padding:10px 13px;font-weight:850;cursor:pointer;white-space:nowrap}
+      .explored-careers-handoff + .actions{margin-top:0;margin-bottom:18px;padding:0 2px 2px}
       @media(max-width:620px){.explored-career-card{grid-template-columns:1fr}.explored-career-action{width:100%}}
     `;
     doc.head.appendChild(style);
@@ -219,6 +220,15 @@
       button.addEventListener('click',()=>selectExploredCareer(doc,records[Number(button.dataset.exploredIndex)]));
     });
   }
+  function repositionOccupationActions(doc){
+    if(!doc||!occupationStep(doc))return;
+    const section=doc.getElementById('exploredCareersHandoff');
+    const host=doc.getElementById('stepContent');
+    if(!section||!host)return;
+    const actions=host.querySelector('.actions');
+    if(!actions||section.nextElementSibling===actions)return;
+    section.insertAdjacentElement('afterend',actions);
+  }
 
   function buttonText(el){return String(el?.textContent||el?.value||'').trim().replace(/\s+/g,' ')}
   function setButtonText(el,text){
@@ -279,6 +289,7 @@
     injectClearButton(doc);
     injectOpportunityAssumptionNote(doc);
     injectExploredCareers(doc);
+    repositionOccupationActions(doc);
   }
   function wireFrame(){
     const frame=document.getElementById('experience');
@@ -310,7 +321,7 @@
           }
           const text=buttonText(el).toLowerCase();
           if(text==='save progress'||text==='complete & save my plan')scheduleSync();
-          setTimeout(()=>injectExploredCareers(doc),0);
+          setTimeout(()=>{injectExploredCareers(doc);repositionOccupationActions(doc)},0);
         },true);
       }
       win?.addEventListener('career-tree-life-plan-updated',scheduleSync);
@@ -338,6 +349,6 @@
   wireFrame();
   sync();
   setInterval(sync,700);
-  window.addEventListener('storage',()=>{sync();try{injectExploredCareers(document.getElementById('experience')?.contentWindow?.document)}catch(_){}});
+  window.addEventListener('storage',()=>{sync();try{const doc=document.getElementById('experience')?.contentWindow?.document;injectExploredCareers(doc);repositionOccupationActions(doc)}catch(_){}});
   document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='hidden')sync();});
 })();
