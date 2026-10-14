@@ -46,30 +46,53 @@
     activeActions.style.width=`${Math.max(260,rect.width)}px`;
   }
 
+  function cleanupStrays(doc){
+    if(!doc?.body)return;
+    [...doc.body.querySelectorAll(':scope > .actions')].forEach(actions=>{
+      if(actions!==activeActions)actions.remove();
+    });
+    [...doc.querySelectorAll('.career-tree-actions-placeholder')].forEach(node=>{
+      if(node!==placeholder)node.remove();
+    });
+  }
+
   function restore(doc){
     if(activeActions){
       activeActions.classList.remove('career-tree-floating-actions');
       activeActions.style.removeProperty('left');
       activeActions.style.removeProperty('width');
-      if(placeholder?.isConnected)placeholder.replaceWith(activeActions);
+      if(placeholder?.isConnected){
+        placeholder.replaceWith(activeActions);
+      }else{
+        activeActions.remove();
+      }
     }
     placeholder=null;
     activeActions=null;
+    cleanupStrays(doc);
   }
 
   function apply(doc){
     if(!doc?.body)return;
     ensureStyles(doc);
+    cleanupStrays(doc);
+
     if(!occupationStep(doc)){
       restore(doc);
       return;
     }
 
     const actions=doc.getElementById('stepContent')?.querySelector('.actions');
-    if(!actions)return;
+    if(!actions){
+      if(activeActions&&!placeholder?.isConnected)restore(doc);
+      return;
+    }
 
     if(activeActions&&activeActions!==actions)restore(doc);
-    if(activeActions===actions){positionBar(doc);return;}
+    if(activeActions===actions){
+      positionBar(doc);
+      return;
+    }
 
     placeholder=doc.createElement('div');
     placeholder.className='career-tree-actions-placeholder';
@@ -77,6 +100,7 @@
     doc.body.appendChild(actions);
     actions.classList.add('career-tree-floating-actions');
     activeActions=actions;
+    cleanupStrays(doc);
     positionBar(doc);
   }
 
