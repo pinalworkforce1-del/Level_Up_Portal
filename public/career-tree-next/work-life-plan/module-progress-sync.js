@@ -11,6 +11,13 @@
 
   function read(key){try{return JSON.parse(localStorage.getItem(key)||'{}')}catch{return {}}}
   function roundMoney(value){return Math.round((Number(value)||0)*100)/100}
+  function frameDoc(){try{return document.getElementById('experience')?.contentWindow?.document||null}catch{return null}}
+  function isOpportunityStepOne(doc=frameDoc()){
+    if(!doc)return false;
+    const workActive=doc.getElementById('workLens')?.getAttribute('aria-pressed')==='true';
+    const stepText=String(doc.getElementById('stepContent')?.textContent||'').replace(/\s+/g,' ').trim().toUpperCase();
+    return workActive&&stepText.includes('STEP 1 OF 5')&&stepText.includes('OCCUPATION');
+  }
   function selectedHourly(plan){
     const job=plan.job||{};
     switch(plan.selectedWageLevel){
@@ -21,27 +28,35 @@
     }
   }
   function normalize(plan,isComplete){
-    const monthlyPlan=Number(plan.monthlyLivingPlan||0);
+    const preLifestyle=isOpportunityStepOne()&&plan.lens==='work'&&!isComplete;
+    const monthlyPlan=preLifestyle?0:Number(plan.monthlyLivingPlan||0);
     const hourly=selectedHourly(plan);
     const estimatedTakeHome=hourly>0?roundMoney(hourly*HOURS_PER_MONTH*TAKE_HOME_RATE):0;
-    const monthlyGap=roundMoney(monthlyPlan-estimatedTakeHome);
-    const gapStatus=monthlyGap>0.5?'shortfall':monthlyGap<-0.5?'surplus':'meets';
+    const monthlyGap=preLifestyle?0:roundMoney(monthlyPlan-estimatedTakeHome);
+    const gapStatus=preLifestyle?'not_calculated':monthlyGap>0.5?'shortfall':monthlyGap<-0.5?'surplus':'meets';
     return {
       progress:{status:isComplete?'complete':'in_progress',activity_complete:Boolean(isComplete)},
       pathway:plan.lens||'',
       area:plan.area||'',
       county:{key:plan.county||'',label:plan.countyLabel||''},
-      housing:{selection:plan.housing||'',monthly:Number(plan.housingMonthly||0)},
-      transportation:{selection:plan.transport||'',monthly:Number(plan.transportMonthly||0)},
+      housing:preLifestyle?{selection:'',monthly:0}:{selection:plan.housing||'',monthly:Number(plan.housingMonthly||0)},
+      transportation:preLifestyle?{selection:'',monthly:0}:{selection:plan.transport||'',monthly:Number(plan.transportMonthly||0)},
       monthly_plan:{
         total:monthlyPlan,
-        housing:Number(plan.housingMonthly||0),
-        transportation:Number(plan.transportMonthly||0)
+        housing:preLifestyle?0:Number(plan.housingMonthly||0),
+        transportation:preLifestyle?0:Number(plan.transportMonthly||0)
       },
       selected_occupation:plan.job||null,
       selected_wage_level:plan.selectedWageLevel||'',
-      target_hourly_wage:Number(plan.targetHourlyGross||0),
-      affordability:{
+      target_hourly_wage:preLifestyle?0:Number(plan.targetHourlyGross||0),
+      affordability:preLifestyle?{
+        selected_hourly_wage:hourly,
+        estimated_take_home_monthly:estimatedTakeHome,
+        monthly_gap:null,
+        gap_status:'not_calculated',
+        annual_gap_equivalent:null,
+        take_home_rate_assumption:TAKE_HOME_RATE
+      }:{
         selected_hourly_wage:hourly,
         estimated_take_home_monthly:estimatedTakeHome,
         monthly_gap:monthlyGap,
@@ -122,6 +137,18 @@
       if(text==='save my plan')setButtonText(el,'Complete & Save My Plan');
     });
   }
+  function normalizeOpportunitySnapshot(doc){
+    if(!isOpportunityStepOne(doc))return;
+    const target=doc.getElementById('targetWage');
+    const monthly=doc.getElementById('monthlyPlan');
+    const gap=doc.getElementById('gapline');
+    if(target)target.innerHTML='$0 <span>/hour target</span>';
+    if(monthly)monthly.textContent='$0';
+    if(gap){
+      gap.textContent='Choose an occupation, then build your lifestyle plan to see how the pay compares.';
+      gap.className='gap';
+    }
+  }
   function injectClearButton(doc){
     const tools=doc?.querySelector('.topline-tools');
     if(!tools||doc.getElementById('careerTreeClearModule'))return;
@@ -150,10 +177,15 @@
       const doc=win?.document;
       relabelSaveActions(doc);
       injectClearButton(doc);
+      normalizeOpportunitySnapshot(doc);
       observer?.disconnect();
       if(doc?.body){
-        observer=new MutationObserver(()=>{relabelSaveActions(doc);injectClearButton(doc)});
-        observer.observe(doc.body,{childList:true,subtree:true});
+        observer=new MutationObserver(()=>{
+          relabelSaveActions(doc);
+          injectClearButton(doc);
+          normalizeOpportunitySnapshot(doc);
+        });
+        observer.observe(doc.body,{childList:true,subtree:true,characterData:true});
         doc.addEventListener('click',event=>{
           const el=event.target?.closest?.('button,input[type="button"],input[type="submit"],a');
           if(!el)return;
@@ -172,6 +204,7 @@
           }
           const text=buttonText(el).toLowerCase();
           if(text==='save progress'||text==='complete & save my plan')scheduleSync();
+          setTimeout(()=>normalizeOpportunitySnapshot(doc),0);
         },true);
       }
       win?.addEventListener('career-tree-life-plan-updated',scheduleSync);
