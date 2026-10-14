@@ -122,6 +122,24 @@
       if(text==='save my plan')setButtonText(el,'Complete & Save My Plan');
     });
   }
+  function injectOpportunityAssumptionNote(doc){
+    if(!doc)return;
+    const workActive=doc.getElementById('workLens')?.getAttribute('aria-pressed')==='true';
+    let note=doc.getElementById('opportunityAssumptionNote');
+    if(!workActive){
+      note?.remove();
+      return;
+    }
+    if(note)return;
+    const description=doc.getElementById('lensDescription');
+    if(!description)return;
+    note=doc.createElement('div');
+    note.id='opportunityAssumptionNote';
+    note.setAttribute('role','note');
+    note.style.cssText='margin:0 0 14px;padding:10px 13px;border-left:3px solid #ffc96b;border-radius:8px;background:#0a1831;color:#d2ddf2;font-size:13px;line-height:1.45';
+    note.innerHTML='<strong style="color:#ffc96b">Planning note:</strong> Some life-related expenses are estimated to give you a starting point. You can adjust housing, transportation, and budget choices based on your personal preferences and goals as this activity progresses.';
+    description.insertAdjacentElement('afterend',note);
+  }
   function injectClearButton(doc){
     const tools=doc?.querySelector('.topline-tools');
     if(!tools||doc.getElementById('careerTreeClearModule'))return;
@@ -150,9 +168,14 @@
       const doc=win?.document;
       relabelSaveActions(doc);
       injectClearButton(doc);
+      injectOpportunityAssumptionNote(doc);
       observer?.disconnect();
       if(doc?.body){
-        observer=new MutationObserver(()=>{relabelSaveActions(doc);injectClearButton(doc)});
+        observer=new MutationObserver(()=>{
+          relabelSaveActions(doc);
+          injectClearButton(doc);
+          injectOpportunityAssumptionNote(doc);
+        });
         observer.observe(doc.body,{childList:true,subtree:true});
         doc.addEventListener('click',event=>{
           const el=event.target?.closest?.('button,input[type="button"],input[type="submit"],a');
@@ -169,6 +192,7 @@
               if(ok)void resetModule(targetLens);
               return;
             }
+            setTimeout(()=>injectOpportunityAssumptionNote(doc),0);
           }
           const text=buttonText(el).toLowerCase();
           if(text==='save progress'||text==='complete & save my plan')scheduleSync();
