@@ -27,16 +27,18 @@ export class NavigationEngine{
     const win=frameWindow(),doc=frameDocument();
     try{
       for(const scene of this._scenes(win)){
-        scene.traverse?.(o=>{if(o?.userData?.cqNavigationMarker)o.parent?.remove(o)});
+        const removals=[];
+        scene.traverse?.(o=>{if(o?.userData?.cqNavigationMarker)removals.push(o)});
+        removals.forEach(o=>{try{o.parent?.remove(o)}catch{}});
       }
     }catch{}
     doc?.querySelectorAll?.('[data-cq-navigation-marker="true"]').forEach(el=>el.remove());
     this.active=null;
   }
 
-  activate(step){
+  activate(step,{force=false}={}){
     if(!step?.target)return false;
-    if(this.active?.stepId===step.id)return true;
+    if(!force&&this.active?.stepId===step.id&&['3d','dom'].includes(this.active.status))return true;
     this.clear();
 
     const binding=this.targets.get(step.target);
@@ -70,6 +72,12 @@ export class NavigationEngine{
     this.active={stepId:step.id,target:step.target,status:'unresolved'};
     window.dispatchEvent(new CustomEvent('cq:navigation-target',{detail:{...this.active,step}}));
     return false;
+  }
+
+  refresh(step){
+    if(!step?.target)return false;
+    if(this.active?.stepId===step.id&&['3d','dom'].includes(this.active.status))return true;
+    return this.activate(step,{force:true});
   }
 
   _make3DMarker(win){
