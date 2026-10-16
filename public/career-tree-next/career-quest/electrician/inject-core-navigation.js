@@ -2,7 +2,9 @@
 'use strict';
 const FRAME_ID='experience';
 const SCRIPT_ID='cq-core-navigation-extension';
-const SRC='../../../career-tree-next/career-quest/electrician/core-navigation-extension.js?v=20261016-native2';
+// Resolve from the OUTER wrapper URL before injecting into the inner game document.
+// This avoids the iframe resolving the script relative to /career-skill-tree/.
+const SRC=new URL('core-navigation-extension.js?v=20261016-native3',window.location.href).href;
 
 function inject(){
   const frame=document.getElementById(FRAME_ID);if(!frame)return false;
@@ -13,6 +15,8 @@ function inject(){
   script.id=SCRIPT_ID;
   script.src=SRC;
   script.async=false;
+  script.onload=()=>{try{doc.body.dataset.cqCoreExtension='loaded'}catch{}};
+  script.onerror=()=>{try{doc.body.dataset.cqCoreExtension='error'}catch{}};
   (doc.body||doc.head||doc.documentElement).appendChild(script);
   return true;
 }
