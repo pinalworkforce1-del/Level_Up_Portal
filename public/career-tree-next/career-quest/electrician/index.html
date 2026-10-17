@@ -18,43 +18,53 @@
     'use strict';
     const params=new URLSearchParams(location.search);
     const qa=params.get('qa')==='day6';
+    const fresh=params.get('fresh')==='1';
     window.__ELECTRICIAN_QA__=qa;
     const CORE='career-quest-electrician-days123-v1';
     const BACKUP='career-quest-electrician-qa-backup-v1';
+    const ACTIVE='career-quest-electrician-qa-active';
     const read=(key)=>{try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}};
     if(qa){
-      const current=read(CORE)||{day:1,step:0,runtime:{day:1,phase:0},stats:[0,0,0],discoveries:[],flags:{},history:[],seenCinematics:{},questions:{}};
-      let protectedSave=read(BACKUP);
-      if(!protectedSave){
-        protectedSave=JSON.parse(JSON.stringify(current));
-        localStorage.setItem(BACKUP,JSON.stringify(protectedSave));
-      }
-      const test=JSON.parse(JSON.stringify(protectedSave));
-      test.flags=test.flags&&typeof test.flags==='object'?test.flags:{};
-      test.flags.direction=test.flags.direction||'Continue';
-      test.runtime={day:6,phase:0};
-      test.day=6;
-      test.step=0;
-      test.shiftDays=Array.isArray(test.shiftDays)?test.shiftDays.filter(x=>Number(x?.day)<6):[];
-      for(const d of [4,5]){
-        if(!test.shiftDays.some(x=>Number(x?.day)===d&&x?.completed)){
-          test.shiftDays.push({day:d,completed:true,paidHours:8,qaPrerequisite:true,title:d===4?'Receiving the Delivery':'Tools & Workbench'});
+      const alreadyActive=sessionStorage.getItem(ACTIVE)==='1';
+      if(fresh||!alreadyActive){
+        const current=read(CORE)||{day:1,step:0,runtime:{day:1,phase:0},stats:[0,0,0],discoveries:[],flags:{},history:[],seenCinematics:{},questions:{}};
+        let protectedSave=read(BACKUP);
+        if(!protectedSave){
+          protectedSave=JSON.parse(JSON.stringify(current));
+          localStorage.setItem(BACKUP,JSON.stringify(protectedSave));
         }
+        const test=JSON.parse(JSON.stringify(protectedSave));
+        test.flags=test.flags&&typeof test.flags==='object'?test.flags:{};
+        test.flags.direction=test.flags.direction||'Continue';
+        test.runtime={day:6,phase:0};
+        test.day=6;
+        test.step=0;
+        test.shiftDays=Array.isArray(test.shiftDays)?test.shiftDays.filter(x=>Number(x?.day)<6):[];
+        for(const d of [4,5]){
+          if(!test.shiftDays.some(x=>Number(x?.day)===d&&x?.completed)){
+            test.shiftDays.push({day:d,completed:true,paidHours:8,qaPrerequisite:true,title:d===4?'Receiving the Delivery':'Tools & Workbench'});
+          }
+        }
+        if(test.nativeMissionResults&&typeof test.nativeMissionResults==='object')for(const d of ['6','7','8','9','10'])delete test.nativeMissionResults[d];
+        if(test.life&&typeof test.life==='object'){
+          test.life.results=Array.isArray(test.life.results)?test.life.results.filter(x=>Number(x?.day)<6):[];
+          test.life.events=Array.isArray(test.life.events)?test.life.events.filter(x=>Number(x?.day)<6):[];
+        }
+        delete test.completedAt;
+        delete test.complete;
+        test.qaMode={active:true,startDay:6,startedAt:new Date().toISOString(),source:'protected-backup'};
+        localStorage.setItem(CORE,JSON.stringify(test));
+        sessionStorage.setItem(ACTIVE,'1');
       }
-      if(test.nativeMissionResults&&typeof test.nativeMissionResults==='object')for(const d of ['6','7','8','9','10'])delete test.nativeMissionResults[d];
-      if(test.life&&typeof test.life==='object'){
-        test.life.results=Array.isArray(test.life.results)?test.life.results.filter(x=>Number(x?.day)<6):[];
-        test.life.events=Array.isArray(test.life.events)?test.life.events.filter(x=>Number(x?.day)<6):[];
+      if(fresh){
+        params.delete('fresh');
+        const clean=location.pathname+'?'+params.toString()+location.hash;
+        history.replaceState(null,'',clean);
       }
-      delete test.completedAt;
-      delete test.complete;
-      test.qaMode={active:true,startDay:6,startedAt:new Date().toISOString(),source:'protected-backup'};
-      localStorage.setItem(CORE,JSON.stringify(test));
-      sessionStorage.setItem('career-quest-electrician-qa-active','1');
     }else{
       const backup=localStorage.getItem(BACKUP);
       if(backup){
-        try{JSON.parse(backup);localStorage.setItem(CORE,backup);localStorage.removeItem(BACKUP);sessionStorage.removeItem('career-quest-electrician-qa-active')}catch{}
+        try{JSON.parse(backup);localStorage.setItem(CORE,backup);localStorage.removeItem(BACKUP);sessionStorage.removeItem(ACTIVE)}catch{}
       }
     }
   })();
@@ -62,7 +72,7 @@
   <script src="native-progress-migration.js?v=20261016-native-migrate1"></script>
 </head>
 <body>
-  <div id="qaBanner" class="qa-banner" hidden><div><strong>QA MODE</strong> • Fresh Day 6–10 test built from your protected participant backup. Cloud progress sync is disabled for this session.</div><a href="./">Exit QA &amp; Restore</a></div>
+  <div id="qaBanner" class="qa-banner" hidden><div><strong>QA MODE</strong> • Day 6–10 test. Refresh now preserves your current test phase. Use a fresh QA link to reset back to Day 6.</div><a href="./">Exit QA &amp; Restore</a></div>
   <iframe id="experience" src="../../../career-skill-tree/career-quest/electrician/" title="Career Quest: Electrician"></iframe>
   <script>
   (()=>{
