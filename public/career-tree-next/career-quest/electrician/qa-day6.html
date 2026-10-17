@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#071126">
+  <title>QA • Electrician Day 6–10</title>
+  <style>
+    *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:#071126;color:#fff;font-family:Inter,system-ui,sans-serif;overflow:hidden}
+    body{display:grid;grid-template-rows:auto 1fr}.qa{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:9px 14px;background:#4b2d09;border-bottom:1px solid #f1b85c;font-size:13px}.qa strong{color:#ffd793}.qa a{color:#fff;background:#8a5717;border:1px solid #ffd793;border-radius:999px;padding:7px 11px;text-decoration:none;font-weight:800;white-space:nowrap}iframe{display:block;width:100%;height:100%;border:0;background:#071126}
+  </style>
+  <script>
+  (()=>{
+    'use strict';
+    const CORE='career-quest-electrician-days123-v1';
+    const BACKUP='career-quest-electrician-qa-backup-v1';
+    let current;
+    try{current=JSON.parse(localStorage.getItem(CORE)||'null')}catch{current=null}
+    if(!current){
+      current={day:1,step:0,runtime:{day:1,phase:0},stats:[0,0,0],discoveries:[],flags:{},history:[],seenCinematics:{},questions:{}};
+    }
+    if(!localStorage.getItem(BACKUP))localStorage.setItem(BACKUP,JSON.stringify(current));
+    const qa=JSON.parse(JSON.stringify(current));
+    qa.runtime={day:6,phase:0};
+    qa.day=6;
+    qa.step=0;
+    if(Array.isArray(qa.shiftDays))qa.shiftDays=qa.shiftDays.filter(x=>Number(x?.day)<6);
+    else qa.shiftDays=[];
+    if(qa.nativeMissionResults&&typeof qa.nativeMissionResults==='object'){
+      for(const d of ['6','7','8','9','10'])delete qa.nativeMissionResults[d];
+    }
+    if(qa.life&&Array.isArray(qa.life.results))qa.life.results=qa.life.results.filter(x=>Number(x?.day)<6);
+    qa.qaMode={active:true,startDay:6,startedAt:new Date().toISOString()};
+    localStorage.setItem(CORE,JSON.stringify(qa));
+    sessionStorage.setItem('career-quest-electrician-qa-active','1');
+  })();
+  </script>
+</head>
+<body>
+  <div class="qa"><div><strong>QA MODE</strong> • Temporary Day 6–10 test. Your real participant save is backed up and will be restored when you return to the normal Electrician link.</div><a href="./">Exit QA &amp; Restore</a></div>
+  <iframe src="../../../career-skill-tree/career-quest/electrician/" title="Electrician Career Quest QA"></iframe>
+</body>
+</html>
