@@ -18,7 +18,8 @@ const shim={
  loading:true
 };
 window.LevelUpElectricianMissionRegistry=shim;
-function loadSweep(){const s=document.createElement('script');s.src='./native-interaction-sweep.js?v=20261017-sweep1';s.async=false;s.onerror=()=>console.error('Unable to load Electrician Days 6-10 interaction sweep');document.head.appendChild(s)}
+function loadSequenceFix(){const f=document.createElement('script');f.src='./native-sequence-state-fix.js?v=20261017-seqfix1';f.async=false;f.onerror=()=>console.error('Unable to load sequence state cleanup');document.head.appendChild(f)}
+function loadSweep(){const s=document.createElement('script');s.src='./native-interaction-sweep.js?v=20261017-sweep1';s.async=false;s.onerror=()=>console.error('Unable to load Electrician Days 6-10 interaction sweep');s.onload=loadSequenceFix;document.head.appendChild(s)}
 function loadPolish(){const p=document.createElement('script');p.src='./native-interaction-polish.js?v=20261017-polish4';p.async=false;p.onerror=()=>console.error('Unable to load Electrician interaction polish');p.onload=loadSweep;document.head.appendChild(p)}
 function loadInteraction(){const script=document.createElement('script');script.src='./native-interaction-v3.js?v=20261017-interaction3';script.async=false;script.onerror=()=>console.error('Unable to load Electrician proximity interaction engine');script.onload=loadPolish;document.head.appendChild(script)}
 const pre=document.createElement('script');pre.src='./pre-shift-life.js?v=20261017-preshift1';pre.async=false;pre.onload=()=>Promise.resolve(window.__CQ_PRE_SHIFT_READY__).then(loadInteraction);pre.onerror=()=>loadInteraction();document.head.appendChild(pre);
