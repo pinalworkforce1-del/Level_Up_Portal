@@ -18,6 +18,6 @@ const shim={
  loading:true
 };
 window.LevelUpElectricianMissionRegistry=shim;
-function loadInteraction(){const script=document.createElement('script');script.src='./native-interaction-v3.js?v=20261017-interaction2';script.async=false;script.onerror=()=>console.error('Unable to load Electrician proximity interaction engine');document.head.appendChild(script)}
+function loadInteraction(){const script=document.createElement('script');script.src='./native-interaction-v3.js?v=20261017-interaction3';script.async=false;script.onerror=()=>console.error('Unable to load Electrician proximity interaction engine');document.head.appendChild(script)}
 const pre=document.createElement('script');pre.src='./pre-shift-life.js?v=20261017-preshift1';pre.async=false;pre.onload=()=>Promise.resolve(window.__CQ_PRE_SHIFT_READY__).then(loadInteraction);pre.onerror=()=>loadInteraction();document.head.appendChild(pre);
 })();
