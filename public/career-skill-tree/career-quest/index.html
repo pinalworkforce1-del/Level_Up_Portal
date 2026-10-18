@@ -8,7 +8,41 @@
 <section class="hero"><span class="eyebrow">CAREER QUEST • WORKPLACE SKILLS</span><h1>Build skills for <em>any workplace.</em></h1><p>Explore what it takes to communicate, collaborate, prepare for employment, and navigate your first month on the job. Choose an experience to get started.</p></section>
 <main class="grid" aria-label="Career Quest experiences">
 <article class="card"><div class="symbol" aria-hidden="true">💬</div><span class="eyebrow">LEARN • PRACTICE • PREPARE</span><h2>Ready 2 Work</h2><p>Strengthen the skills employers value through interactive situations and feedback. Continue through Soft Skills Base Camp, résumé preparation, and mock interview practice as the full pathway is completed.</p><div class="tags">Communication • Teamwork • Professionalism • Résumé • Interview</div><a class="launch" href="https://pinalworkforce1-del.github.io/BOOST_Pathway-Portal/ready-2-work-qa/index.html#map">Enter Ready 2 Work →</a></article>
-<article class="card"><div class="symbol" aria-hidden="true">🚀</div><span class="eyebrow">START STRONG • BUILD TRUST</span><h2>The First 30</h2><p>Face real workplace situations, practice asking questions, respond to feedback, and build the habits that help you succeed in your first month of employment.</p><div class="tags">First impressions • Reliability • Communication • Growth</div><a class="launch" href="../../first30/?from=career-quest">Enter The First 30 →</a></article>
+<article class="card"><div class="symbol" aria-hidden="true">🚀</div><span class="eyebrow">START STRONG • BUILD TRUST</span><h2>The First 30</h2><div id="first30Completion" role="status" aria-live="polite" style="font-weight:800;color:#a7f0cc;margin-bottom:12px">Checking your progress…</div><p>Face real workplace situations, practice asking questions, respond to feedback, and build the habits that help you succeed in your first month of employment.</p><div class="tags">First impressions • Reliability • Communication • Growth</div><a class="launch" href="../../first30/?from=career-quest">Enter The First 30 →</a></article>
 </main>
 <p class="hint">Career Quest now focuses on transferable workplace skills. The <a href="../../career-tree-next/career-quest/electrician/">Electrician exploration pilot</a> remains available separately for review.</p>
-</div></body></html>
+</div>
+<script>
+(async function(){
+ const badge=document.getElementById('first30Completion');
+ const launch=document.querySelector('a[href="../../first30/?from=career-quest"]');
+ const key='level-up-first30-v1';
+ const finished=p=>p&&p.complete===true&&Array.isArray(p.history)&&p.history.length===10;
+ const show=p=>{
+   if(finished(p)){badge.textContent='✓ Already completed — you can review or replay';launch.textContent='Review The First 30 →';return true}
+   if(p&&Array.isArray(p.history)&&p.history.length){badge.textContent='In progress • '+p.history.length+' of 10 checkpoints';launch.textContent='Continue The First 30 →';return false}
+   badge.textContent='Not started';return false;
+ };
+ let local=null;
+ try{local=JSON.parse(localStorage.getItem(key)||'null')}catch{}
+ const localDone=show(local);
+ let session=null;
+ try{session=JSON.parse(sessionStorage.getItem('level-up-supabase-session-v1')||'null')}catch{}
+ if(!session?.access_token||!session?.user){
+   try{const saved=JSON.parse(localStorage.getItem('sb-dnijrzotfyvmmnmueknk-auth-token')||'null');session=saved?.access_token?saved:saved?.currentSession||session}catch{}
+ }
+ if(!session?.access_token||!session?.user)return;
+ try{
+   const url='https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/module_progress?select=is_complete,journey_state&user_id=eq.'+encodeURIComponent(session.user.id)+'&module_id=eq.first30';
+   const res=await fetch(url,{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
+   if(!res.ok)return;
+   const rows=await res.json(),record=rows[0];
+   if(record?.is_complete===true || finished(record?.journey_state)){
+     badge.textContent='✓ Already completed — you can review or replay';launch.textContent='Review The First 30 →';
+   }else if(!localDone&&record?.journey_state){
+     const remote=record.journey_state,remoteCount=Array.isArray(remote.history)?remote.history.length:0,localCount=Array.isArray(local?.history)?local.history.length:0;
+     if(remoteCount>localCount)show(remote);
+   }
+ }catch{}
+})();
+</script></body></html>
