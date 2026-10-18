@@ -1,0 +1,71 @@
+name: Import Ready 2 Work into Career Tree
+
+on:
+  push:
+    paths:
+      - '.github/workflows/import-career-tree-ready2work.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Level Up Portal
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+      - name: Checkout source BOOST files (read-only)
+        uses: actions/checkout@v4
+        with:
+          repository: pinalworkforce1-del/BOOST_Pathway-Portal
+          ref: main
+          path: boost-original
+          persist-credentials: false
+      - name: Copy all Ready 2 Work assets and create independent Level Up configuration
+        shell: bash
+        run: |
+          set -euo pipefail
+          TARGET="public/career-tree-next/ready-2-work"
+          mkdir -p "$TARGET"
+          cp -a boost-original/ready-2-work-qa/. "$TARGET/"
+          python3 - <<'PY'
+          from pathlib import Path
+          root=Path('public/career-tree-next/ready-2-work')
+          app=root/'app.js'
+          content=app.read_text()
+          old="const STORAGE_KEY = 'boost-r2w-integrated-v1';"
+          new="const STORAGE_KEY = 'levelup-career-tree-ready2work-v1';"
+          assert old in content, 'Source storage key changed; review isolation before import'
+          app.write_text(content.replace(old,new,1))
+          html=root/'index.html'
+          content=html.read_text()
+          content=content.replace('BOOST • GET 2 WORK READY','LEVEL UP • READY 2 WORK')
+          content=content.replace('BOOST Work Ready Certificate','Level Up Work Ready Certificate')
+          content=content.replace('← BOOST Map','← Career Quest')
+          content=content.replace('href="../"','href="../career-quest/"')
+          html.write_text(content)
+          notes=root/'LEVEL_UP_IMPORT_NOTES.md'
+          notes.write_text('''# Career Tree Ready 2 Work isolated copy
+
+          Source: pinalworkforce1-del/BOOST_Pathway-Portal/ready-2-work-qa (main)
+          Destination: Level_Up_Portal/public/career-tree-next/ready-2-work/
+
+          This copy includes all images, audio, captions, JavaScript, CSS and HTML.
+          No BOOST files were modified. It has independent localStorage.
+          Cloud progress integration MUST use a distinct Level Up module identifier.
+          The resume and interview replacements remain future development work.
+          Do not re-run the import without reviewing local modifications because
+          re-import overwrites this independent Level Up copy.
+          '''.replace('          ',''))
+          PY
+          rm -rf boost-original
+          git add "$TARGET"
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+            exit 0
+          fi
+          git -c user.name='github-actions[bot]' -c user.email='41898282+github-actions[bot]@users.noreply.github.com' commit -m 'Import isolated complete Ready 2 Work QA module into Career Tree'
+          git push
