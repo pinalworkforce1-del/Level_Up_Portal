@@ -1,6 +1,8 @@
 const PAGE_PARAMS=new URLSearchParams(location.search);
 const LIVE_ROOM=(PAGE_PARAMS.get('room')||'').toUpperCase().replace(/[^A-Z2-9]/g,'');
 const FROM_FIRST_DAY=PAGE_PARAMS.get('from')==='first-day-challenge';
+const FROM_CAREER_QUEST=PAGE_PARAMS.get('from')==='career-quest';
+const EXIT_URL=FROM_CAREER_QUEST?'../career-skill-tree/career-quest/':'../';
 const STORAGE_KEY=LIVE_ROOM.length>=8?'level-up-first30-live-'+LIVE_ROOM:'level-up-first30-v1';
 const SCENES=[
  {id:'d01_morning',day:1,title:'The Morning Choice',prompt:'Your first shift starts at 9:00 AM. You planned to leave at 8:10, but you stayed up late and hit snooze twice. It is 7:55. You still need to get dressed, eat something, and make your bus.',image:'./assets/images/first30_d01_morning_scene.webp',audio:'./assets/audio/first30_d01_morning_narration.mp3',captions:'./assets/captions/first30_d01_morning_captions.vtt',reflection:'What are you protecting most right now: time, energy, or money?',choices:[
@@ -216,7 +218,7 @@ function showSummary(){
  $('summaryText').textContent=profile.analysis;
  $('choiceHistory').innerHTML=state.history.map(h=>'<div class="historyItem"><b>Day '+h.day+' • '+esc(h.title)+'</b><span>'+esc(h.choice)+'</span></div>').join('');
  renderCombinedReview();
- const returnBtn=$('returnPortalBtn');if(returnBtn)returnBtn.classList.toggle('hidden',!!LIVE_ROOM||!FROM_FIRST_DAY)
+ const returnBtn=$('returnPortalBtn');if(returnBtn)returnBtn.classList.toggle('hidden',!!LIVE_ROOM||!(FROM_FIRST_DAY||FROM_CAREER_QUEST))
 }
 function reset(){if(!confirm('Reset The First 30 and start again?'))return;state=cloneInitial();state.startedAt=new Date().toISOString();save();audio.pause();$('summaryScreen').classList.add('hidden');$('gameScreen').classList.add('hidden');$('introScreen').classList.remove('hidden');$('dayTop').textContent='THE FIRST 30';$('progressTop').textContent='Checkpoint 0 of '+SCENES.length}
 function replay(){audio.currentTime=0;audio.play().catch(()=>{});}
@@ -247,5 +249,5 @@ $('accessLargeText').onchange=()=>{access.large=$('accessLargeText').checked;app
 $('accessReduceMotion').onchange=()=>{access.reduce=$('accessReduceMotion').checked;applyAccess();saveAccess()};
 accessDialog.querySelectorAll('[data-rate]').forEach(b=>b.onclick=()=>{access.playbackRate=Number(b.dataset.rate)||1;applyAccess();saveAccess();syncAccessDialog()});
 audio.addEventListener('loadedmetadata',()=>{audio.playbackRate=Number(access.playbackRate||1)});
-const saveExitBtn=$('saveExitBtn');if(saveExitBtn)saveExitBtn.onclick=()=>{save();audio.pause();location.href='../'};const returnPortalBtn=$('returnPortalBtn');if(returnPortalBtn)returnPortalBtn.onclick=()=>{save();audio.pause();location.href='../?completed=first-day-challenge'};$('replayBtn').onclick=replay;$('ccBtn').onclick=toggleCC;$('continueBtn').onclick=next;$('resetBtn').onclick=reset;$('restartBtn').onclick=()=>{state=cloneInitial();state.started=true;save();$('summaryScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');renderScene();window.scrollTo(0,0)};
+const saveExitBtn=$('saveExitBtn');if(saveExitBtn)saveExitBtn.onclick=()=>{save();audio.pause();location.href=EXIT_URL};const returnPortalBtn=$('returnPortalBtn');if(returnPortalBtn)returnPortalBtn.onclick=()=>{save();audio.pause();location.href=FROM_CAREER_QUEST?EXIT_URL:'../?completed=first-day-challenge'};$('replayBtn').onclick=replay;$('ccBtn').onclick=toggleCC;$('continueBtn').onclick=next;$('resetBtn').onclick=reset;$('restartBtn').onclick=()=>{state=cloneInitial();state.started=true;save();$('summaryScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');renderScene();window.scrollTo(0,0)};
 applyAccess();syncAccessDialog();if(state.complete)showSummary();else if(state.started){$('introScreen').classList.add('hidden');$('gameScreen').classList.remove('hidden');renderScene()}initCloud();
