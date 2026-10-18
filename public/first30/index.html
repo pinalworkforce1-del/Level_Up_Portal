@@ -131,7 +131,15 @@
   </dialog>
 
 <audio id="sceneAudio" preload="metadata"></audio>
-<script defer src="./app-selfpaced-v4.js"></script>
+<script>
+if(new URLSearchParams(location.search).get('from')==='career-quest'){
+  const label=document.querySelector('#introScreen .introCard small');
+  const heading=document.querySelector('#introScreen .introCard h1');
+  if(label)label.textContent='CAREER QUEST • THE FIRST 30';
+  if(heading)heading.innerHTML='Your first month starts here.<br>Every choice matters.';
+}
+</script>
+<script defer src="./app-selfpaced-v4.js?v=career-quest-standalone1"></script>
   <script defer src="../offline-client.js"></script>
   <script defer src="../offline-progress.js"></script>
 </body>
