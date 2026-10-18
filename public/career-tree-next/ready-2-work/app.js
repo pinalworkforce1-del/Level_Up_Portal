@@ -5,6 +5,36 @@
   const skillNames = course.skills;
   const skillOrder = course.skillOrder;
   const STORAGE_KEY = 'levelup-career-tree-ready2work-v1';
+  const RESUME_URL = 'https://pinalworkforce1-del.github.io/Resume_District/';
+  const INTERVIEW_URL = 'https://pinalworkforce1-del.github.io/Interview_Arena/';
+  const MODULE_COMPLETIONS = {resume:false, interview:false};
+  function launchLevelUp(url){ saveState(); window.location.href=url; }
+  function linkedResumeComplete(){return MODULE_COMPLETIONS.resume;}
+  function linkedInterviewComplete(){return MODULE_COMPLETIONS.interview;}
+  function levelUpSession(){
+    try{ const x=JSON.parse(sessionStorage.getItem('level-up-supabase-session-v1')||'null');if(x?.access_token&&x?.user)return x;}catch{}
+    try{ const x=JSON.parse(localStorage.getItem('sb-dnijrzotfyvmmnmueknk-auth-token')||'null');const v=x?.access_token?x:x?.currentSession;return v?.access_token&&v?.user?v:null;}catch{}
+    return null;
+  }
+  async function refreshLinkedCompletions(){
+    const session=levelUpSession();
+    if(!session)return;
+    try{
+      const url='https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/module_progress?select=module_id,is_complete&user_id=eq.'+
+        encodeURIComponent(session.user.id)+'&module_id=in.(resume-district,interview-arena)';
+      const res=await fetch(url,{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
+      if(!res.ok)return;
+      const rows=await res.json();
+      MODULE_COMPLETIONS.resume=rows.some(r=>r.module_id==='resume-district'&&r.is_complete===true);
+      MODULE_COMPLETIONS.interview=rows.some(r=>r.module_id==='interview-arena'&&r.is_complete===true);
+      const view=document.querySelector('.view:not([hidden])');
+      if(view?.id==='viewStage')renderStageHome(activeStage);
+      else if(view?.id==='viewCertificate')renderCertificate();
+      else if(view?.id==='viewMap')renderMap();
+    }catch(e){console.warn('Ready 2 Work completion refresh unavailable',e)}
+  }
+  window.addEventListener('pageshow',()=>refreshLinkedCompletions());
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshLinkedCompletions()});
   const $ = id => document.getElementById(id);
 
   const stageDefs = {
@@ -100,8 +130,8 @@
   function answeredCount(){ return Object.keys(state.sceneSelections).filter(id=>scenes.some(s=>String(s.id)===String(id))).length; }
   function stageScenes(stage){ return scenes.filter(s=>s.stage===stage); }
   function stageAnswered(stage){ return stageScenes(stage).filter(s=>state.sceneSelections[s.id]).length; }
-  function stageComplete(stage){ const list=stageScenes(stage); const scenariosDone=list.length>0 && stageAnswered(stage)===list.length; if(stage==='Resume Retreat') return scenariosDone && !!state.resumeBuilder?.complete; if(stage==='Interview Landing') return scenariosDone && !!state.mockInterview?.complete; return scenariosDone; }
-  function allComplete(){ return answeredCount()===scenes.length && !!state.resumeBuilder?.complete && !!state.mockInterview?.complete; }
+  function stageComplete(stage){ const list=stageScenes(stage); const scenariosDone=list.length>0 && stageAnswered(stage)===list.length; if(stage==='Resume Retreat') return scenariosDone && linkedResumeComplete(); if(stage==='Interview Landing') return scenariosDone && linkedInterviewComplete(); return scenariosDone; }
+  function allComplete(){ return answeredCount()===scenes.length && linkedResumeComplete() && linkedInterviewComplete(); }
   function stageUnlocked(stage){
     const i=stageOrder.indexOf(stage);
     return i<=0 || stageComplete(stageOrder[i-1]);
@@ -176,11 +206,23 @@
     $('requiredPathMeta').textContent=complete?`${total} of ${total} complete • revisit any decision`:`${done} of ${total} complete • skill impact updates after every decision`;
     $('requiredPathBtn').onclick=()=>route('scene',{index:firstIncompleteIndex(stage)});
     const grid=$('stageExperienceGrid'); grid.querySelectorAll('.resume-builder-card').forEach(x=>x.remove());
+    if(stage==='Interview Landing'){
+      const scenariosDone=done===total, completed=linkedInterviewComplete();
+      const b=document.createElement('button');b.type='button';
+      b.className='board-card resume-builder-card'+(scenariosDone?'':' locked');
+      b.disabled=!scenariosDone;
+      b.innerHTML='<span class="card-kicker">REQUIRED • STEP 2</span><strong>Level Up Interview Arena</strong><small>'+
+        (!scenariosDone?'Complete the 5 Interview Landing decisions to unlock.':completed?'Interview Arena complete ✓':'Practice your mock interview in Level Up Interview Arena.')+
+        '</small><span class="card-arrow">'+(completed?'✓':'→')+'</span>';
+      if(scenariosDone)b.onclick=()=>launchLevelUp(INTERVIEW_URL);
+      grid.prepend(b);
+      $('stageHomeProgress').textContent=stageComplete(stage)?'Complete':scenariosDone?'Interview Arena required':done+' of '+total+' decisions';
+    }
     if(stage==='Resume Retreat'){
-      const scenariosDone=done===total, rb=state.resumeBuilder||{};
+      const scenariosDone=done===total, rb={complete:linkedResumeComplete()};
       const b=document.createElement('button'); b.type='button'; b.className='board-card resume-builder-card'+(scenariosDone?'':' locked'); b.disabled=!scenariosDone;
-      b.innerHTML=`<span class="card-kicker">REQUIRED • STEP 2</span><strong>Résumé Builder</strong><small>${!scenariosDone?'Complete the 5 Resume Retreat decisions to unlock.':rb.complete?'Employer-ready résumé complete ✓':'Build, review, and approve your employer-ready résumé.'}</small><span class="card-arrow">${rb.complete?'✓':'→'}</span>`;
-      if(scenariosDone) b.onclick=()=>route('resume-builder'); grid.prepend(b);
+      b.innerHTML=`<span class="card-kicker">REQUIRED • STEP 2</span><strong>Level Up Resume District</strong><small>${!scenariosDone?'Complete the 5 Resume Retreat decisions to unlock.':rb.complete?'Employer-ready résumé complete ✓':'Build and review your résumé in Resume District.'}</small><span class="card-arrow">${rb.complete?'✓':'→'}</span>`;
+      if(scenariosDone) b.onclick=()=>launchLevelUp(RESUME_URL); grid.prepend(b);
       $('requiredPathTitle').textContent=scenariosDone?'Review Resume Decision Trail':'Continue Resume Decision Trail';
       $('requiredPathMeta').textContent=`${done} of ${total} decisions complete • Résumé Builder ${rb.complete?'complete':scenariosDone?'unlocked':'locked'}`;
       $('stageHomeProgress').textContent=stageComplete(stage)?'Complete':scenariosDone?'Builder required':`${done} of ${total} decisions`;
@@ -381,7 +423,7 @@
     const current=scenes[state.currentScene], list=stageScenes(current.stage), isStageEnd=current.id===list[list.length-1].id;
     if(isStageEnd){
       if(current.stage==='Soft Skills Base Camp'){ route('map'); return; }
-      if(current.stage==='Resume Retreat'){ route('resume-builder'); return; }
+      if(current.stage==='Resume Retreat'){ route('stage',{stage:'Resume Retreat'}); return; }
       if(current.stage==='Interview Landing'){ route('stage',{stage:'Interview Landing'}); return; }
     }
     if(state.currentScene<scenes.length-1) route('scene',{index:state.currentScene+1});
@@ -409,6 +451,7 @@
   $('resetBtn').onclick=()=>{ if(confirm('Start Ready 2 Work over on this device? This clears decisions, skill evidence, and certificate progress.')){ localStorage.removeItem(STORAGE_KEY); location.hash='#map'; location.reload(); } };
 
   loadState(); recalcScores(); updateOverall();
+  refreshLinkedCompletions();
   const hash=location.hash||'#map';
   if(hash.startsWith('#scene-')){ const id=Number(hash.split('-')[1]); const idx=scenes.findIndex(s=>s.id===id); route('scene',{index:idx>=0?idx:0}); }
   else if(hash==='#certificate') route('certificate');
