@@ -1,0 +1,36 @@
+BOOST GET 2 WORK READY — INTEGRATED FIRST-RUN BUILD
+
+FLOW
+BOOST Map (external) -> Get 2 Work Ready Pathway Map -> Stage Home -> Required Scenarios -> Certificate
+
+INCLUDED
+- Get 2 Work Ready pathway map
+- Soft Skills Base Camp home
+- Resume Retreat home
+- Interview Landing home
+- 22 published scenario scenes (S01-S12, S21-S25, S31-S35)
+- Persistent six-skill mastery HUD
+- Centered skill-impact card after each decision
+- Stage and overall progress
+- Local persistence
+- Certificate preview / unlock logic
+- Dynamic six-skill mastery profile
+- Participant name, completion date, certificate ID
+- Print / Save PDF behavior
+
+FIRST-RUN CERTIFICATE RULE
+The prototype certificate unlocks when all 22 currently published scenarios have a recorded decision. This is intentionally a first-run rule. Before production, final requirements should include the full required Resume and Interview artifacts/experiences once those are finalized.
+
+MASTER LEVELS
+Developing / Demonstrated / Strong / Advanced. Levels are calculated from positive evidence earned relative to the maximum positive evidence available for each skill in the published scenario bank. Raw numeric scores are not shown to participants.
+
+BRANDING NOTE
+The certificate prototype reserves an ARIZONA@WORK Pinal County lockup area. The currently coded lockup is text-only. Replace it with the approved official logo asset before external/employer use.
+
+INTEGRATION NEXT
+1) Publish integrated media to GitHub Pages.
+2) Add Get 2 Work Ready hotspot/card to the BOOST main map.
+3) Add pathway-specific Ready 2 Work availability/due logic.
+4) Persist participant progress to Supabase instead of local-only storage.
+5) Surface Ready 2 Work status/mastery/certificate in BOOST Coach View and TalentSync.
+6) Add certificate verification record / QR when production credential rules are finalized.

@@ -1,0 +1,288 @@
+[
+  {
+    "scene_id": 1,
+    "stage": "Soft Skills Base Camp",
+    "title": "Running Late",
+    "image": "assets/R2W-S01-IMG.webp",
+    "prompt_audio": null,
+    "impact_audio": {
+      "A": null,
+      "B": null,
+      "C": null,
+      "D": null
+    }
+  },
+  {
+    "scene_id": 2,
+    "stage": "Soft Skills Base Camp",
+    "title": "Unclear Instructions",
+    "image": "assets/R2W-S02-IMG.webp",
+    "prompt_audio": null,
+    "impact_audio": {
+      "A": null,
+      "B": null,
+      "C": null,
+      "D": null
+    }
+  },
+  {
+    "scene_id": 3,
+    "stage": "Soft Skills Base Camp",
+    "title": "The Mistake",
+    "image": "assets/R2W-S03-IMG.webp",
+    "prompt_audio": null,
+    "impact_audio": {
+      "A": null,
+      "B": null,
+      "C": null,
+      "D": null
+    }
+  },
+  {
+    "scene_id": 4,
+    "stage": "Soft Skills Base Camp",
+    "title": "Coworker Falling Behind",
+    "image": "assets/R2W-S04-IMG.webp",
+    "prompt_audio": null,
+    "impact_audio": {
+      "A": null,
+      "B": null,
+      "C": null,
+      "D": null
+    }
+  },
+  {
+    "scene_id": 5,
+    "stage": "Soft Skills Base Camp",
+    "title": "Three Priorities",
+    "image": "assets/R2W-S05-IMG.webp",
+    "prompt_audio": "assets/R2W-S05-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S05-IMPACT-A.mp3",
+      "B": "assets/R2W-S05-IMPACT-B.mp3",
+      "C": "assets/R2W-S05-IMPACT-C.mp3",
+      "D": "assets/R2W-S05-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 6,
+    "stage": "Soft Skills Base Camp",
+    "title": "Upset Customer",
+    "image": "assets/R2W-S06-IMG.webp",
+    "prompt_audio": "assets/R2W-S06-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S06-IMPACT-A.mp3",
+      "B": "assets/R2W-S06-IMPACT-B.mp3",
+      "C": "assets/R2W-S06-IMPACT-C.mp3",
+      "D": "assets/R2W-S06-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 7,
+    "stage": "Soft Skills Base Camp",
+    "title": "Confidential Information",
+    "image": "assets/R2W-S07-IMG.webp",
+    "prompt_audio": "assets/R2W-S07-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S07-IMPACT-A.mp3",
+      "B": "assets/R2W-S07-IMPACT-B.mp3",
+      "C": "assets/R2W-S07-IMPACT-C.mp3",
+      "D": "assets/R2W-S07-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 8,
+    "stage": "Soft Skills Base Camp",
+    "title": "Shift Handoff",
+    "image": "assets/R2W-S08-IMG.webp",
+    "prompt_audio": "assets/R2W-S08-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S08-IMPACT-A.mp3",
+      "B": "assets/R2W-S08-IMPACT-B.mp3",
+      "C": "assets/R2W-S08-IMPACT-C.mp3",
+      "D": "assets/R2W-S08-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 9,
+    "stage": "Soft Skills Base Camp",
+    "title": "Procedure Changed",
+    "image": "assets/R2W-S09-IMG.webp",
+    "prompt_audio": "assets/R2W-S09-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S09-IMPACT-A.mp3",
+      "B": "assets/R2W-S09-IMPACT-B.mp3",
+      "C": "assets/R2W-S09-IMPACT-C.mp3",
+      "D": "assets/R2W-S09-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 10,
+    "stage": "Soft Skills Base Camp",
+    "title": "Quality vs. Speed",
+    "image": "assets/R2W-S10-IMG.webp",
+    "prompt_audio": "assets/R2W-S10-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S10-IMPACT-A.mp3",
+      "B": "assets/R2W-S10-IMPACT-B.mp3",
+      "C": "assets/R2W-S10-IMPACT-C.mp3",
+      "D": "assets/R2W-S10-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 11,
+    "stage": "Soft Skills Base Camp",
+    "title": "Coworker Conflict",
+    "image": "assets/R2W-S11-IMG.webp",
+    "prompt_audio": "assets/R2W-S11-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S11-IMPACT-A.mp3",
+      "B": "assets/R2W-S11-IMPACT-B.mp3",
+      "C": "assets/R2W-S11-IMPACT-C.mp3",
+      "D": "assets/R2W-S11-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 12,
+    "stage": "Soft Skills Base Camp",
+    "title": "Schedule Mix-Up",
+    "image": "assets/R2W-S12-IMG.webp",
+    "prompt_audio": "assets/R2W-S12-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S12-IMPACT-A.mp3",
+      "B": "assets/R2W-S12-IMPACT-B.mp3",
+      "C": "assets/R2W-S12-IMPACT-C.mp3",
+      "D": "assets/R2W-S12-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 21,
+    "stage": "Resume Retreat",
+    "title": "Make My Title Better",
+    "image": "assets/R2W-S21-IMG.webp",
+    "prompt_audio": "assets/R2W-S21-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S21-IMPACT-A.mp3",
+      "B": "assets/R2W-S21-IMPACT-B.mp3",
+      "C": "assets/R2W-S21-IMPACT-C.mp3",
+      "D": "assets/R2W-S21-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 22,
+    "stage": "Resume Retreat",
+    "title": "The Employment Gap",
+    "image": "assets/R2W-S22-IMG.webp",
+    "prompt_audio": "assets/R2W-S22-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S22-IMPACT-A.mp3",
+      "B": "assets/R2W-S22-IMPACT-B.mp3",
+      "C": "assets/R2W-S22-IMPACT-C.mp3",
+      "D": "assets/R2W-S22-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 23,
+    "stage": "Resume Retreat",
+    "title": "Are You an Expert?",
+    "image": "assets/R2W-S23-IMG.webp",
+    "prompt_audio": "assets/R2W-S23-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S23-IMPACT-A.mp3",
+      "B": "assets/R2W-S23-IMPACT-B.mp3",
+      "C": "assets/R2W-S23-IMPACT-C.mp3",
+      "D": "assets/R2W-S23-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 24,
+    "stage": "Resume Retreat",
+    "title": "One Resume for Everything",
+    "image": "assets/R2W-S24-IMG.webp",
+    "prompt_audio": "assets/R2W-S24-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S24-IMPACT-A.mp3",
+      "B": "assets/R2W-S24-IMPACT-B.mp3",
+      "C": "assets/R2W-S24-IMPACT-C.mp3",
+      "D": "assets/R2W-S24-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 25,
+    "stage": "Resume Retreat",
+    "title": "Duties or Accomplishments?",
+    "image": "assets/R2W-S25-IMG.webp",
+    "prompt_audio": "assets/R2W-S25-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S25-IMPACT-A.mp3",
+      "B": "assets/R2W-S25-IMPACT-B.mp3",
+      "C": "assets/R2W-S25-IMPACT-C.mp3",
+      "D": "assets/R2W-S25-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 31,
+    "stage": "Interview Landing",
+    "title": "Interview Tomorrow",
+    "image": "assets/R2W-S31-IMG.webp",
+    "prompt_audio": "assets/R2W-S31-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S31-IMPACT-A.mp3",
+      "B": "assets/R2W-S31-IMPACT-B.mp3",
+      "C": "assets/R2W-S31-IMPACT-C.mp3",
+      "D": "assets/R2W-S31-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 32,
+    "stage": "Interview Landing",
+    "title": "Getting There",
+    "image": "assets/R2W-S32-IMG.webp",
+    "prompt_audio": "assets/R2W-S32-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S32-IMPACT-A.mp3",
+      "B": "assets/R2W-S32-IMPACT-B.mp3",
+      "C": "assets/R2W-S32-IMPACT-C.mp3",
+      "D": "assets/R2W-S32-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 33,
+    "stage": "Interview Landing",
+    "title": "Tell Me About Yourself",
+    "image": "assets/R2W-S33-IMG.webp",
+    "prompt_audio": "assets/R2W-S33-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S33-IMPACT-A.mp3",
+      "B": "assets/R2W-S33-IMPACT-B.mp3",
+      "C": "assets/R2W-S33-IMPACT-C.mp3",
+      "D": "assets/R2W-S33-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 34,
+    "stage": "Interview Landing",
+    "title": "Difficult Coworker Question",
+    "image": "assets/R2W-S34-IMG.webp",
+    "prompt_audio": "assets/R2W-S34-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S34-IMPACT-A.mp3",
+      "B": "assets/R2W-S34-IMPACT-B.mp3",
+      "C": "assets/R2W-S34-IMPACT-C.mp3",
+      "D": "assets/R2W-S34-IMPACT-D.mp3"
+    }
+  },
+  {
+    "scene_id": 35,
+    "stage": "Interview Landing",
+    "title": "Tell Me About a Mistake",
+    "image": "assets/R2W-S35-IMG.webp",
+    "prompt_audio": "assets/R2W-S35-PROMPT.mp3",
+    "impact_audio": {
+      "A": "assets/R2W-S35-IMPACT-A.mp3",
+      "B": "assets/R2W-S35-IMPACT-B.mp3",
+      "C": "assets/R2W-S35-IMPACT-C.mp3",
+      "D": "assets/R2W-S35-IMPACT-D.mp3"
+    }
+  }
+]
