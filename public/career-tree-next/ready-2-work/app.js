@@ -189,7 +189,7 @@
     stageOrder.forEach((stage,i)=>{
       const def=stageDefs[stage], done=stageAnswered(stage), total=stageScenes(stage).length, complete=stageComplete(stage), unlocked=stageUnlocked(stage);
       const b=document.createElement('button'); b.className=`stage-card ${unlocked?'':'locked'}`; b.disabled=!unlocked;
-      let status=complete?'Complete':unlocked?`${done} of ${total} scenarios complete`:'Locked'; if(stage==='Resume Retreat'&&done===total&&!state.resumeBuilder?.complete) status='Résumé Builder required'; if(stage==='Interview Landing'&&done===total&&!state.mockInterview?.complete) status='Mock Interview required';
+      let status=complete?'Complete':unlocked?`${done} of ${total} scenarios complete`:'Locked'; if(stage==='Resume Retreat'&&done===total&&!linkedResumeComplete()) status='Resume District required'; if(stage==='Interview Landing'&&done===total&&!linkedInterviewComplete()) status='Interview Arena required';
       const action=complete?'Review →':unlocked?'Continue →':'Complete prior stage';
       b.innerHTML=`<img src="${def.home}" alt=""><div class="stage-card-copy"><span>STAGE ${i+1}</span><h2>${stage}</h2><p>${def.description}</p><div class="stage-card-foot"><span class="status-pill ${complete?'complete':''}">${status}</span><strong>${action}</strong></div></div>`;
       if(unlocked) b.onclick=()=>route('stage',{stage}); cards.appendChild(b);
@@ -224,8 +224,8 @@
       b.innerHTML=`<span class="card-kicker">REQUIRED • STEP 2</span><strong>Level Up Resume District</strong><small>${!scenariosDone?'Complete the 5 Resume Retreat decisions to unlock.':rb.complete?'Employer-ready résumé complete ✓':'Build and review your résumé in Resume District.'}</small><span class="card-arrow">${rb.complete?'✓':'→'}</span>`;
       if(scenariosDone) b.onclick=()=>launchLevelUp(RESUME_URL); grid.prepend(b);
       $('requiredPathTitle').textContent=scenariosDone?'Review Resume Decision Trail':'Continue Resume Decision Trail';
-      $('requiredPathMeta').textContent=`${done} of ${total} decisions complete • Résumé Builder ${rb.complete?'complete':scenariosDone?'unlocked':'locked'}`;
-      $('stageHomeProgress').textContent=stageComplete(stage)?'Complete':scenariosDone?'Builder required':`${done} of ${total} decisions`;
+      $('requiredPathMeta').textContent=`${done} of ${total} decisions complete • Resume District ${rb.complete?'complete':scenariosDone?'unlocked':'locked'}`;
+      $('stageHomeProgress').textContent=stageComplete(stage)?'Complete':scenariosDone?'Resume District required':`${done} of ${total} decisions`;
     }
   }
 
