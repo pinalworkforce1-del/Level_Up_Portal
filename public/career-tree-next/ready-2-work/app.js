@@ -201,14 +201,14 @@
       const b=document.createElement('button'); b.className=`stage-card ${unlocked?'':'locked'}`; b.disabled=!unlocked;
       let status=complete?'Complete':unlocked?`${done} of ${total} scenarios complete`:'Locked'; if(stage==='Resume Retreat'&&done===total&&!linkedResumeComplete()) status='Saved résumé required'; if(stage==='Interview Landing'&&done===total&&!linkedInterviewComplete()) status='Interview Arena required';
       const action=complete?'Review →':unlocked?'Continue →':'Complete prior stage';
-      b.innerHTML=`<img src="${def.home}" alt=""><div class="stage-card-copy"><span>STAGE ${i+1}</span><h2>${stage}</h2><p>${def.description}</p><div class="stage-card-foot"><span class="status-pill ${complete?'complete':''}">${status}</span><strong>${action}</strong></div></div>`;
+      b.innerHTML=`<img src="${def.home}" alt=""><div class="stage-card-copy"><span>STAGE ${i+1}</span><h2>${displayNames[stage]||stage}</h2><p>${def.description}</p><div class="stage-card-foot"><span class="status-pill ${complete?'complete':''}">${status}</span><strong>${action}</strong></div></div>`;
       if(unlocked) b.onclick=()=>route('stage',{stage}); cards.appendChild(b);
     });
   }
 
   function renderStageHome(stage){
     updateOverall(); const def=stageDefs[stage], done=stageAnswered(stage), total=stageScenes(stage).length, complete=stageComplete(stage);
-    $('stageHomeImg').src=def.home; $('stageHomeImg').alt=`${stage} home environment`;
+    $('stageHomeImg').src=def.home; $('stageHomeImg').alt=`${displayNames[stage]||stage} home environment`;
     $('stageNumber').textContent=def.number; $('stageHomeTitle').textContent=displayNames[stage]||stage; $('stageHomeTagline').textContent=def.tagline;
     $('stageHomeProgress').textContent=complete?'Complete':`${done} of ${total} complete`;
     $('stageHomeProgress').className=`status-pill ${complete?'complete':''}`;
