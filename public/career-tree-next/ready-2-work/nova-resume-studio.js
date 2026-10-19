@@ -27,10 +27,26 @@ function questionSet(){
 }
 function renderQuestion(){const [q,h]=state.prompts[state.q];$('qCounter').textContent='NOVA QUESTION '+(state.q+1)+' OF '+state.prompts.length;$('qTitle').textContent=q;$('qHelp').textContent=h;$('answer').value=state.answers[state.q]||'';$('qNext').textContent=state.q===state.prompts.length-1?'Review my résumé →':'Save & next →';show('questions');}
 async function novaToken(){
- const candidates=[];
- try{candidates.push(JSON.parse(sessionStorage.getItem('level-up-supabase-session-v1')||'null'))}catch{}
- try{candidates.push(JSON.parse(localStorage.getItem('sb-dnijrzotfyvmmnmueknk-auth-token')||'null'))}catch{}
- for(const v of candidates){const t=v?.access_token?v:v?.currentSession||v?.session;if(t?.access_token)return t.access_token}
+ const base='https://dnijrzotfyvmmnmueknk.supabase.co';
+ const key='sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc';
+ const keys=['sb-dnijrzotfyvmmnmueknk-auth-token',...Object.keys(localStorage).filter(x=>x.includes('dnijrzotfyvmmnmueknk')&&x.includes('auth-token'))];
+ for(const storageKey of [...new Set(keys)]){
+   let record;try{record=JSON.parse(localStorage.getItem(storageKey)||'null')}catch{continue}
+   let session=record?.access_token?record:record?.currentSession||record?.session||record?.data?.session;
+   if(!session?.access_token)continue;
+   const refresh=async()=>{
+     if(!session.refresh_token)return false;
+     try{const res=await fetch(base+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{'Content-Type':'application/json',apikey:key},body:JSON.stringify({refresh_token:session.refresh_token})});
+       if(!res.ok)return false;const updated=await res.json();if(!updated.access_token)return false;
+       session=updated;localStorage.setItem(storageKey,JSON.stringify(updated));return true;
+     }catch{return false}
+   };
+   let valid=false;
+   try{const res=await fetch(base+'/auth/v1/user',{headers:{apikey:key,Authorization:'Bearer '+session.access_token}});valid=res.ok}catch{}
+   if(!valid){if(!await refresh())continue;
+     try{const res=await fetch(base+'/auth/v1/user',{headers:{apikey:key,Authorization:'Bearer '+session.access_token}});valid=res.ok}catch{}}
+   if(valid)return session.access_token;
+ }
  return '';
 }
 async function novaQuestions(f){
