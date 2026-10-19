@@ -44,23 +44,26 @@
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshLinkedCompletions()});
   const $ = id => document.getElementById(id);
 
+  const displayNames={'Soft Skills Base Camp':'Soft Skills Synergy','Resume Retreat':'Resume Rise','Interview Landing':'Interview Intelligence'};
+  const legacyArt={'r2w-soft-skills-synergy.webp':'r2w-base-camp-home.webp','r2w-resume-rise.webp':'r2w-resume-retreat-home.webp','r2w-interview-intelligence.webp':'r2w-interview-landing-home.webp'};
+  document.addEventListener('error',e=>{const img=e.target;if(img?.tagName!=='IMG')return;const name=(img.getAttribute('src')||'').split('/').pop();if(legacyArt[name])img.src='assests/'+legacyArt[name];if(name==='r2w-levelup-opportunity-map.webp')img.src='assests/r2w-pathway-map.webp';},true);
   const stageDefs = {
     'Soft Skills Base Camp': {
-      number: '1 • SOFT SKILLS BASE CAMP',
+      number: '1 • SOFT SKILLS SYNERGY',
       tagline: 'Build the skills you’ll take to work.',
-      home: 'assests/r2w-base-camp-home.webp',
+      home: 'assests/r2w-soft-skills-synergy.webp',
       description: 'Practice the everyday decisions employers notice: communication, professionalism, problem solving, teamwork, planning, and quality.'
     },
     'Resume Retreat': {
-      number: '2 • RESUME RETREAT',
+      number: '2 • RESUME RISE',
       tagline: 'Show employers what you bring.',
-      home: 'assests/r2w-resume-retreat-home.webp',
+      home: 'assests/r2w-resume-rise.webp',
       description: 'Turn real experience into credible, employer-ready resume evidence.'
     },
     'Interview Landing': {
-      number: '3 • INTERVIEW LANDING',
+      number: '3 • INTERVIEW INTELLIGENCE',
       tagline: 'Practice telling your story with confidence.',
-      home: 'assests/r2w-interview-landing-home.webp',
+      home: 'assests/r2w-interview-intelligence.webp',
       description: 'Prepare for interview moments that require judgment, confidence, and clear examples.'
     }
   };
@@ -196,7 +199,7 @@
     stageOrder.forEach((stage,i)=>{
       const def=stageDefs[stage], done=stageAnswered(stage), total=stageScenes(stage).length, complete=stageComplete(stage), unlocked=stageUnlocked(stage);
       const b=document.createElement('button'); b.className=`stage-card ${unlocked?'':'locked'}`; b.disabled=!unlocked;
-      let status=complete?'Complete':unlocked?`${done} of ${total} scenarios complete`:'Locked'; if(stage==='Resume Retreat'&&done===total&&!linkedResumeComplete()) status='Resume District required'; if(stage==='Interview Landing'&&done===total&&!linkedInterviewComplete()) status='Interview Arena required';
+      let status=complete?'Complete':unlocked?`${done} of ${total} scenarios complete`:'Locked'; if(stage==='Resume Retreat'&&done===total&&!linkedResumeComplete()) status='Saved résumé required'; if(stage==='Interview Landing'&&done===total&&!linkedInterviewComplete()) status='Interview Arena required';
       const action=complete?'Review →':unlocked?'Continue →':'Complete prior stage';
       b.innerHTML=`<img src="${def.home}" alt=""><div class="stage-card-copy"><span>STAGE ${i+1}</span><h2>${stage}</h2><p>${def.description}</p><div class="stage-card-foot"><span class="status-pill ${complete?'complete':''}">${status}</span><strong>${action}</strong></div></div>`;
       if(unlocked) b.onclick=()=>route('stage',{stage}); cards.appendChild(b);
@@ -206,7 +209,7 @@
   function renderStageHome(stage){
     updateOverall(); const def=stageDefs[stage], done=stageAnswered(stage), total=stageScenes(stage).length, complete=stageComplete(stage);
     $('stageHomeImg').src=def.home; $('stageHomeImg').alt=`${stage} home environment`;
-    $('stageNumber').textContent=def.number; $('stageHomeTitle').textContent=stage; $('stageHomeTagline').textContent=def.tagline;
+    $('stageNumber').textContent=def.number; $('stageHomeTitle').textContent=displayNames[stage]||stage; $('stageHomeTagline').textContent=def.tagline;
     $('stageHomeProgress').textContent=complete?'Complete':`${done} of ${total} complete`;
     $('stageHomeProgress').className=`status-pill ${complete?'complete':''}`;
     $('requiredPathTitle').textContent=complete?'Review required scenarios':'Continue required scenarios';
