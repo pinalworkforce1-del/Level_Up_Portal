@@ -47,9 +47,9 @@ const CNA_ACTIVITIES=[
  ['Documenting\/Recording Information',/register|transaction|cash handling|record/i,'Transaction handling may involve recording information; documentation responsibilities need confirmation.','Did you record, verify, or correct transaction information?']
 ];
 function transferRows(f){
- const original=state.mode==='existing'?f.resume:[f.experience,f.education,f.skills].join('\\n');
- const lines=original.replace(/^\\s*#+\\s*/gm,'').replace(/\\*\\*/g,'').split(/\\n/).map(x=>x.trim()).filter(Boolean);
- if(!/\\b(cna|nursing assistant)\\b/i.test(f.target)){
+ const original=state.mode==='existing'?f.resume:[f.experience,f.education,f.skills].join('\n');
+ const lines=original.replace(/^\s*#+\s*/gm,'').replace(/\*\*/g,'').split(/\n/).map(x=>x.trim()).filter(Boolean);
+ if(!/\b(cna|certified nursing assistant|nursing assistant)\b/i.test(f.target)){
    return [{activity:'Occupation-specific O*NET mapping pending',evidence:'Target: '+f.target,interpretation:'This prototype currently has a CNA work-activities reference set. NOVA’s live employer comparison still informs the questions.',status:'Explore',question:'What experience is most relevant to your target occupation?'}];
  }
  return CNA_ACTIVITIES.map(([activity,pattern,interpretation,question])=>{
@@ -60,7 +60,7 @@ function transferRows(f){
 }
 function renderTransfer(){
  const f=fields(),rows=transferRows(f),holder=$('transferRows');holder.replaceChildren();
- $('transferOccupation').textContent=f.target+' • '+(/\\b(cna|nursing assistant)\\b/i.test(f.target)?'O*NET 31-1131.00':'Occupation mapping pending');
+ $('transferOccupation').textContent=f.target+' • '+(/\b(cna|certified nursing assistant|nursing assistant)\b/i.test(f.target)?'O*NET 31-1131.00':'Occupation mapping pending');
  rows.forEach(row=>{
   const card=document.createElement('article');card.className='panel';card.style.margin='10px 0';
   const title=document.createElement('h3');title.textContent=row.activity;
@@ -72,11 +72,12 @@ function renderTransfer(){
   card.append(title,status,evidence,interpretation,ask);holder.append(card);
  });
  show('transfer');
+ document.getElementById('transfer').scrollIntoView({behavior:'smooth',block:'start'});
 }
 $('transferNext').onclick=()=>{state.q=0;renderQuestion();persist()};
 $('transferBack').onclick=()=>show('details');
 
-$('openTransferAnalysis').onclick=()=>{const f=fields();if(!f.target){alert('Enter the target occupation first.');show('details');return;}if(!f.resume&&!f.experience){alert('Enter résumé or experience details first.');show('details');return;}if(!state.prompts.length)state.prompts=questionSet();renderTransfer();persist()};
+$('openTransferAnalysis').onclick=()=>{const f=fields();if(!f.target){alert('Enter the target occupation first.');show('details');return;}if(!f.resume&&!f.experience){alert('Enter résumé or experience details first.');show('details');return;}if(!state.prompts.length)state.prompts=questionSet();renderTransfer();document.getElementById('transfer').scrollIntoView({behavior:'smooth',block:'start'});persist()};
 function renderQuestion(){const [q,h]=state.prompts[state.q];$('qCounter').textContent='NOVA QUESTION '+(state.q+1)+' OF '+state.prompts.length;$('qTitle').textContent=q;$('qHelp').textContent=h;$('answer').value=state.answers[state.q]||'';$('qNext').textContent=state.q===state.prompts.length-1?'Review my résumé →':'Save & next →';show('questions');}
 async function novaToken(){
  const base='https://dnijrzotfyvmmnmueknk.supabase.co';
