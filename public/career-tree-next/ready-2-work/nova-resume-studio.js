@@ -1,9 +1,9 @@
 (()=>{
-const $=id=>document.getElementById(id), sections=['start','details','questions','review'];
+const $=id=>document.getElementById(id), sections=['start','details','transfer','questions','review'];
 const KEY='levelup-nova-resume-studio-draft-v1';
-const state={mode:'',q:0,answers:[],prompts:[]};
+const state={mode:'',q:0,answers:[],prompts:[],analysis:null};
 const show=id=>sections.forEach(x=>$(x).classList.toggle('hidden',x!==id));
-function persist(){try{localStorage.setItem(KEY,JSON.stringify({mode:state.mode,q:state.q,answers:state.answers,prompts:state.prompts,fields:fields(),draft:$('editable').value,format:$('format').value}))}catch{}}
+function persist(){try{localStorage.setItem(KEY,JSON.stringify({mode:state.mode,q:state.q,answers:state.answers,prompts:state.prompts,analysis:state.analysis,fields:fields(),draft:$('editable').value,format:$('format').value}))}catch{}}
 function fields(){return Object.fromEntries(['person','contact','target','posting','resume','experience','education','skills'].map(id=>[id,$(id).value.trim()]))}
 function choose(mode){state.mode=mode;$('existingFields').classList.toggle('hidden',mode!=='existing');$('newFields').classList.toggle('hidden',mode!=='new');show('details');persist()}
 $('existing').onclick=()=>choose('existing');$('new').onclick=()=>choose('new');$('backStart').onclick=()=>show('start');
@@ -25,6 +25,45 @@ function questionSet(){
  if(extracted[1])core[5]=['The employer also mentions: “'+extracted[1].slice(0,120)+'”. What verified experience could you share?','Tell NOVA what you personally did, where, and when.'];
  return core;
 }
+const CNA_ACTIVITIES=[
+ ['Assisting and Caring for Others',/help(?:ing)? customers|assist(?:ed|ing)? customers|caregiv|personal care/i,'Customer assistance can transfer; direct patient care is not established.','Have you provided personal assistance or caregiving? What did you personally do?'],
+ ['Communicating with Supervisors, Peers, or Subordinates',/coworker|co-worker|team member|supervisor|train(?:ed|ing)? new/i,'Workplace communication is potentially demonstrated.','What important information did you share with a colleague or supervisor?'],
+ ['Resolving Conflicts and Negotiating with Others',/complaint|customer concerns|customer problems|resolv/i,'Relevant complaint-resolution experience.','Tell me about a concern you resolved and how you handled it.'],
+ ['Establishing and Maintaining Interpersonal Relationships',/customer service|help customers|working with people/i,'Customer-facing experience suggests interpersonal skills, but patient rapport is unverified.','How did you build trust with someone needing extra support?'],
+ ['Evaluating Information to Determine Compliance with Standards',/safety procedures|food safety|followed safety|sanitation/i,'Following workplace standards is relevant; clinical compliance is not established.','Which standards did you follow and how did you check your work?'],
+ ['Training and Teaching Others',/train(?:ed|ing)? new|help(?:ed)? new employees/i,'Peer-training experience can transfer to team settings.','What did you teach others and how did you know they understood?'],
+ ['Organizing, Planning, and Prioritizing Work',/stock(?:ing)?|organiz|busy shifts|complete orders/i,'Organization experience is indicated; prioritization details could strengthen it.','How did you decide which tasks to handle first when busy?'],
+ ['Documenting\/Recording Information',/register|transaction|cash handling|record/i,'Transaction handling may involve recording information; documentation responsibilities need confirmation.','Did you record, verify, or correct transaction information?']
+];
+function transferRows(f){
+ const original=state.mode==='existing'?f.resume:[f.experience,f.education,f.skills].join('\\n');
+ const lines=original.replace(/^\\s*#+\\s*/gm,'').replace(/\\*\\*/g,'').split(/\\n/).map(x=>x.trim()).filter(Boolean);
+ if(!/\\b(cna|nursing assistant)\\b/i.test(f.target)){
+   return [{activity:'Occupation-specific O*NET mapping pending',evidence:'Target: '+f.target,interpretation:'This prototype currently has a CNA work-activities reference set. NOVA’s live employer comparison still informs the questions.',status:'Explore',question:'What experience is most relevant to your target occupation?'}];
+ }
+ return CNA_ACTIVITIES.map(([activity,pattern,interpretation,question])=>{
+   const evidence=lines.find(x=>pattern.test(x)&&!/^professional summary|^skills$/i.test(x));
+   const isConfirmed=!!evidence&&!/Assisting and Caring|Interpersonal Relationships|Documenting\/Recording/.test(activity);
+   return {activity,evidence:evidence||'Not clearly shown in the supplied information.',interpretation:evidence?interpretation:'No clear evidence yet; ask before including in a résumé.',status:isConfirmed?'Potential match':'Explore',question};
+ });
+}
+function renderTransfer(){
+ const f=fields(),rows=transferRows(f),holder=$('transferRows');holder.replaceChildren();
+ $('transferOccupation').textContent=f.target+' • '+(/\\b(cna|nursing assistant)\\b/i.test(f.target)?'O*NET 31-1131.00':'Occupation mapping pending');
+ rows.forEach(row=>{
+  const card=document.createElement('article');card.className='panel';card.style.margin='10px 0';
+  const title=document.createElement('h3');title.textContent=row.activity;
+  const status=document.createElement('p');status.className='hint';status.textContent=row.status;
+  const evidence=document.createElement('p');evidence.textContent='Résumé evidence: '+row.evidence;
+  const interpretation=document.createElement('p');interpretation.textContent='NOVA interpretation: '+row.interpretation;
+  const ask=document.createElement('button');ask.className='secondary';ask.textContent='Tell NOVA More';ask.type='button';
+  ask.onclick=()=>{const answer=prompt(row.question);if(answer?.trim()){state.prompts.unshift([row.question,'Additional evidence for: '+row.activity]);state.answers.unshift(answer.trim());persist();ask.textContent='Evidence added ✓';}};
+  card.append(title,status,evidence,interpretation,ask);holder.append(card);
+ });
+ show('transfer');
+}
+$('transferNext').onclick=()=>{state.q=0;renderQuestion();persist()};
+$('transferBack').onclick=()=>show('details');
 function renderQuestion(){const [q,h]=state.prompts[state.q];$('qCounter').textContent='NOVA QUESTION '+(state.q+1)+' OF '+state.prompts.length;$('qTitle').textContent=q;$('qHelp').textContent=h;$('answer').value=state.answers[state.q]||'';$('qNext').textContent=state.q===state.prompts.length-1?'Review my résumé →':'Save & next →';show('questions');}
 async function novaToken(){
  const base='https://dnijrzotfyvmmnmueknk.supabase.co';
@@ -59,14 +98,14 @@ async function novaQuestions(f){
  if(!response.ok)throw Error(result.message||'NOVA AI is unavailable ('+response.status+').');
  const questions=(result.mightBeThere||[]).filter(x=>x.question).map(x=>[x.question,'NOVA is checking whether you have evidence for: '+(x.item||'this job requirement')]);
  const gap=(result.notShowingYet||[]).filter(x=>x.item).map(x=>['The employer seeks '+x.item+'. Do you have related experience, training, or a credential not yet listed?','Only describe facts you can support. It is fine to answer no.']);
- return [...questions,...gap].slice(0,6);
+ state.analysis=result;return [...questions,...gap].slice(0,6);
 }
 $('analyze').onclick=async()=>{
  const f=fields();
  if(!f.person||!f.target||(state.mode==='existing'&&!f.resume)||(state.mode==='new'&&!f.experience&&!f.education&&!f.skills)){alert('Please add your name, target occupation, and either résumé text or at least one experience, education or skills detail.');return;}
  const button=$('analyze');button.disabled=true;button.textContent='NOVA is analyzing the job…';
- try{const questions=await novaQuestions(f);if(!questions.length)throw Error('NOVA found no clarification questions.');state.prompts=questions;state.q=0;state.answers=[];renderQuestion();persist();}
- catch(e){alert(e.message+'\\n\\nYou can continue using guided questions while live AI is unavailable.');state.prompts=questionSet();state.q=0;state.answers=[];renderQuestion();persist();}
+ try{const questions=await novaQuestions(f);if(!questions.length)throw Error('NOVA found no clarification questions.');state.prompts=questions;state.q=0;state.answers=[];renderTransfer();persist();}
+ catch(e){alert(e.message+'\\n\\nYou can continue using guided questions while live AI is unavailable.');state.prompts=questionSet();state.q=0;state.answers=[];renderTransfer();persist();}
  finally{button.disabled=false;button.textContent='Continue to NOVA\'s questions →';}
 };
 $('qBack').onclick=()=>{state.answers[state.q]=$('answer').value.trim();if(state.q===0)show('details');else{state.q--;renderQuestion()}persist()};
@@ -90,5 +129,5 @@ $('approval').onchange=()=>{$('save').disabled=!$('approval').checked};
 $('print').onclick=()=>window.print();
 $('save').onclick=()=>{if(!$('approval').checked)return;const record={name:$('person').value,target:$('target').value,content:$('editable').value,format:$('format').value,reviewedAt:new Date().toISOString(),mode:state.mode};try{const arr=JSON.parse(localStorage.getItem('levelup-nova-resume-reviewed-v1')||'[]');arr.push(record);localStorage.setItem('levelup-nova-resume-reviewed-v1',JSON.stringify(arr));$('savedNote').textContent='Saved to this browser for QA. Shared Supabase résumé saving is not yet connected.'}catch{$('savedNote').textContent='Unable to save to this browser.'}persist()};
 $('restart').onclick=()=>{if(confirm('Start a new NOVA draft? Your reviewed local saved versions will remain.')){localStorage.removeItem(KEY);location.reload()}};
-try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved?.fields){for(const [id,v] of Object.entries(saved.fields)){if($(id))$(id).value=v||''}state.mode=saved.mode;state.q=saved.q||0;state.answers=saved.answers||[];state.prompts=saved.prompts||[];$('format').value=saved.format||'classic';$('editable').value=saved.draft||'';choose(state.mode||'new');if(saved.draft){renderPreview();show('review')}else if(state.prompts.length)renderQuestion();}}catch{}
+try{const saved=JSON.parse(localStorage.getItem(KEY)||'null');if(saved?.fields){for(const [id,v] of Object.entries(saved.fields)){if($(id))$(id).value=v||''}state.mode=saved.mode;state.q=saved.q||0;state.answers=saved.answers||[];state.prompts=saved.prompts||[];state.analysis=saved.analysis||null;$('format').value=saved.format||'classic';$('editable').value=saved.draft||'';choose(state.mode||'new');if(saved.draft){renderPreview();show('review')}else if(state.prompts.length)renderQuestion();}}catch{}
 })();
