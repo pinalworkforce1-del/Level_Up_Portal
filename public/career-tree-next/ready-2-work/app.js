@@ -25,7 +25,14 @@
       const res=await fetch(url,{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
       if(!res.ok)return;
       const rows=await res.json();
-      MODULE_COMPLETIONS.resume=rows.some(r=>r.module_id==='resume-district'&&r.is_complete===true);
+      const saved=await fetch('https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/resume_versions?select=version_data&user_id=eq.'+encodeURIComponent(session.user.id)+'&limit=100',{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
+      if(saved.ok){
+        const versions=await saved.json();
+        MODULE_COMPLETIONS.resume=versions.some(v=>{
+          const d=v.version_data||{};
+          return Boolean(d.contact?.name?.trim() && Array.isArray(d.bullets) && d.bullets.some(b=>typeof b==='string'?b.trim().length>15:(b?.text||b?.bullet||b?.final||'').trim().length>15));
+        });
+      }
       MODULE_COMPLETIONS.interview=rows.some(r=>r.module_id==='interview-arena'&&r.is_complete===true);
       const view=document.querySelector('.view:not([hidden])');
       if(view?.id==='viewStage')renderStageHome(activeStage);
