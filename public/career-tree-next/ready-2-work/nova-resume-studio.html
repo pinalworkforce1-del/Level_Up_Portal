@@ -59,7 +59,7 @@ function transferRows(f){
  });
 }
 function renderTransfer(){
- const f=fields(),rows=transferRows(f),holder=$('transferRows');holder.replaceChildren();
+ const f=fields(),rows=(state.analysis?.activities?.length?state.analysis.activities:transferRows(f)),holder=$('transferRows');holder.replaceChildren();
  $('transferOccupation').textContent=f.target+' • '+(/\b(cna|certified nursing assistant|nursing assistant)\b/i.test(f.target)?'O*NET 31-1131.00':'Occupation mapping pending');
  rows.forEach(row=>{
   const card=document.createElement('article');card.className='panel';card.style.margin='10px 0';
@@ -67,7 +67,7 @@ function renderTransfer(){
   const status=document.createElement('p');status.className='hint';status.textContent=row.status;
   const evidence=document.createElement('p');evidence.textContent='Résumé evidence: '+row.evidence;
   const interpretation=document.createElement('p');interpretation.textContent='NOVA interpretation: '+row.interpretation;
-  const ask=document.createElement('button');ask.className='secondary';ask.textContent='Tell NOVA More';ask.type='button';
+  const ask=document.createElement('button');ask.className='secondary';ask.textContent='Add details for this work activity';ask.type='button';
   ask.onclick=()=>{const answer=prompt(row.question);if(answer?.trim()){state.prompts.unshift([row.question,'Additional evidence for: '+row.activity]);state.answers.unshift(answer.trim());persist();ask.textContent='Evidence added ✓';}};
   card.append(title,status,evidence,interpretation,ask);holder.append(card);
  });
