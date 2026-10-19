@@ -23,7 +23,7 @@
   new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
   document.addEventListener('click',e=>{
     const btn=e.target.closest?.('.resume-builder-card');
-    if(!btn||btn.id==='novaStudioLaunch'||!btn.querySelector('strong')?.textContent.includes('Resume District'))return;
+    if(!btn||btn.id==='novaStudioLaunch')return;
     e.preventDefault();e.stopImmediatePropagation();location.href=STUDIO;
   },true);
   sync();
