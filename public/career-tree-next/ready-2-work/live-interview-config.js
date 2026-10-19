@@ -7,5 +7,5 @@ window.LEVELUP_LIVE_INTERVIEW_CONFIG=Object.freeze({
   questionCount:3,
   stage:"Interview Intelligence",
   enabled:false, // Enable only after authenticated LiveKit sessions have been tested.
-  tokenEndpoint:null
+  tokenEndpoint:"https://dnijrzotfyvmmnmueknk.supabase.co/functions/v1/levelup-live-interview-token"
 });
