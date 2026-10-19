@@ -5,7 +5,7 @@
   const skillNames = course.skills;
   const skillOrder = course.skillOrder;
   const STORAGE_KEY = 'levelup-career-tree-ready2work-v1';
-  const RESUME_URL = 'https://pinalworkforce1-del.github.io/Resume_District/';
+  const RESUME_URL = 'https://pinalworkforce1-del.github.io/LU_Discovery/resume-builder-prototype.html';
   const INTERVIEW_URL = 'https://pinalworkforce1-del.github.io/Interview_Arena/';
   const MODULE_COMPLETIONS = {resume:false, interview:false};
   function launchLevelUp(url){ saveState(); window.location.href=url; }
