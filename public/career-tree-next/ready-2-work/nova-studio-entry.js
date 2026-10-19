@@ -1,5 +1,5 @@
 (()=>{
-  const STUDIO='nova-resume-studio.html';
+  const STUDIO='https://pinalworkforce1-del.github.io/LU_Discovery/resume-builder-prototype.html';
   function mount(){
     if(document.getElementById('novaStudioLaunch'))return;
     const region=document.getElementById('stageExperienceGrid');
@@ -8,7 +8,7 @@
     button.id='novaStudioLaunch';
     button.className='board-card resume-builder-card';
     button.href=STUDIO;
-    button.innerHTML='<span class="card-kicker">NOVA • RÉSUMÉ STUDIO</span><strong>Build or strengthen your résumé</strong><small>Start with an existing résumé or NOVA QuickStart. Early QA prototype; review and browser-only saving.</small><span class="card-arrow">→</span>';
+    button.innerHTML='<span class="card-kicker">LEVEL UP • RÉSUMÉ BUILDER</span><strong>Build or strengthen your résumé</strong><small>Open the existing Level Up résumé builder and your shared saved résumés.</small><span class="card-arrow">→</span>';
     button.style.cssText='display:block;text-decoration:none;color:inherit';
     region.prepend(button);
   }
