@@ -228,10 +228,10 @@
     if(stage==='Resume Retreat'){
       const scenariosDone=done===total, rb={complete:linkedResumeComplete()};
       const b=document.createElement('button'); b.type='button'; b.className='board-card resume-builder-card'+(scenariosDone?'':' locked'); b.disabled=!scenariosDone;
-      b.innerHTML=`<span class="card-kicker">REQUIRED • STEP 2</span><strong>Level Up Resume District</strong><small>${!scenariosDone?'Complete the 5 Resume Retreat decisions to unlock.':rb.complete?'Employer-ready résumé complete ✓':'Build and review your résumé in Resume District.'}</small><span class="card-arrow">${rb.complete?'✓':'→'}</span>`;
+      b.innerHTML=`<span class="card-kicker">REQUIRED • STEP 2</span><strong>Level Up Résumé Builder</strong><small>${!scenariosDone?'Complete the 5 Resume Retreat decisions to unlock.':rb.complete?'Employer-ready résumé complete ✓':'Create and save your résumé in Level Up.'}</small><span class="card-arrow">${rb.complete?'✓':'→'}</span>`;
       if(scenariosDone) b.onclick=()=>launchLevelUp(RESUME_URL); grid.prepend(b);
       $('requiredPathTitle').textContent=scenariosDone?'Review Resume Decision Trail':'Continue Resume Decision Trail';
-      $('requiredPathMeta').textContent=`${done} of ${total} decisions complete • Resume District ${rb.complete?'complete':scenariosDone?'unlocked':'locked'}`;
+      $('requiredPathMeta').textContent=`${done} of ${total} decisions complete • Saved résumé ${rb.complete?'complete':scenariosDone?'unlocked':'locked'}`;
       $('stageHomeProgress').textContent=stageComplete(stage)?'Complete':scenariosDone?'Resume District required':`${done} of ${total} decisions`;
     }
   }
