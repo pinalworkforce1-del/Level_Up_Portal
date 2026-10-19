@@ -17,7 +17,7 @@
     const visible=document.getElementById('viewStage')&&!document.getElementById('viewStage').hidden;
     const region=document.getElementById('stageExperienceGrid');
     const current=document.getElementById('novaStudioLaunch');
-    if(visible&&heading?.textContent==='Resume Retreat'){mount();if(current)current.hidden=false}
+    if(visible&&(heading?.textContent==='Resume Rise'||heading?.textContent==='Resume Retreat')){mount();if(current)current.hidden=false}
     else if(current)current.hidden=true;
   }
   new MutationObserver(sync).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:['hidden']});
