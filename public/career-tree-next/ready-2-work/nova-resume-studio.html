@@ -36,7 +36,33 @@ function questionSet(){
  return core;
 }
 function renderQuestion(){const [q,h]=state.prompts[state.q];$('qCounter').textContent='NOVA QUESTION '+(state.q+1)+' OF '+state.prompts.length;$('qTitle').textContent=q;$('qHelp').textContent=h;$('answer').value=state.answers[state.q]||'';$('qNext').textContent=state.q===state.prompts.length-1?'Review my résumé →':'Save & next →';show('questions');}
-$('analyze').onclick=()=>{const f=fields();if(!f.person||!f.target||(state.mode==='existing'&&!f.resume)||(state.mode==='new'&&!f.experience&&!f.education&&!f.skills)){alert('Please add your name, target occupation, and either résumé text or at least one experience, education or skills detail.');return;}state.prompts=questionSet();state.q=0;renderQuestion();persist();};
+async function novaToken(){
+ const candidates=[];
+ try{candidates.push(JSON.parse(sessionStorage.getItem('level-up-supabase-session-v1')||'null'))}catch{}
+ try{candidates.push(JSON.parse(localStorage.getItem('sb-dnijrzotfyvmmnmueknk-auth-token')||'null'))}catch{}
+ for(const v of candidates){const t=v?.access_token?v:v?.currentSession||v?.session;if(t?.access_token)return t.access_token}
+ return '';
+}
+async function novaQuestions(f){
+ if(f.posting.length<80)throw Error('Paste at least 80 characters of the employer job posting for live AI questions.');
+ const token=await novaToken();
+ if(!token)throw Error('Sign in to Level Up to use live NOVA intelligence.');
+ const resume={targetRole:f.target,summary:state.mode==='existing'?f.resume:f.experience,skills:f.skills.split(/[,;\\n]/).map(x=>x.trim()).filter(Boolean),bullets:[],education:{type:f.education,status:'',school:'',year:''}};
+ const response=await fetch('https://dnijrzotfyvmmnmueknk.supabase.co/functions/v1/resume-ai',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+token,'apikey':'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc'},body:JSON.stringify({mode:'job_match',resume,jobPosting:f.posting})});
+ const result=await response.json().catch(()=>({}));
+ if(!response.ok)throw Error(result.message||'NOVA AI is unavailable ('+response.status+').');
+ const questions=(result.mightBeThere||[]).filter(x=>x.question).map(x=>[x.question,'NOVA is checking whether you have evidence for: '+(x.item||'this job requirement')]);
+ const gap=(result.notShowingYet||[]).filter(x=>x.item).map(x=>['The employer seeks '+x.item+'. Do you have related experience, training, or a credential not yet listed?','Only describe facts you can support. It is fine to answer no.']);
+ return [...questions,...gap].slice(0,6);
+}
+$('analyze').onclick=async()=>{
+ const f=fields();
+ if(!f.person||!f.target||(state.mode==='existing'&&!f.resume)||(state.mode==='new'&&!f.experience&&!f.education&&!f.skills)){alert('Please add your name, target occupation, and either résumé text or at least one experience, education or skills detail.');return;}
+ const button=$('analyze');button.disabled=true;button.textContent='NOVA is analyzing the job…';
+ try{const questions=await novaQuestions(f);if(!questions.length)throw Error('NOVA found no clarification questions.');state.prompts=questions;state.q=0;state.answers=[];renderQuestion();persist();}
+ catch(e){alert(e.message+'\\n\\nYou can continue using guided questions while live AI is unavailable.');state.prompts=questionSet();state.q=0;state.answers=[];renderQuestion();persist();}
+ finally{button.disabled=false;button.textContent='Continue to NOVA\'s questions →';}
+};
 $('qBack').onclick=()=>{state.answers[state.q]=$('answer').value.trim();if(state.q===0)show('details');else{state.q--;renderQuestion()}persist()};
 $('qNext').onclick=()=>{state.answers[state.q]=$('answer').value.trim();if(state.q<state.prompts.length-1){state.q++;renderQuestion()}else draft();persist()};
 function draft(){
