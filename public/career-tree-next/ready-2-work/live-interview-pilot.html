@@ -9,7 +9,7 @@
 <option value="general">General employment</option><option value="electrician">Electrician</option><option value="nursing_assistant">Nursing Assistant</option><option value="manufacturing">Manufacturing / Team Assembler</option><option value="customer_service">Customer Service</option><option value="cdl_driver">Commercial Driver</option></select>
 <p class="hint">Career choices are captured for this pilot; occupation-specific question adaptation will be enabled after the agent's next deployment.</p>
 <p class="notice">Pilot session: not yet counted toward course completion or Coach View. A signed-in Level Up account is required. Live sessions may incur usage charges.</p>
-<div class="row"><button id="start" type="button">Begin live interview</button><button id="end" class="secondary" type="button" disabled>End interview</button></div>
+<div class="row"><button id="start" type="button">Begin live interview</button><button id="end" class="secondary" type="button" disabled>End interview</button><button id="enableAudio" class="secondary" type="button" hidden>Enable Audio</button></div>
 <p id="status" role="status" aria-live="polite"><span class="indicator"></span>Ready when you are.</p><p class="hint" id="connection">Tip: Turn off nearby TVs or use headphones to avoid accidental interruptions.</p>
 </section><section class="panel"><div class="stage" id="stage"><video id="avatar" autoplay playsinline aria-label="Live video of your AI practice interviewer"></video><div class="placeholder" id="placeholder"><strong>Interview Intelligence</strong><p>Jacqueline is ready to meet you.</p><p class="muted">Your interviewer's video will appear here when connected.</p></div><div id="remoteAudio"></div></div><div class="row"><span class="indicator" id="indicator"></span><span id="trackState">Not connected</span></div><p class="muted">If video pauses, your audio interview may continue. The session remains open until you end it.</p></section></div>
 </main>
@@ -33,12 +33,14 @@ const response=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':
 let data={};try{data=await response.json()}catch{}if(!response.ok)throw Error(data.message||data.error||'Unable to authorize the interview');
 room=new Room({adaptiveStream:true,dynacast:true});
 room.on(RoomEvent.TrackSubscribed,(track)=>watchTrack(track));
+room.on(RoomEvent.AudioPlaybackStatusChanged,()=>{if(!room.canPlaybackAudio){state('Click to enable interviewer audio in your browser','warn');$('connection').textContent='Your browser has paused remote audio. Click Enable Audio to hear Jacqueline.';$('enableAudio').hidden=false}else{$('enableAudio').hidden=true}});
 room.on(RoomEvent.TrackUnsubscribed,(track)=>{if(track.kind===Track.Kind.Video){try{track.detach(avatar)}catch{}videoTrack=null;placeholder.hidden=false;trackLabel('Avatar video interrupted • audio may still work');state('Video interrupted — your interview may continue by voice','warn')}else if(track.kind===Track.Kind.Audio){track.detach()}});
-room.on(RoomEvent.ParticipantConnected,()=>{trackLabel('Interviewer connecting…')});
+room.on(RoomEvent.ParticipantConnected,()=>{if(!videoTrack)trackLabel('Interviewer joining…')});
 room.on(RoomEvent.ConnectionStateChanged,connection=>{if(connection==='reconnecting')state('Reconnecting to interview…','warn');if(connection==='connected'&&connected)state('Connected • speak naturally','live')});
 room.on(RoomEvent.Disconnected,()=>{if(!closedByUser){clearMedia();room=null;end.disabled=true;start.disabled=false;$('occupation').disabled=false;trackLabel('Connection ended');state('Connection ended. You can begin a new practice session.','warn')}});
 state('Connecting to LiveKit…');await room.connect(data.server_url,data.participant_token);
-await room.startAudio();await room.localParticipant.setMicrophoneEnabled(true);connected=true;end.disabled=false;state('Connected. Waiting for the interviewer to join…','live');trackLabel('Waiting for Synthesia video…');
+await room.startAudio();await room.localParticipant.setMicrophoneEnabled(true);connected=true;end.disabled=false;if(videoTrack){state('Connected • your interviewer is here','live');trackLabel('Interviewer video connected')}else{state('Connected • waiting for interviewer video…','live');trackLabel('Waiting for Synthesia video…')}
 }catch(e){const oldRoom=room;room=null;if(oldRoom)await oldRoom.disconnect().catch(()=>{});clearMedia();start.disabled=false;end.disabled=true;$('occupation').disabled=false;state('Could not start: '+(e?.message||String(e)),'warn')}}
+$('enableAudio').onclick=async()=>{try{await room?.startAudio();$('enableAudio').hidden=true;state('Audio enabled • Jacqueline can speak','live')}catch(e){state('Audio activation failed: '+e.message,'warn')}};
 end.onclick=finish;window.addEventListener('pagehide',()=>{if(room)room.disconnect()});
 </script></body></html>
