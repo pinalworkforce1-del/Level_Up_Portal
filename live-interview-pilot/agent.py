@@ -40,6 +40,7 @@ Never say the participant has passed a real job interview.
 async def report_completion(room_name: str) -> bool:
     key = os.getenv("LIVEKIT_API_SECRET", "")
     if not key:
+        print("INTERVIEW_COMPLETION missing LiveKit signing key", flush=True)
         return False
     body = json.dumps({"event": "interview_completed", "room_name": room_name}, separators=(",", ":")).encode()
     timestamp = str(int(time.time()))
@@ -57,10 +58,13 @@ async def report_completion(room_name: str) -> bool:
                 print("Completion callback did not confirm record:", response.status, payload)
                 return False
             return True
+    print("INTERVIEW_COMPLETION callback attempt", flush=True)
     try:
-        return await asyncio.to_thread(send)
+        result = await asyncio.to_thread(send)
+        print("INTERVIEW_COMPLETION callback result", result, flush=True)
+        return result
     except Exception as exc:
-        print("Interview completion callback failed:", type(exc).__name__, str(exc)[:180])
+        print("INTERVIEW_COMPLETION callback failed:", type(exc).__name__, str(exc)[:180], flush=True)
         return False
 
 
@@ -78,11 +82,12 @@ class PracticeInterviewer(Agent):
         if self._finished:
             return "Interview already finished."
         self._finished = True
+        print("INTERVIEW_COMPLETION tool invoked", flush=True)
         # This tool runs inside the agent turn: do not await session.say() here,
         # because it can wait on this same tool and deadlock.
         await context.wait_for_playout()
         confirmed = await report_completion(self.room_name)
-        print("Interview completion callback confirmed:", confirmed)
+        print("INTERVIEW_COMPLETION callback confirmed:", confirmed, flush=True)
         context.session.say(
             "Thank you for interviewing with me today. I appreciate the examples you shared. "
             "Your private developmental feedback will be available separately. "
