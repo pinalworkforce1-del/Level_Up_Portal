@@ -118,9 +118,6 @@ async def interview(ctx: agents.JobContext):
         llm="openai/gpt-4.1-mini",
         tts=f"cartesia/sonic-3:{os.getenv('INTERVIEW_TTS_VOICE_ID', '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc')}",
     )
-    @session.on("function_tools_executed")
-    def on_tools_executed(event):
-        logger.info("INTERVIEW_TOOL executed names=%s", [call.name for call in event.function_calls])
     avatar = synthesia.AvatarSession(
         synthesia.AvatarConfig(avatar_ids=[AVATAR_ID]),
         join_timeout=60.0,
