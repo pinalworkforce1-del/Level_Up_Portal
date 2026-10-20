@@ -52,11 +52,15 @@ async def report_completion(room_name: str) -> bool:
             "x-agent-signature": signature,
         })
         with urllib.request.urlopen(request, timeout=8) as response:
-            return response.status == 200
+            payload = response.read(300).decode("utf-8", errors="replace")
+            if response.status != 200 or '"recorded":true' not in payload.replace(" ", ""):
+                print("Completion callback did not confirm record:", response.status, payload)
+                return False
+            return True
     try:
         return await asyncio.to_thread(send)
     except Exception as exc:
-        print("Interview completion callback failed:", type(exc).__name__)
+        print("Interview completion callback failed:", type(exc).__name__, str(exc)[:180])
         return False
 
 
@@ -74,15 +78,21 @@ class PracticeInterviewer(Agent):
         if self._finished:
             return "Interview already finished."
         self._finished = True
-        await context.session.say(
+        # This tool runs inside the agent turn: do not await session.say() here,
+        # because it can wait on this same tool and deadlock.
+        await context.wait_for_playout()
+        confirmed = await report_completion(self.room_name)
+        print("Interview completion callback confirmed:", confirmed)
+        context.session.say(
             "Thank you for interviewing with me today. I appreciate the examples you shared. "
             "Your private developmental feedback will be available separately. "
             "I wish you the best in your job search!",
             allow_interruptions=False,
         )
-        await report_completion(self.room_name)
+        # Drain queued goodbye speech and prevent a second model response.
+        context.session.shutdown(drain=True)
         async def close_room():
-            await asyncio.sleep(3)
+            await asyncio.sleep(5)
             try:
                 async with api.LiveKitAPI() as lk:
                     await lk.room.delete_room(api.DeleteRoomRequest(room=self.room_name))
