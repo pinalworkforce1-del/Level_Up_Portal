@@ -21,31 +21,40 @@ from livekit.plugins import synthesia
 AVATAR_ID = os.getenv("SYNTHESIA_INTERACTIVE_AVATAR_ID", "fdec2525-6f4c-4544-87c6-abb3e47a12b4")
 AGENT_NAME = "levelup-interview-pilot"
 MAX_INTERVIEW_SECONDS = 480
+PILOT_QUESTIONS = [
+    ("q1", "What interests you about this position and what experience would help you succeed?"),
+    ("q2", "What workplace responsibilities have best prepared you to work with a team?"),
+    ("q3", "What would you do if you encountered a customer or coworker who needed assistance while you were busy?"),
+]
+
 
 INTERVIEW_INSTRUCTIONS = """
 You are a realistic, professional United States English speaking interviewer for
 Level Up's Interview Intelligence training experience.
 Disclose clearly that you are an AI practice interviewer.
 This is an employment-practice simulation, not a real hiring decision.
-Conduct exactly three interview questions, one at a time:
+Conduct the required interview questions in order, one at a time. This pilot uses three
+questions, but completion must use the required question list rather than a hardcoded count.
 1. What interests you about this position and what experience would help you succeed?
 2. What workplace responsibilities have best prepared you to work with a team?
 3. What would you do if you encountered a customer or coworker who needed assistance while you were busy?
+After each participant response, call record_answer once with its correct question_id (q1,
+q2, q3) and an accurate, concise paraphrase of the participant's actual response.
+Never fabricate a response or record an answer before the participant speaks.
 Wait for each response. Ask no more than one brief clarification when necessary.
-Use short spoken sentences, do not interrupt, and do not disclose grades in the interview.
+Use short spoken sentences, do not interrupt, and do not disclose grades.
 Never assume certifications, diagnoses, or personal background.
-After the participant has answered the third interview question and any brief clarification,
-call the finish_interview tool exactly once. Do not give feedback during the interview.
+After every required answer is captured, call finish_interview exactly once.
 Do not independently deliver a farewell before using the tool.
 Never say the participant has passed a real job interview.
 """
 
-async def report_completion(room_name: str) -> bool:
+async def report_completion(room_name: str, answers: list) -> bool:
     key = os.getenv("LIVEKIT_API_SECRET", "")
     if not key:
         logger.error("INTERVIEW_COMPLETION missing LiveKit signing key")
         return False
-    body = json.dumps({"event": "interview_completed", "room_name": room_name}, separators=(",", ":")).encode()
+    body = json.dumps({"event": "interview_completed", "room_name": room_name, "answers": answers}, separators=(",", ":")).encode()
     timestamp = str(int(time.time()))
     signature = hmac.new(key.encode(), timestamp.encode() + b"." + body, hashlib.sha256).hexdigest()
     url = "https://dnijrzotfyvmmnmueknk.supabase.co/functions/v1/levelup-interview-agent-complete"
@@ -76,6 +85,17 @@ class PracticeInterviewer(Agent):
         super().__init__(instructions=INTERVIEW_INSTRUCTIONS)
         self.room_name = room_name
         self._finished = False
+        self._answers = {}
+
+    @function_tool()
+    async def record_answer(self, context: RunContext, question_id: str, response: str) -> str:
+        """Capture the participant's actual response to a required question, using q1, q2, etc."""
+        allowed = {q_id for q_id, _ in PILOT_QUESTIONS}
+        if question_id not in allowed or self._finished or not response.strip():
+            return "Answer not recorded; use the active question identifier and actual response."
+        self._answers[question_id] = response.strip()[:2500]
+        logger.info("INTERVIEW_EVIDENCE captured %s", question_id)
+        return "Answer captured. Continue with the next required question when ready."
 
     @function_tool()
     async def finish_interview(self, context: RunContext) -> str:
@@ -84,11 +104,15 @@ class PracticeInterviewer(Agent):
         """
         if self._finished:
             return "Interview already finished."
+        answers = [{"question_id": q_id, "response": self._answers[q_id]} for q_id, _ in PILOT_QUESTIONS if q_id in self._answers]
+        if len(answers) != len(PILOT_QUESTIONS):
+            logger.warning("INTERVIEW_COMPLETION incomplete required answers: %s/%s", len(answers), len(PILOT_QUESTIONS))
+            return "Some required participant answers are not captured yet. Continue the interview and capture them before finishing."
         self._finished = True
         logger.info("INTERVIEW_COMPLETION tool invoked")
         # Report completion without waiting on the active tool turn's playback.
         # Waiting for playout here can prevent the callback from executing.
-        confirmed = await report_completion(self.room_name)
+        confirmed = await report_completion(self.room_name, answers)
         logger.info("INTERVIEW_COMPLETION callback confirmed=%s", confirmed)
         context.session.say(
             "Thank you for interviewing with me today. I appreciate the examples you shared. "
