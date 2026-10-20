@@ -10,6 +10,7 @@
 <p class="hint">Career choices are captured for this pilot; occupation-specific question adaptation will be enabled after the agent's next deployment.</p>
 <p class="notice">Pilot session: not yet counted toward course completion or Coach View. A signed-in Level Up account is required. Live sessions may incur usage charges.</p>
 <div class="row"><button id="start" type="button">Begin live interview</button><button id="end" class="secondary" type="button" disabled>End interview</button><button id="enableAudio" class="secondary" type="button" hidden>Enable Audio</button></div>
+<div id="feedbackActions" hidden><button id="viewFeedback" type="button">View My Interview Feedback</button><div id="feedbackReport" class="notice" hidden></div></div>
 <p id="allowance" class="hint">Pilot policy: 8 minutes per session, 2 sessions per 30 days. Quota activation pending.</p><p id="status" role="status" aria-live="polite"><span class="indicator"></span>Ready when you are.</p><p class="hint" id="connection">Tip: Turn off nearby TVs or use headphones to avoid accidental interruptions.</p>
 </section><section class="panel"><div class="stage" id="stage"><video id="avatar" autoplay playsinline aria-label="Live video of your AI practice interviewer"></video><div class="placeholder" id="placeholder"><strong>Interview Intelligence</strong><p>Jacqueline is ready to meet you.</p><p class="muted">Your interviewer's video will appear here when connected.</p></div><div id="remoteAudio"></div></div><div class="row"><span class="indicator" id="indicator"></span><span id="trackState">Not connected</span></div><p class="muted">If video pauses, your audio interview may continue. The session remains open until you end it.</p></section></div>
 </main>
@@ -21,7 +22,7 @@ const SUPABASE_KEY='sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc';
 const client=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const tokenEndpoint=SUPABASE_URL+'/functions/v1/levelup-live-interview-token';
 const $=id=>document.getElementById(id), start=$('start'),end=$('end'),avatar=$('avatar'),placeholder=$('placeholder');
-let room=null,videoTrack=null,connected=false,closedByUser=false,sessionRoomName=null;
+let room=null,videoTrack=null,connected=false,closedByUser=false,sessionRoomName=null,feedbackRoom=null;
 function state(message,type='idle'){ $('status').textContent=message;$('indicator').className='indicator'+(type==='live'?' live':type==='warn'?' warn':'');}
 function trackLabel(x){$('trackState').textContent=x}
 function clearMedia(){try{videoTrack?.detach(avatar)}catch{}videoTrack=null;avatar.srcObject=null;$('remoteAudio').replaceChildren();placeholder.hidden=false;}
@@ -30,12 +31,12 @@ async function showOutcome(roomName){if(!roomName)return;try{
 const {data:{session}}=await client.auth.getSession();if(!session)return;
 const response=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'session_status',room_name:roomName})});
 if(!response.ok)return;const data=await response.json();
-if(data.status==='completed'){state('Interview complete. Jacqueline has finished your practice interview.','live');trackLabel('Practice complete • developmental debrief pending')}
+if(data.status==='completed'&&data.feedback_ready===true){feedbackRoom=roomName;$('feedbackActions').hidden=false;state('Interview complete. Your feedback is available.','live');trackLabel('Practice complete • view your interview feedback')}
 else if(data.status==='timed_out'){state('Eight-minute interview limit reached.','warn');trackLabel('Time limit reached')}
 else if(data.status==='interrupted'){state('Interview ended early.','warn');trackLabel('Practice ended early')}
 }catch(e){console.warn('Could not refresh interview status',e)}}
-async function finish(){closedByUser=true;const finishedRoom=sessionRoomName;sessionRoomName=null; if(finishedRoom){const {data:{session}}=await client.auth.getSession();if(session)await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'end',room_name:finishedRoom})}).catch(()=>{})}end.disabled=true;start.disabled=false;$('occupation').disabled=false;connected=false;try{await room?.disconnect()}catch{}room=null;clearMedia();trackLabel('Not connected');state('Interview ended. Checking completion…');await showOutcome(finishedRoom)}
-start.onclick=async()=>{start.disabled=true;closedByUser=false;$('occupation').disabled=true;state('Checking Level Up sign-in…');try{
+async function finish(){$('feedbackActions').hidden=true;feedbackRoom=null;closedByUser=true;const finishedRoom=sessionRoomName;sessionRoomName=null; if(finishedRoom){const {data:{session}}=await client.auth.getSession();if(session)await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'end',room_name:finishedRoom})}).catch(()=>{})}end.disabled=true;start.disabled=false;$('occupation').disabled=false;connected=false;try{await room?.disconnect()}catch{}room=null;clearMedia();trackLabel('Not connected');state('Interview ended. Checking completion…');await showOutcome(finishedRoom)}
+start.onclick=async()=>{$('feedbackActions').hidden=true;$('feedbackReport').hidden=true;feedbackRoom=null;start.disabled=true;closedByUser=false;$('occupation').disabled=true;state('Checking Level Up sign-in…');try{
 const {data:{session},error:authError}=await client.auth.getSession();if(authError)throw authError;if(!session||session.user?.is_anonymous)throw Error('Please sign in with a Level Up participant account before starting a live interview.');
 const response=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'pilot',occupation:$('occupation').value})});
 let data={};try{data=await response.json()}catch{}if(!response.ok){const friendly={sessions_paused:'Interview availability is temporarily paused while we finish testing cost safeguards.',session_allowance_used:'You have used your interview sessions for this 30-day period.',active_session_exists:'Another interview appears to be active. Please end it before starting again.'};throw Error(data.message||friendly[data.error]||data.error||'Unable to authorize the interview')}
@@ -57,6 +58,19 @@ await showOutcome(endedRoom);
 state('Connecting to LiveKit…');await room.connect(data.server_url,data.participant_token);
 await room.startAudio();await room.localParticipant.setMicrophoneEnabled(true);connected=true;end.disabled=false;if(videoTrack){state('Connected • your interviewer is here','live');trackLabel('Interviewer video connected')}else{state('Connected • waiting for interviewer video…','live');trackLabel('Waiting for Synthesia video…')}
 }catch(e){const oldRoom=room;room=null;if(oldRoom)await oldRoom.disconnect().catch(()=>{});clearMedia();start.disabled=false;end.disabled=true;$('occupation').disabled=false;sessionRoomName=null;state('Could not start: '+(e?.message||String(e)),'warn')}}
+$('viewFeedback').onclick=async()=>{if(!feedbackRoom)return;const report=$('feedbackReport');report.hidden=false;report.replaceChildren();try{
+const {data:{session}}=await client.auth.getSession();if(!session)throw Error('Sign in to view your feedback.');
+const response=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'session_status',room_name:feedbackRoom})});
+if(!response.ok)throw Error('Could not load the interview report.');
+const data=await response.json();
+if(data.status!=='completed'||data.feedback_ready!==true||!data.evidence_complete)throw Error('Interview feedback is not yet available.');
+const h=document.createElement('h3');h.textContent='Your Interview Reflection';report.append(h);
+const intro=document.createElement('p');intro.textContent='All required questions were answered. These are the responses captured during your practice, not an automated performance rating.';report.append(intro);
+const answers=Array.isArray(data.answer_evidence)?data.answer_evidence:[];
+const qs=Array.isArray(data.required_questions)?data.required_questions:[];
+for(let i=0;i<answers.length;i++){const q=document.createElement('p');const strong=document.createElement('strong');strong.textContent=(qs[i]?.text||'Question '+(i+1));q.append(strong);const a=document.createElement('p');a.textContent=answers[i].response||'Response unavailable';report.append(q,a)}
+const tip=document.createElement('p');tip.textContent='Developmental next step: Review whether each example explains the situation, your action, and the outcome. A more detailed coach-ready assessment is planned.';report.append(tip);
+}catch(e){report.textContent=e?.message||'Feedback could not be loaded.'}};
 $('enableAudio').onclick=async()=>{try{await room?.startAudio();$('enableAudio').hidden=true;state('Audio enabled • Jacqueline can speak','live')}catch(e){state('Audio activation failed: '+e.message,'warn')}};
 end.onclick=finish;window.addEventListener('pagehide',()=>{if(room)room.disconnect()});
 </script></body></html>
