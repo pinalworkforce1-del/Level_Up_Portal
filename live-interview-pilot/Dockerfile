@@ -4,5 +4,6 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY agent.py .
-RUN python agent.py download-files
+RUN python agent.py download-files && useradd --create-home agent && chown -R agent:agent /app
+USER agent
 CMD ["python","agent.py","start"]
