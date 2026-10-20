@@ -86,9 +86,8 @@ class PracticeInterviewer(Agent):
             return "Interview already finished."
         self._finished = True
         logger.info("INTERVIEW_COMPLETION tool invoked")
-        # This tool runs inside the agent turn: do not await session.say() here,
-        # because it can wait on this same tool and deadlock.
-        await context.wait_for_playout()
+        # Report completion without waiting on the active tool turn's playback.
+        # Waiting for playout here can prevent the callback from executing.
         confirmed = await report_completion(self.room_name)
         logger.info("INTERVIEW_COMPLETION callback confirmed=%s", confirmed)
         context.session.say(
