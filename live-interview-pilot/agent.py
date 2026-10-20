@@ -4,6 +4,7 @@ Run as a LiveKit worker after configuring secrets in the worker environment.
 Does not alter the production Rosie mock-interview module.
 """
 import os
+import asyncio
 
 from livekit import agents
 from livekit.agents import AgentServer, AgentSession, Agent
@@ -47,6 +48,8 @@ async def interview(ctx: agents.JobContext):
     )
     await avatar.start(session, room=ctx.room)
     await session.start(room=ctx.room, agent=PracticeInterviewer())
+    # Give the browser a short window to enable microphone/audio before the greeting.
+    await asyncio.sleep(3)
     await session.generate_reply(instructions="Introduce yourself as the AI practice interviewer and ask the first interview question.")
 
 if __name__ == "__main__":
