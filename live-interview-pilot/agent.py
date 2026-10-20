@@ -6,12 +6,13 @@ Does not alter the production Rosie mock-interview module.
 import os
 import asyncio
 
-from livekit import agents
+from livekit import agents, api
 from livekit.agents import AgentServer, AgentSession, Agent
 from livekit.plugins import synthesia
 
 AVATAR_ID = os.getenv("SYNTHESIA_INTERACTIVE_AVATAR_ID", "fdec2525-6f4c-4544-87c6-abb3e47a12b4")
 AGENT_NAME = "levelup-interview-pilot"
+MAX_INTERVIEW_SECONDS = 480
 
 INTERVIEW_INSTRUCTIONS = """
 You are a realistic, professional United States English speaking interviewer for
@@ -51,6 +52,15 @@ async def interview(ctx: agents.JobContext):
     # Give the browser a short window to enable microphone/audio before the greeting.
     await asyncio.sleep(3)
     await session.generate_reply(instructions="Introduce yourself as the AI practice interviewer and ask the first interview question.")
+    # Server-side upper bound: close the whole LiveKit room, not merely the browser UI.
+    async def enforce_deadline():
+        await asyncio.sleep(MAX_INTERVIEW_SECONDS)
+        try:
+            async with api.LiveKitAPI() as lk:
+                await lk.room.delete_room(api.DeleteRoomRequest(room=ctx.room.name))
+        except Exception as exc:
+            print(f"Interview deadline room shutdown failed: {type(exc).__name__}")
+    asyncio.create_task(enforce_deadline())
 
 if __name__ == "__main__":
     agents.cli.run_app(server)
