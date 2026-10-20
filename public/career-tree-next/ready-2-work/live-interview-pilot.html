@@ -21,17 +21,17 @@ const SUPABASE_KEY='sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc';
 const client=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
 const tokenEndpoint=SUPABASE_URL+'/functions/v1/levelup-live-interview-token';
 const $=id=>document.getElementById(id), start=$('start'),end=$('end'),avatar=$('avatar'),placeholder=$('placeholder');
-let room=null,videoTrack=null,connected=false,closedByUser=false;
+let room=null,videoTrack=null,connected=false,closedByUser=false,sessionRoomName=null;
 function state(message,type='idle'){ $('status').textContent=message;$('indicator').className='indicator'+(type==='live'?' live':type==='warn'?' warn':'');}
 function trackLabel(x){$('trackState').textContent=x}
 function clearMedia(){try{videoTrack?.detach(avatar)}catch{}videoTrack=null;avatar.srcObject=null;$('remoteAudio').replaceChildren();placeholder.hidden=false;}
 function watchTrack(track){if(track.kind===Track.Kind.Video){videoTrack=track;track.attach(avatar);placeholder.hidden=true;trackLabel('Interviewer video connected');state('Connected • your interviewer is here','live')}else if(track.kind===Track.Kind.Audio){const el=track.attach();el.autoplay=true;$('remoteAudio').append(el);trackLabel('Interviewer audio connected');}}
-async function finish(){closedByUser=true;end.disabled=true;start.disabled=false;$('occupation').disabled=false;connected=false;try{await room?.disconnect()}catch{}room=null;clearMedia();trackLabel('Not connected');state('Interview ended. You may start another practice session.')}
+async function finish(){closedByUser=true;const finishedRoom=sessionRoomName;sessionRoomName=null; if(finishedRoom){const {data:{session}}=await client.auth.getSession();if(session)await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'end',room_name:finishedRoom})}).catch(()=>{})}end.disabled=true;start.disabled=false;$('occupation').disabled=false;connected=false;try{await room?.disconnect()}catch{}room=null;clearMedia();trackLabel('Not connected');state('Interview ended. You may start another practice session.')}
 start.onclick=async()=>{start.disabled=true;closedByUser=false;$('occupation').disabled=true;state('Checking Level Up sign-in…');try{
 const {data:{session},error:authError}=await client.auth.getSession();if(authError)throw authError;if(!session||session.user?.is_anonymous)throw Error('Please sign in with a Level Up participant account before starting a live interview.');
 const response=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'pilot',occupation:$('occupation').value})});
 let data={};try{data=await response.json()}catch{}if(!response.ok)throw Error(data.message||data.error||'Unable to authorize the interview');
-room=new Room({adaptiveStream:true,dynacast:true});
+sessionRoomName=data.room_name;room=new Room({adaptiveStream:true,dynacast:true});
 room.on(RoomEvent.TrackSubscribed,(track)=>watchTrack(track));
 room.on(RoomEvent.AudioPlaybackStatusChanged,()=>{if(!room.canPlaybackAudio){state('Click to enable interviewer audio in your browser','warn');$('connection').textContent='Your browser has paused remote audio. Click Enable Audio to hear Jacqueline.';$('enableAudio').hidden=false}else{$('enableAudio').hidden=true}});
 room.on(RoomEvent.TrackUnsubscribed,(track)=>{if(track.kind===Track.Kind.Video){try{track.detach(avatar)}catch{}videoTrack=null;placeholder.hidden=false;trackLabel('Avatar video interrupted • audio may still work');state('Video interrupted — your interview may continue by voice','warn')}else if(track.kind===Track.Kind.Audio){track.detach()}});
@@ -40,7 +40,7 @@ room.on(RoomEvent.ConnectionStateChanged,connection=>{if(connection==='reconnect
 room.on(RoomEvent.Disconnected,()=>{if(!closedByUser){clearMedia();room=null;end.disabled=true;start.disabled=false;$('occupation').disabled=false;trackLabel('Connection ended');state('Connection ended. You can begin a new practice session.','warn')}});
 state('Connecting to LiveKit…');await room.connect(data.server_url,data.participant_token);
 await room.startAudio();await room.localParticipant.setMicrophoneEnabled(true);connected=true;end.disabled=false;if(videoTrack){state('Connected • your interviewer is here','live');trackLabel('Interviewer video connected')}else{state('Connected • waiting for interviewer video…','live');trackLabel('Waiting for Synthesia video…')}
-}catch(e){const oldRoom=room;room=null;if(oldRoom)await oldRoom.disconnect().catch(()=>{});clearMedia();start.disabled=false;end.disabled=true;$('occupation').disabled=false;state('Could not start: '+(e?.message||String(e)),'warn')}}
+}catch(e){const oldRoom=room;room=null;if(oldRoom)await oldRoom.disconnect().catch(()=>{});clearMedia();start.disabled=false;end.disabled=true;$('occupation').disabled=false;sessionRoomName=null;state('Could not start: '+(e?.message||String(e)),'warn')}}
 $('enableAudio').onclick=async()=>{try{await room?.startAudio();$('enableAudio').hidden=true;state('Audio enabled • Jacqueline can speak','live')}catch(e){state('Audio activation failed: '+e.message,'warn')}};
 end.onclick=finish;window.addEventListener('pagehide',()=>{if(room)room.disconnect()});
 </script></body></html>
