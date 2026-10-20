@@ -10,6 +10,9 @@ import hmac
 import json
 import time
 import urllib.request
+import logging
+
+logger = logging.getLogger('livekit.agents.interview_completion')
 
 from livekit import agents, api
 from livekit.agents import AgentServer, AgentSession, Agent, function_tool, RunContext
@@ -40,7 +43,7 @@ Never say the participant has passed a real job interview.
 async def report_completion(room_name: str) -> bool:
     key = os.getenv("LIVEKIT_API_SECRET", "")
     if not key:
-        print("INTERVIEW_COMPLETION missing LiveKit signing key", flush=True)
+        logger.error("INTERVIEW_COMPLETION missing LiveKit signing key")
         return False
     body = json.dumps({"event": "interview_completed", "room_name": room_name}, separators=(",", ":")).encode()
     timestamp = str(int(time.time()))
@@ -55,16 +58,16 @@ async def report_completion(room_name: str) -> bool:
         with urllib.request.urlopen(request, timeout=8) as response:
             payload = response.read(300).decode("utf-8", errors="replace")
             if response.status != 200 or '"recorded":true' not in payload.replace(" ", ""):
-                print("Completion callback did not confirm record:", response.status, payload)
+                logger.error("INTERVIEW_COMPLETION callback rejected: status=%s response=%s", response.status, payload[:200])
                 return False
             return True
-    print("INTERVIEW_COMPLETION callback attempt", flush=True)
+    logger.info("INTERVIEW_COMPLETION callback attempt")
     try:
         result = await asyncio.to_thread(send)
-        print("INTERVIEW_COMPLETION callback result", result, flush=True)
+        logger.info("INTERVIEW_COMPLETION callback result=%s", result)
         return result
     except Exception as exc:
-        print("INTERVIEW_COMPLETION callback failed:", type(exc).__name__, str(exc)[:180], flush=True)
+        logger.exception("INTERVIEW_COMPLETION callback failed")
         return False
 
 
@@ -82,12 +85,12 @@ class PracticeInterviewer(Agent):
         if self._finished:
             return "Interview already finished."
         self._finished = True
-        print("INTERVIEW_COMPLETION tool invoked", flush=True)
+        logger.info("INTERVIEW_COMPLETION tool invoked")
         # This tool runs inside the agent turn: do not await session.say() here,
         # because it can wait on this same tool and deadlock.
         await context.wait_for_playout()
         confirmed = await report_completion(self.room_name)
-        print("INTERVIEW_COMPLETION callback confirmed:", confirmed, flush=True)
+        logger.info("INTERVIEW_COMPLETION callback confirmed=%s", confirmed)
         context.session.say(
             "Thank you for interviewing with me today. I appreciate the examples you shared. "
             "Your private developmental feedback will be available separately. "
@@ -115,6 +118,9 @@ async def interview(ctx: agents.JobContext):
         llm="openai/gpt-4.1-mini",
         tts=f"cartesia/sonic-3:{os.getenv('INTERVIEW_TTS_VOICE_ID', '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc')}",
     )
+    @session.on("function_tools_executed")
+    def on_tools_executed(event):
+        logger.info("INTERVIEW_TOOL executed names=%s", [call.name for call in event.function_calls])
     avatar = synthesia.AvatarSession(
         synthesia.AvatarConfig(avatar_ids=[AVATAR_ID]),
         join_timeout=60.0,
