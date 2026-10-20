@@ -1,0 +1,44 @@
+name: Deploy Interview Intelligence Pilot
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: live-interview-pilot-deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy isolated LiveKit agent
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out Level Up source
+        uses: actions/checkout@v4
+
+      - name: Check deployment credentials
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          SECRET_LIST: ${{ secrets.LIVEKIT_AGENT_SECRET_LIST }}
+        run: |
+          test -n "$LIVEKIT_URL" || { echo "::error::Missing LIVEKIT_URL secret"; exit 1; }
+          test -n "$LIVEKIT_API_KEY" || { echo "::error::Missing LIVEKIT_API_KEY secret"; exit 1; }
+          test -n "$LIVEKIT_API_SECRET" || { echo "::error::Missing LIVEKIT_API_SECRET secret"; exit 1; }
+          test -n "$SECRET_LIST" || { echo "::error::Missing LIVEKIT_AGENT_SECRET_LIST secret (include SYNTHESIA_API_KEY)"; exit 1; }
+          echo "Required secret settings are present (values not printed)."
+
+      - name: Create LiveKit interview pilot agent
+        uses: livekit/deploy-action@v2.12.2
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          SECRET_LIST: ${{ secrets.LIVEKIT_AGENT_SECRET_LIST }}
+        with:
+          OPERATION: create
+          WORKING_DIRECTORY: live-interview-pilot
