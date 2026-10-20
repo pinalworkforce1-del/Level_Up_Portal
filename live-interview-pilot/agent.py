@@ -39,7 +39,7 @@ async def interview(ctx: agents.JobContext):
     session = AgentSession(
         stt="cartesia/ink-2",
         llm="openai/gpt-4.1-mini",
-        tts="cartesia/sonic-3.5",
+        tts=f"cartesia/sonic-3:{os.getenv('INTERVIEW_TTS_VOICE_ID', '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc')}",
     )
     avatar = synthesia.AvatarSession(
         synthesia.AvatarConfig(avatar_ids=[AVATAR_ID]),
