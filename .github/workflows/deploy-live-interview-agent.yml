@@ -41,14 +41,16 @@ jobs:
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
           SECRET_LIST: ${{ secrets.LIVEKIT_AGENT_SECRET_LIST }}
         with:
-          OPERATION: create
+          OPERATION: deploy
           WORKING_DIRECTORY: live-interview-pilot
 
-      - name: Open pull request for LiveKit agent registration
-        uses: peter-evans/create-pull-request@v7
+      - name: Confirm agent is running
+        uses: livekit/deploy-action@v2.12.2
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
         with:
-          add-paths: live-interview-pilot/livekit.toml
-          branch: livekit-agent-registration
-          title: Register Level Up Interview Intelligence pilot agent
-          commit-message: Register LiveKit Interview Intelligence agent
-          body: "LiveKit-generated agent registration file. Merge this before running subsequent deployments."
+          OPERATION: status-retry
+          WORKING_DIRECTORY: live-interview-pilot
+          TIMEOUT: 5m
