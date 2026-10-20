@@ -4,7 +4,8 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
+  pull-requests: write
 
 concurrency:
   group: live-interview-pilot-deploy
@@ -42,3 +43,12 @@ jobs:
         with:
           OPERATION: create
           WORKING_DIRECTORY: live-interview-pilot
+
+      - name: Open pull request for LiveKit agent registration
+        uses: peter-evans/create-pull-request@v7
+        with:
+          add-paths: live-interview-pilot/livekit.toml
+          branch: livekit-agent-registration
+          title: Register Level Up Interview Intelligence pilot agent
+          commit-message: Register LiveKit Interview Intelligence agent
+          body: "LiveKit-generated agent registration file. Merge this before running subsequent deployments."
