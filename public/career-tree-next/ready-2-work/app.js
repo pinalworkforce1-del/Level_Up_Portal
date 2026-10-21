@@ -104,7 +104,7 @@
   }
   function queueCloudSave(){
     const session=levelUpSession();
-    if(!session?.user?.id||!session.access_token)return;
+    if(!session?.user?.id||!session.access_token){syncStatus('Saved on this device only — sign in to Level Up to sync with your coach.');return;}
     cloudRevision++;
     clearTimeout(cloudTimer);
     cloudTimer=setTimeout(flushCloudSave,650);
@@ -122,11 +122,12 @@
       const response=await fetch(CLOUD_URL+'?on_conflict=user_id,module_id',{method:'POST',headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
       if(!response.ok)throw new Error('Cloud save HTTP '+response.status);
       cloudOwner=owner;
-    }catch(err){console.warn('Soft Skills cloud save unavailable; local progress remains saved.',err);}
+      syncStatus('Soft Skills progress synced to Level Up cloud ✓',true);
+    }catch(err){syncStatus('Saved on this device; cloud sync failed. Sign in again to Level Up and reopen this page.');console.warn('Soft Skills cloud save unavailable; local progress remains saved.',err);}
     finally{cloudWriting=false;if(cloudQueued||revision!==cloudRevision){cloudQueued=false;clearTimeout(cloudTimer);cloudTimer=setTimeout(flushCloudSave,750);}}
   }
   async function loadCloudSoftSkills(){
-    const session=levelUpSession();if(!session?.user?.id||!session.access_token)return;
+    const session=levelUpSession();if(!session?.user?.id||!session.access_token){syncStatus('Saved locally — sign in to Level Up on this device to send progress to your coach.');return;}
     const initialOwner=session.user.id;
     try{
       const url=CLOUD_URL+'?select=journey_state&user_id=eq.'+encodeURIComponent(initialOwner)+'&module_id=eq.'+SOFT_SKILLS_MODULE+'&limit=1';
@@ -148,6 +149,7 @@
       queueCloudSave();
     }catch(err){console.warn('Soft Skills cloud restore unavailable; local progress remains available.',err);}
   }
+  function syncStatus(message,ok=false){const el=document.getElementById('softSyncStatus');if(!el)return;el.textContent=message;el.style.background=ok?'#e9f7ef':'#fff2d6';el.style.color=ok?'#17492d':'#533b15';}
   function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} queueCloudSave(); }
 
   function recalcScores(){
