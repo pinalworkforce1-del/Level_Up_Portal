@@ -311,8 +311,8 @@
       const b=document.createElement('button');b.type='button';
       b.className='board-card resume-builder-card'+(scenariosDone?'':' locked');
       b.disabled=!scenariosDone;
-      b.innerHTML='<span class="card-kicker">REQUIRED • STEP 2</span><strong>Level Up Interview Arena</strong><small>'+
-        (!scenariosDone?'Complete the 5 Interview Landing decisions to unlock.':completed?'Interview Arena complete ✓':'Practice your mock interview in Level Up Interview Arena.')+
+      b.innerHTML='<span class="card-kicker">REQUIRED • STEP 2</span><strong>Jacqueline Live Interview</strong><small>'+
+        (!scenariosDone?'Complete the 5 Interview Intelligence decisions to unlock.':completed?'Interview complete ✓':'Launch Jacqueline's live practice interview.')+
         '</small><span class="card-arrow">'+(completed?'✓':'→')+'</span>';
       if(scenariosDone)b.onclick=()=>launchLevelUp(INTERVIEW_URL);
       grid.prepend(b);
