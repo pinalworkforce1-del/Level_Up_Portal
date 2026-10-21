@@ -281,7 +281,7 @@
     $('stageHomeProgress').className=`status-pill ${complete?'complete':''}`;
     $('requiredPathTitle').textContent=complete?'Review required scenarios':'Continue required scenarios';
     $('requiredPathMeta').textContent=complete?`${total} of ${total} complete • revisit any decision`:`${done} of ${total} complete • skill impact updates after every decision`;
-    const firstStageIndex=firstIncompleteIndex(stage); const firstStageScene=scenes[firstStageIndex]; $('requiredPathBtn').href='index.html#scene-'+firstStageScene.id; $('requiredPathBtn').onclick=(event)=>{event.preventDefault();try{route('scene',{index:firstStageIndex});}catch(error){console.error('Ready 2 Work scenario entry failed',error);window.location.href='index.html#scene-'+firstStageScene.id;}};
+    const firstStageIndex=firstIncompleteIndex(stage); const firstStageScene=scenes[firstStageIndex]; $('requiredPathBtn').href='index.html?entry=scenario#scene-'+firstStageScene.id; $('requiredPathBtn').onclick=null;
     const grid=$('stageExperienceGrid'); grid.querySelectorAll('.resume-builder-card').forEach(x=>x.remove());
     if(stage==='Interview Landing'){
       const scenariosDone=done===total, completed=linkedInterviewComplete();
@@ -532,7 +532,7 @@
   loadCloudSoftSkills();
   refreshLinkedCompletions();
   const hash=location.hash||'#map';
-  if(hash.startsWith('#scene-')){ const id=Number(hash.split('-')[1]); const idx=scenes.findIndex(s=>s.id===id); route('scene',{index:idx>=0?idx:0}); }
+  if(hash.startsWith('#scene-')){ const id=Number(hash.split('-')[1]); const idx=scenes.findIndex(s=>s.id===id); try{ route('scene',{index:idx>=0?idx:0}); }catch(error){console.error('Scenario render failed',error);const note=document.createElement('div');note.setAttribute('role','alert');note.style.cssText='position:fixed;z-index:9999;top:80px;left:18px;right:18px;background:#fff0d4;color:#352516;padding:22px;border:3px solid #cb8031;border-radius:14px;font:600 15px system-ui';note.textContent='Resume Rise could not display this scenario: '+String(error?.message||error)+'. Your saved progress has not been cleared.';document.body.appendChild(note);}}
   else if(hash==='#certificate') route('certificate');
   else if(hash==='#resume-builder'){ route('resume-builder'); }
   else if(hash.startsWith('#stage-')){ const wanted=hash.slice(7); const stage=stageOrder.find(s=>slug(s)===wanted)||stageOrder[0]; route('stage',{stage}); }
