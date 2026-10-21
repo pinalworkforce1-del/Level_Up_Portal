@@ -38,23 +38,21 @@ questions, but completion must use the required question list rather than a hard
 1. What interests you about this position and what experience would help you succeed?
 2. What workplace responsibilities have best prepared you to work with a team?
 3. What would you do if you encountered a customer or coworker who needed assistance while you were busy?
-After each participant response, call record_answer once with its correct question_id (q1,
-q2, q3) and an accurate, concise paraphrase of the participant's actual response.
-Never fabricate a response or record an answer before the participant speaks.
+Conversation history captures participant responses automatically; never call a tool to record answers.
 Wait for each response. Ask no more than one brief clarification when necessary.
 Use short spoken sentences, do not interrupt, and do not disclose grades.
 Never assume certifications, diagnoses, or personal background.
-After every required answer is captured, call finish_interview exactly once.
+After all required questions have participant responses, call finish_interview exactly once.
 Do not independently deliver a farewell before using the tool.
 Never say the participant has passed a real job interview.
 """
 
-async def report_completion(room_name: str, answers: list) -> bool:
+async def report_completion(room_name: str, answers: list, event: str = 'interview_completed', turns=None) -> bool:
     key = os.getenv("LIVEKIT_API_SECRET", "")
     if not key:
         logger.error("INTERVIEW_COMPLETION missing LiveKit signing key")
         return False
-    body = json.dumps({"event": "interview_completed", "room_name": room_name, "answers": answers}, separators=(",", ":")).encode()
+    body = json.dumps({"event": event, "room_name": room_name, "answers": answers, "turns": turns or []}, separators=(",", ":")).encode()
     timestamp = str(int(time.time()))
     signature = hmac.new(key.encode(), timestamp.encode() + b"." + body, hashlib.sha256).hexdigest()
     url = "https://dnijrzotfyvmmnmueknk.supabase.co/functions/v1/levelup-interview-agent-complete"
@@ -88,31 +86,17 @@ class PracticeInterviewer(Agent):
         self._answers = {}
 
     @function_tool()
-    async def record_answer(self, context: RunContext, question_id: str, response: str) -> str:
-        """Capture the participant's actual response to a required question, using q1, q2, etc."""
-        allowed = {q_id for q_id, _ in PILOT_QUESTIONS}
-        if question_id not in allowed or self._finished or not response.strip():
-            return "Answer not recorded; use the active question identifier and actual response."
-        self._answers[question_id] = response.strip()[:2500]
-        logger.info("INTERVIEW_EVIDENCE captured %s", question_id)
-        return "Answer captured. Continue with the next required question when ready."
-
-    @function_tool()
     async def finish_interview(self, context: RunContext) -> str:
         """Use once after the participant has finished answering all three interview questions.
         This delivers the final goodbye and officially completes the interview.
         """
         if self._finished:
             return "Interview already finished."
-        answers = [{"question_id": q_id, "response": self._answers[q_id]} for q_id, _ in PILOT_QUESTIONS if q_id in self._answers]
-        if len(answers) != len(PILOT_QUESTIONS):
-            logger.warning("INTERVIEW_COMPLETION incomplete required answers: %s/%s", len(answers), len(PILOT_QUESTIONS))
-            return "Some required participant answers are not captured yet. Continue the interview and capture them before finishing."
         self._finished = True
         logger.info("INTERVIEW_COMPLETION tool invoked")
         # Report completion without waiting on the active tool turn's playback.
         # Waiting for playout here can prevent the callback from executing.
-        confirmed = await report_completion(self.room_name, answers)
+        confirmed = False  # Transcript validator controls interview completion
         logger.info("INTERVIEW_COMPLETION callback confirmed=%s", confirmed)
         context.session.say(
             "Thank you for interviewing with me today. I appreciate the examples you shared. "
@@ -141,6 +125,39 @@ async def interview(ctx: agents.JobContext):
         llm="openai/gpt-4.1-mini",
         tts=f"cartesia/sonic-3:{os.getenv('INTERVIEW_TTS_VOICE_ID', '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc')}",
     )
+    transcript_turns = []
+    @session.on("conversation_item_added")
+    def capture_turn(event):
+        item = event.item
+        if getattr(item, "role", None) not in ("user", "assistant"):
+            return
+        content = getattr(item, "text_content", None) or ""
+        if content.strip():
+            transcript_turns.append({"role": item.role, "text": content[:5000]})
+            logger.info("INTERVIEW_TRANSCRIPT captured role=%s total=%d", item.role, len(transcript_turns))
+
+    async def upload_transcript():
+        if not transcript_turns:
+            logger.warning("INTERVIEW_TRANSCRIPT missing turns")
+            return
+        answers = []
+        for index, (qid, question) in enumerate(PILOT_QUESTIONS):
+            first = next((i for i, turn in enumerate(transcript_turns)
+                          if turn["role"] == "assistant" and question[:30].lower() in turn["text"].lower()), None)
+            if first is None:
+                break
+            following_prefix = PILOT_QUESTIONS[index+1][1][:30].lower() if index+1 < len(PILOT_QUESTIONS) else None
+            last = next((i for i in range(first+1,len(transcript_turns))
+                         if following_prefix and transcript_turns[i]["role"] == "assistant"
+                         and following_prefix in transcript_turns[i]["text"].lower()),len(transcript_turns))
+            parts = [x["text"] for x in transcript_turns[first+1:last] if x["role"] == "user"]
+            if not parts:
+                break
+            answers.append({"question_id": qid, "response": " ".join(parts)[:5000]})
+        logger.info("INTERVIEW_TRANSCRIPT upload turns=%d answers=%d",len(transcript_turns),len(answers))
+        await report_completion(ctx.room.name,answers,event="interview_transcript",turns=transcript_turns)
+
+    ctx.add_shutdown_callback(upload_transcript)
     avatar = synthesia.AvatarSession(
         synthesia.AvatarConfig(avatar_ids=[AVATAR_ID]),
         join_timeout=60.0,
