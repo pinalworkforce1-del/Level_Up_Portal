@@ -103,3 +103,6 @@
 .resume-preview.resume-style-clean h3{border-bottom:0!important;margin-top:22px!important}
 .resume-preview.resume-style-clean #rpTarget{font-size:1.06rem}
 @media(max-width:700px){.visual-style-options{grid-template-columns:1fr}}
+
+/* Required path remains navigable if scripted in-page routing fails. */
+a#requiredPathBtn{display:block;text-decoration:none;cursor:pointer}
