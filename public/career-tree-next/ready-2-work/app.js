@@ -5,6 +5,9 @@
   const skillNames = course.skills;
   const skillOrder = course.skillOrder;
   const STORAGE_KEY = 'levelup-career-tree-ready2work-v1';
+  const RESUME_CHOICE_KEYMAP={"21":{"A":"D","B":"A","C":"B","D":"C"},"22":{"A":"B","B":"C","C":"A","D":"D"},"23":{"A":"C","B":"D","C":"A","D":"B"},"24":{"A":"B","B":"C","C":"D","D":"A"},"25":{"A":"D","B":"B","C":"A","D":"C"}};
+  function migrateResumeChoices(choices){ const next={...choices};for(const [id,map] of Object.entries(RESUME_CHOICE_KEYMAP)){if(next[id]&&map[next[id]])next[id]=map[next[id]];}return next; }
+
   const RESUME_URL = 'https://pinalworkforce1-del.github.io/LU_Discovery/resume-builder-prototype.html?source=ready2work';
   const INTERVIEW_URL = 'https://pinalworkforce1-del.github.io/Interview_Arena/';
   const MODULE_COMPLETIONS = {resume:false, interview:false};
@@ -87,7 +90,7 @@
   function loadState(){
     try{
       const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw) state = {...state, ...JSON.parse(raw), skillScores:{...state.skillScores,...(JSON.parse(raw).skillScores||{})}};
+      if(raw){const saved=JSON.parse(raw);state={...state,...saved,skillScores:{...state.skillScores,...(saved.skillScores||{})}};if(state.resumeChoiceVersion!==2){state.sceneSelections=migrateResumeChoices(state.sceneSelections||{});state.resumeChoiceVersion=2;localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}}
     }catch(e){}
   }
   const SOFT_SKILLS_MODULE='ready2work-soft-skills';
@@ -124,7 +127,7 @@
       const resumeChoices=Object.fromEntries(Object.entries(state.sceneSelections).filter(([id])=>scenes.some(scene=>String(scene.id)===String(id)&&scene.stage==='Resume Retreat')));
       const resumeTotal=stageScenes('Resume Retreat').length;
       if(Object.keys(resumeChoices).length){
-        const resumeRow={user_id:owner,module_id:'ready2work-resume-scenarios',journey_state:{data:{scene_selections:resumeChoices,completed_scenes:Object.keys(resumeChoices).length,total_scenes:resumeTotal,source:'ready-2-work',saved_at:new Date().toISOString()}},is_complete:Object.keys(resumeChoices).length===resumeTotal,updated_at:new Date().toISOString(),...(Object.keys(resumeChoices).length===resumeTotal?{completed_at:new Date().toISOString()}:{})};
+        const resumeRow={user_id:owner,module_id:'ready2work-resume-scenarios',journey_state:{data:{scene_selections:resumeChoices,choice_version:2,completed_scenes:Object.keys(resumeChoices).length,total_scenes:resumeTotal,source:'ready-2-work',saved_at:new Date().toISOString()}},is_complete:Object.keys(resumeChoices).length===resumeTotal,updated_at:new Date().toISOString(),...(Object.keys(resumeChoices).length===resumeTotal?{completed_at:new Date().toISOString()}:{})};
         const resumeRes=await fetch(CLOUD_URL+'?on_conflict=user_id,module_id',{method:'POST',headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(resumeRow)});
         if(!resumeRes.ok)console.warn('Resume decisions saved locally but cloud sync was unavailable',resumeRes.status);
       }
@@ -153,7 +156,7 @@
         if(view?.id==='viewMap')renderMap();
       }
       const resumeUrl=CLOUD_URL+'?select=journey_state&user_id=eq.'+encodeURIComponent(initialOwner)+'&module_id=eq.ready2work-resume-scenarios&limit=1';
-      try{const rr=await fetch(resumeUrl,{headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token}});if(rr.ok){const records=await rr.json();const choices=records[0]?.journey_state?.data?.scene_selections||{};if(levelUpSession()?.user?.id===initialOwner){state.sceneSelections={...choices,...state.sceneSelections};try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}}}}catch(error){console.warn('Résumé decisions remain locally saved',error)}
+      try{const rr=await fetch(resumeUrl,{headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token}});if(rr.ok){const records=await rr.json();const remote=records[0]?.journey_state?.data||{};const choices=remote.choice_version===2?(remote.scene_selections||{}):migrateResumeChoices(remote.scene_selections||{});if(levelUpSession()?.user?.id===initialOwner){state.sceneSelections={...choices,...state.sceneSelections};try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}}}}catch(error){console.warn('Résumé decisions remain locally saved',error)}
       cloudOwner=initialOwner;
       queueCloudSave();
     }catch(err){console.warn('Soft Skills cloud restore unavailable; local progress remains available.',err);}
