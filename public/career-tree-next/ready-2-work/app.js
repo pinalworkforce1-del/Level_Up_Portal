@@ -121,6 +121,13 @@
       const row={user_id:owner,module_id:SOFT_SKILLS_MODULE,journey_state:{data:{...evidence,source:'ready-2-work',saved_at:new Date().toISOString()}},is_complete:completed,updated_at:new Date().toISOString(),...(completed?{completed_at:new Date().toISOString()}:{} )};
       const response=await fetch(CLOUD_URL+'?on_conflict=user_id,module_id',{method:'POST',headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
       if(!response.ok)throw new Error('Cloud save HTTP '+response.status);
+      const resumeChoices=Object.fromEntries(Object.entries(state.sceneSelections).filter(([id])=>scenes.some(scene=>String(scene.id)===String(id)&&scene.stage==='Resume Retreat')));
+      const resumeTotal=stageScenes('Resume Retreat').length;
+      if(Object.keys(resumeChoices).length){
+        const resumeRow={user_id:owner,module_id:'ready2work-resume-scenarios',journey_state:{data:{scene_selections:resumeChoices,completed_scenes:Object.keys(resumeChoices).length,total_scenes:resumeTotal,source:'ready-2-work',saved_at:new Date().toISOString()}},is_complete:Object.keys(resumeChoices).length===resumeTotal,updated_at:new Date().toISOString(),...(Object.keys(resumeChoices).length===resumeTotal?{completed_at:new Date().toISOString()}:{})};
+        const resumeRes=await fetch(CLOUD_URL+'?on_conflict=user_id,module_id',{method:'POST',headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(resumeRow)});
+        if(!resumeRes.ok)console.warn('Resume decisions saved locally but cloud sync was unavailable',resumeRes.status);
+      }
       cloudOwner=owner;
       syncStatus('Synced '+evidence.completed_scenes+' of '+evidence.total_scenes+' Soft Skills decisions to Level Up cloud ✓',true);
     }catch(err){syncStatus('Saved on this device; cloud sync failed. Sign in again to Level Up and reopen this page.');console.warn('Soft Skills cloud save unavailable; local progress remains saved.',err);}
@@ -145,6 +152,8 @@
         const view=document.querySelector('.view:not([hidden])');
         if(view?.id==='viewMap')renderMap();
       }
+      const resumeUrl=CLOUD_URL+'?select=journey_state&user_id=eq.'+encodeURIComponent(initialOwner)+'&module_id=eq.ready2work-resume-scenarios&limit=1';
+      try{const rr=await fetch(resumeUrl,{headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token}});if(rr.ok){const records=await rr.json();const choices=records[0]?.journey_state?.data?.scene_selections||{};if(levelUpSession()?.user?.id===initialOwner){state.sceneSelections={...choices,...state.sceneSelections};try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}}}}catch(error){console.warn('Résumé decisions remain locally saved',error)}
       cloudOwner=initialOwner;
       queueCloudSave();
     }catch(err){console.warn('Soft Skills cloud restore unavailable; local progress remains available.',err);}
