@@ -53,7 +53,7 @@ const statusResponse=await fetch(tokenEndpoint,{method:'POST',headers,body:JSON.
 if(statusResponse.ok){const current=await statusResponse.json();if(!current.ended_at){
 await fetch(tokenEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'end',room_name:endedRoom,reason:'connection_lost'})});
 }}
-await showOutcome(endedRoom);
+for(let attempt=0;attempt<6;attempt++){await showOutcome(endedRoom);if(!$('feedbackActions').hidden)break;if(attempt<5)await new Promise(resolve=>setTimeout(resolve,3000));}
 }catch(e){state('Interview disconnected; session reconciliation pending.','warn');console.warn('Interview cleanup failed',e)}})()}});
 state('Connecting to LiveKit…');await room.connect(data.server_url,data.participant_token);
 await room.startAudio();await room.localParticipant.setMicrophoneEnabled(true);connected=true;end.disabled=false;if(videoTrack){state('Connected • your interviewer is here','live');trackLabel('Interviewer video connected')}else{state('Connected • waiting for interviewer video…','live');trackLabel('Waiting for Synthesia video…')}
