@@ -10,8 +10,7 @@
 <section class="panel"><div class="row"><div><h2>Feedback demonstration</h2><p class="small">Switch samples to see how coaching changes when answers contain examples or lack detail.</p></div><div><label for="scenario">Interview sample</label><br><select id="scenario"><option value="developing">Brief answers</option><option value="examples">Strong workplace examples</option><option value="incomplete">Interview ended early</option></select></div></div><p class="note" id="testNotice">SIMULATED DATA — these are not scores from a real participant.</p><div id="eligibility"></div></section>
 <div id="report" hidden>
 <section class="panel"><h2>Conversation Balance: The 80/20 Principle</h2><div class="grid"><div><div class="stat" id="candidatePct">—</div><div>Candidate speaking time</div></div><div><div class="stat" id="interviewerPct">—</div><div>Jacqueline speaking time</div></div></div><div class="bar" aria-label="Speaking time distribution"><div class="candidate" id="candidateBar"></div><div class="interviewer" id="interviewerBar"></div></div><p id="ratioCoaching"></p><p class="small">Calculated from example turn durations, excluding silence. The 80/20 guideline is a coaching reference—not a pass/fail rule. Production reports require reliable per-speaker timing; word count must be labeled as a proxy.</p></section>
-<section class="panel"><h2>Question-by-question reflection</h2><div id="questions"></div></section>
-<section class="panel"><h2>Meet Nova, Your Interview Coach</h2><p class="muted">Nova reviews your interview responses and offers individualized, practical coaching. This demonstration uses fictional answers and requires Level Up sign-in, but no live interview session.</p><button id="generateAI" type="button">View Interview Feedback from Nova</button><p id="aiStatus" class="small" role="status"></p><div id="aiFeedback" hidden></div><hr style="border:0;border-top:1px solid #315778;margin:24px 0"><h2>Rule-based practice checklist</h2><ul id="recommendations"></ul><p class="small">This demonstration uses simple, transparent coaching rules—not an AI judgement, grading, hiring prediction, or credential decision.</p><button id="print" type="button">Print / Save Reflection as PDF</button></section>
+<section class="panel"><h2>Meet Nova, Your Interview Coach</h2><p class="muted">Nova reviews your interview responses and offers individualized, practical coaching. This demonstration uses fictional answers and requires Level Up sign-in, but no live interview session.</p><button id="generateAI" type="button">View Interview Feedback from Nova</button><p id="aiStatus" class="small" role="status"></p><div id="aiFeedback" hidden></div><div style="margin-top:20px"><button id="print" type="button">Print / Save Reflection as PDF</button></div></section>
 </div>
 <footer>Development preview only. Do not use simulated coaching outcomes for eligibility or case-management decisions.</footer>
 </main><script type="module">
@@ -35,18 +34,6 @@ incomplete:{turns:[{role:'assistant',duration:18},{role:'user',duration:33},{rol
 };
 const $=id=>document.getElementById(id);
 const escapeHTML=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
-function observe(answer){
-const words=answer.trim().split(/\s+/).filter(Boolean).length;
-const hasExample=/\b(when|during|once|last|previous|example|shift|project|workplace|job)\b/i.test(answer);
-const hasAction=/\b(i (helped|organized|resolved|checked|explained|created|handled|followed|listened|gave|worked|completed)|we (completed|finished|resolved))\b/i.test(answer);
-const hasOutcome=/\b(result|reduced|improved|completed|on time|increased|solved|followed through|saved)\b/i.test(answer);
-const positives=[];const opportunities=[];
-if(hasExample)positives.push('Includes a workplace context');else opportunities.push('Add a real workplace example');
-if(hasAction)positives.push('Describes an action');else opportunities.push('Explain what you personally did');
-if(hasOutcome)positives.push('Mentions an outcome');else opportunities.push('Explain what happened afterward');
-if(words<25)opportunities.push('Expand with a concrete detail');
-return {words,positives,opportunities};
-}
 function render(){
 $('aiFeedback').hidden=true;$('aiFeedback').replaceChildren();$('aiStatus').textContent='';$('generateAI').disabled=false;
 const data=sample[$('scenario').value],complete=data.answers.length===questions.length;
@@ -56,9 +43,7 @@ if(!complete)return;
 const seconds=data.turns.reduce((out,t)=>(out[t.role]+=t.duration,out),{user:0,assistant:0}),total=seconds.user+seconds.assistant,candidate=Math.round(seconds.user/total*100),interviewer=100-candidate;
 $('candidatePct').textContent=candidate+'%';$('interviewerPct').textContent=interviewer+'%';$('candidateBar').style.width=candidate+'%';$('interviewerBar').style.width=interviewer+'%';
 $('ratioCoaching').textContent=candidate<65?'You had less than two-thirds of the speaking time in this example. Consider adding a specific situation, your action, and the result to shorter responses.':candidate>90?'You gave extended answers. Practice organizing examples concisely and leaving room for follow-up questions.':'You had substantial speaking time to demonstrate your experience. Focus on making each example specific, organized, and relevant.';
-$('questions').replaceChildren();const recs=new Set;
-questions.forEach((q,i)=>{const ans=data.answers[i],notes=observe(ans);notes.opportunities.forEach(n=>recs.add(n));const card=document.createElement('article');card.className='card';const h=document.createElement('h3');h.textContent='Question '+(i+1)+': '+q.text;const response=document.createElement('p');response.textContent='Your answer (simulated): '+ans;const info=document.createElement('p');info.className='small';info.textContent=(notes.positives.length?'What worked: '+notes.positives.join('; ')+'. ':'')+(notes.opportunities.length?'Try next: '+notes.opportunities.join('; ')+'.':'Keep practicing this level of detail.');card.append(h,response,info);$('questions').append(card)});
-$('recommendations').replaceChildren();[...recs].slice(0,4).concat('Use a simple Situation → Action → Result structure when it fits the question.').forEach(x=>{const li=document.createElement('li');li.textContent=x;$('recommendations').append(li)});
+
 }
 function element(tag,content){const node=document.createElement(tag);node.textContent=String(content||'');return node;}
 $('generateAI').onclick=async()=>{
@@ -73,11 +58,11 @@ $('generateAI').onclick=async()=>{
   if(!result.ok)throw Error(payload.message|| (payload.error==='ai_not_configured'?'The AI provider key is not configured in Supabase yet.':payload.error==='feedback_unavailable'?'The AI service is temporarily unavailable.':payload.error==='sign_in_required'?'Please sign in to Level Up.':'AI feedback was not available.'));
   if($('scenario').value!==scenario)return;
   const view=$('aiFeedback');view.replaceChildren();
-  view.append(element('h3','Nova’s Interview Overview'),element('p',payload.overview));
+  view.append(element('h3','Nova’s Interview Overview'),element('p',payload.overview),element('h3','Your Questions and Growth Opportunities'));
   for(const row of payload.questions||[]){
    const idx=Number(row.index);if(!Number.isInteger(idx)||idx<0||idx>=questions.length)continue;
    const card=element('article','');card.className='card';
-   card.append(element('h3','Question '+(idx+1)+': '+questions[idx].text),element('p','What you demonstrated: '+row.strength),element('p','Development opportunity: '+row.growth),element('p','A stronger approach: '+row.stronger_approach));view.append(card);
+   const response=element('p','');const label=element('strong','Your response: ');response.append(label,document.createTextNode(sample[scenario].answers[idx]));const growth=element('p','');growth.append(element('strong','Growth opportunity: '),document.createTextNode(row.growth));card.append(element('h3','Question '+(idx+1)+': '+questions[idx].text),response,growth);view.append(card);
   }
   view.append(element('h3','Nova’s Suggested Practice Goals'));
   const ul=document.createElement('ul');for(const step of payload.next_steps||[])ul.append(element('li',step));view.append(ul);
