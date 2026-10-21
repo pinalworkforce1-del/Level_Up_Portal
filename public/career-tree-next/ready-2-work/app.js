@@ -90,7 +90,65 @@
       if(raw) state = {...state, ...JSON.parse(raw), skillScores:{...state.skillScores,...(JSON.parse(raw).skillScores||{})}};
     }catch(e){}
   }
-  function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} }
+  const SOFT_SKILLS_MODULE='ready2work-soft-skills';
+  const CLOUD_URL='https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/module_progress';
+  const CLOUD_KEY='sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc';
+  let cloudTimer=null,cloudWriting=false,cloudQueued=false,cloudRevision=0,cloudOwner=null;
+  function softSkillsSnapshot(){
+    const choices=Object.fromEntries(Object.entries(state.sceneSelections).filter(([id])=>scenes.some(s=>String(s.id)===String(id)&&s.stage==='Soft Skills Base Camp')));
+    const total=stageScenes('Soft Skills Base Camp').length;
+    const completed=Object.keys(choices).length;
+    const scores={COM:0,PRO:0,PSA:0,TEAM:0,TIME:0,QUAL:0};
+    for(const [id,choice] of Object.entries(choices))for(const [skill,value] of Object.entries(weights[id]?.[choice]||{}))scores[skill]+=Number(value)||0;
+    return {scene_selections:choices,skill_scores:scores,completed_scenes:completed,total_scenes:total,skills:skillNames};
+  }
+  function queueCloudSave(){
+    const session=levelUpSession();
+    if(!session?.user?.id||!session.access_token)return;
+    cloudRevision++;
+    clearTimeout(cloudTimer);
+    cloudTimer=setTimeout(flushCloudSave,650);
+  }
+  async function flushCloudSave(){
+    const session=levelUpSession();
+    if(!session?.user?.id||!session.access_token)return;
+    if(cloudWriting){cloudQueued=true;return;}
+    cloudWriting=true;
+    const revision=cloudRevision,owner=session.user.id;
+    const evidence=softSkillsSnapshot();
+    const completed=evidence.total_scenes>0&&evidence.completed_scenes===evidence.total_scenes;
+    try{
+      const row={user_id:owner,module_id:SOFT_SKILLS_MODULE,journey_state:{data:{...evidence,source:'ready-2-work',saved_at:new Date().toISOString()}},is_complete:completed,updated_at:new Date().toISOString(),...(completed?{completed_at:new Date().toISOString()}:{} )};
+      const response=await fetch(CLOUD_URL+'?on_conflict=user_id,module_id',{method:'POST',headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
+      if(!response.ok)throw new Error('Cloud save HTTP '+response.status);
+      cloudOwner=owner;
+    }catch(err){console.warn('Soft Skills cloud save unavailable; local progress remains saved.',err);}
+    finally{cloudWriting=false;if(cloudQueued||revision!==cloudRevision){cloudQueued=false;clearTimeout(cloudTimer);cloudTimer=setTimeout(flushCloudSave,750);}}
+  }
+  async function loadCloudSoftSkills(){
+    const session=levelUpSession();if(!session?.user?.id||!session.access_token)return;
+    const initialOwner=session.user.id;
+    try{
+      const url=CLOUD_URL+'?select=journey_state&user_id=eq.'+encodeURIComponent(initialOwner)+'&module_id=eq.'+SOFT_SKILLS_MODULE+'&limit=1';
+      const response=await fetch(url,{headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token}});
+      if(!response.ok)throw new Error('Cloud read HTTP '+response.status);
+      const rows=await response.json(),data=rows[0]?.journey_state?.data;
+      if(levelUpSession()?.user?.id!==initialOwner)return;
+      const incoming=data?.scene_selections||{};
+      if(data?.source==='ready-2-work'&&Object.keys(incoming).length){
+        // Never overwrite a decision made on this device. Fill missing choices from cloud.
+        const local=state.sceneSelections||{};
+        state.sceneSelections={...incoming,...local};
+        recalcScores();updateOverall();
+        try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}
+        const view=document.querySelector('.view:not([hidden])');
+        if(view?.id==='viewMap')renderMap();
+      }
+      cloudOwner=initialOwner;
+      queueCloudSave();
+    }catch(err){console.warn('Soft Skills cloud restore unavailable; local progress remains available.',err);}
+  }
+  function saveState(){ try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){} queueCloudSave(); }
 
   function recalcScores(){
     const next={COM:0,PRO:0,PSA:0,TEAM:0,TIME:0,QUAL:0};
@@ -461,6 +519,7 @@
   $('resetBtn').onclick=()=>{ if(confirm('Start Ready 2 Work over on this device? This clears decisions, skill evidence, and certificate progress.')){ localStorage.removeItem(STORAGE_KEY); location.hash='#map'; location.reload(); } };
 
   loadState(); recalcScores(); updateOverall();
+  loadCloudSoftSkills();
   refreshLinkedCompletions();
   const hash=location.hash||'#map';
   if(hash.startsWith('#scene-')){ const id=Number(hash.split('-')[1]); const idx=scenes.findIndex(s=>s.id===id); route('scene',{index:idx>=0?idx:0}); }
