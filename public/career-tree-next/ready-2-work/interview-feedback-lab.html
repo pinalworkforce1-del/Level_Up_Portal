@@ -11,7 +11,7 @@
 <div id="report" hidden>
 <section class="panel"><h2>Conversation Balance: The 80/20 Principle</h2><div class="grid"><div><div class="stat" id="candidatePct">—</div><div>Candidate speaking time</div></div><div><div class="stat" id="interviewerPct">—</div><div>Jacqueline speaking time</div></div></div><div class="bar" aria-label="Speaking time distribution"><div class="candidate" id="candidateBar"></div><div class="interviewer" id="interviewerBar"></div></div><p id="ratioCoaching"></p><p class="small">Calculated from example turn durations, excluding silence. The 80/20 guideline is a coaching reference—not a pass/fail rule. Production reports require reliable per-speaker timing; word count must be labeled as a proxy.</p></section>
 <section class="panel"><h2>Question-by-question reflection</h2><div id="questions"></div></section>
-<section class="panel"><h2>AI Interview Coach</h2><p class="muted">Generate specific coaching grounded in this fictional interview. Requires Level Up sign-in; uses the configured AI API but no live interviewer.</p><button id="generateAI" type="button">Generate AI Developmental Feedback</button><p id="aiStatus" class="small" role="status"></p><div id="aiFeedback" hidden></div><hr style="border:0;border-top:1px solid #315778;margin:24px 0"><h2>Rule-based practice checklist</h2><ul id="recommendations"></ul><p class="small">This demonstration uses simple, transparent coaching rules—not an AI judgement, grading, hiring prediction, or credential decision.</p><button id="print" type="button">Print / Save Reflection as PDF</button></section>
+<section class="panel"><h2>Meet Sage, Your Interview Coach</h2><p class="muted">Sage reviews your interview responses and offers individualized, practical coaching. This demonstration uses fictional answers and requires Level Up sign-in, but no live interview session.</p><button id="generateAI" type="button">View Interview Feedback from Sage</button><p id="aiStatus" class="small" role="status"></p><div id="aiFeedback" hidden></div><hr style="border:0;border-top:1px solid #315778;margin:24px 0"><h2>Rule-based practice checklist</h2><ul id="recommendations"></ul><p class="small">This demonstration uses simple, transparent coaching rules—not an AI judgement, grading, hiring prediction, or credential decision.</p><button id="print" type="button">Print / Save Reflection as PDF</button></section>
 </div>
 <footer>Development preview only. Do not use simulated coaching outcomes for eligibility or case-management decisions.</footer>
 </main><script type="module">
@@ -62,7 +62,7 @@ $('recommendations').replaceChildren();[...recs].slice(0,4).concat('Use a simple
 }
 function element(tag,content){const node=document.createElement(tag);node.textContent=String(content||'');return node;}
 $('generateAI').onclick=async()=>{
- const button=$('generateAI');button.disabled=true;$('aiStatus').textContent='Generating individualized coaching…';$('aiFeedback').hidden=true;
+ const button=$('generateAI');button.disabled=true;$('aiStatus').textContent='Sage is reviewing your interview responses…';$('aiFeedback').hidden=true;
  try{
   const scenario=$('scenario').value;
   if(scenario==='incomplete')throw Error('Incomplete interviews do not unlock coaching.');
@@ -73,15 +73,15 @@ $('generateAI').onclick=async()=>{
   if(!result.ok)throw Error(payload.message|| (payload.error==='ai_not_configured'?'The AI provider key is not configured in Supabase yet.':payload.error==='feedback_unavailable'?'The AI service is temporarily unavailable.':payload.error==='sign_in_required'?'Please sign in to Level Up.':'AI feedback was not available.'));
   if($('scenario').value!==scenario)return;
   const view=$('aiFeedback');view.replaceChildren();
-  view.append(element('h3','Your individualized interview overview'),element('p',payload.overview));
+  view.append(element('h3','Sage’s Interview Overview'),element('p',payload.overview));
   for(const row of payload.questions||[]){
    const idx=Number(row.index);if(!Number.isInteger(idx)||idx<0||idx>=questions.length)continue;
    const card=element('article','');card.className='card';
    card.append(element('h3','Question '+(idx+1)+': '+questions[idx].text),element('p','What you demonstrated: '+row.strength),element('p','Development opportunity: '+row.growth),element('p','A stronger approach: '+row.stronger_approach));view.append(card);
   }
-  view.append(element('h3','Your next 2–3 practice goals'));
+  view.append(element('h3','Sage’s Suggested Practice Goals'));
   const ul=document.createElement('ul');for(const step of payload.next_steps||[])ul.append(element('li',step));view.append(ul);
-  view.hidden=false;$('aiStatus').textContent='AI-generated coaching based on the fictional transcript. No actual interview was assessed.';
+  view.hidden=false;$('aiStatus').textContent='Feedback from Sage is AI-generated from this fictional transcript. No actual interview was assessed.';
  }catch(err){$('aiStatus').textContent=err?.message||'Unable to generate coaching.';}
  finally{button.disabled=false;}
 };
