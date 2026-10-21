@@ -122,7 +122,7 @@
       const response=await fetch(CLOUD_URL+'?on_conflict=user_id,module_id',{method:'POST',headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(row)});
       if(!response.ok)throw new Error('Cloud save HTTP '+response.status);
       cloudOwner=owner;
-      syncStatus('Soft Skills progress synced to Level Up cloud ✓',true);
+      syncStatus('Synced '+evidence.completed_scenes+' of '+evidence.total_scenes+' Soft Skills decisions to Level Up cloud ✓',true);
     }catch(err){syncStatus('Saved on this device; cloud sync failed. Sign in again to Level Up and reopen this page.');console.warn('Soft Skills cloud save unavailable; local progress remains saved.',err);}
     finally{cloudWriting=false;if(cloudQueued||revision!==cloudRevision){cloudQueued=false;clearTimeout(cloudTimer);cloudTimer=setTimeout(flushCloudSave,750);}}
   }
@@ -521,6 +521,7 @@
   $('resetBtn').onclick=()=>{ if(confirm('Start Ready 2 Work over on this device? This clears decisions, skill evidence, and certificate progress.')){ localStorage.removeItem(STORAGE_KEY); location.hash='#map'; location.reload(); } };
 
   loadState(); recalcScores(); updateOverall();
+  document.getElementById('syncSoftSkillsNow')?.addEventListener('click',()=>{const snapshot=softSkillsSnapshot();syncStatus('Sending '+snapshot.completed_scenes+' of '+snapshot.total_scenes+' recorded Soft Skills decisions…');cloudRevision++;flushCloudSave();});
   loadCloudSoftSkills();
   refreshLinkedCompletions();
   const hash=location.hash||'#map';
