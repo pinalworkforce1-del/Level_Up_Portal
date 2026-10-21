@@ -51,7 +51,7 @@ const {data:{session}}=await client.auth.getSession();if(!session)return;
 const headers={'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token};
 const statusResponse=await fetch(tokenEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'session_status',room_name:endedRoom})});
 if(statusResponse.ok){const current=await statusResponse.json();if(!current.ended_at){
-await fetch(tokenEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'end',room_name:endedRoom})});
+await fetch(tokenEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'end',room_name:endedRoom,reason:'connection_lost'})});
 }}
 await showOutcome(endedRoom);
 }catch(e){state('Interview disconnected; session reconciliation pending.','warn');console.warn('Interview cleanup failed',e)}})()}});
