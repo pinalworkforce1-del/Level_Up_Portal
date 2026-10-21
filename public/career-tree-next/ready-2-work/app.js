@@ -9,7 +9,7 @@
   function migrateResumeChoices(choices){ const next={...choices};for(const [id,map] of Object.entries(RESUME_CHOICE_KEYMAP)){if(next[id]&&map[next[id]])next[id]=map[next[id]];}return next; }
 
   const RESUME_URL = 'https://pinalworkforce1-del.github.io/LU_Discovery/resume-builder-prototype.html?source=ready2work';
-  const INTERVIEW_URL = 'https://pinalworkforce1-del.github.io/Interview_Arena/';
+  const INTERVIEW_URL = 'https://pinalworkforce1-del.github.io/LU_Discovery/mock-interview.html?source=ready2work';
   const MODULE_COMPLETIONS = {resume:false, interview:false};
   function launchLevelUp(url){ saveState(); window.location.href=url; }
   function linkedResumeComplete(){return MODULE_COMPLETIONS.resume || state.resumeBuilderCloudSaved===true;}
