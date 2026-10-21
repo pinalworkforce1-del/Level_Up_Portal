@@ -11,10 +11,13 @@
 <div id="report" hidden>
 <section class="panel"><h2>Conversation Balance: The 80/20 Principle</h2><div class="grid"><div><div class="stat" id="candidatePct">—</div><div>Candidate speaking time</div></div><div><div class="stat" id="interviewerPct">—</div><div>Jacqueline speaking time</div></div></div><div class="bar" aria-label="Speaking time distribution"><div class="candidate" id="candidateBar"></div><div class="interviewer" id="interviewerBar"></div></div><p id="ratioCoaching"></p><p class="small">Calculated from example turn durations, excluding silence. The 80/20 guideline is a coaching reference—not a pass/fail rule. Production reports require reliable per-speaker timing; word count must be labeled as a proxy.</p></section>
 <section class="panel"><h2>Question-by-question reflection</h2><div id="questions"></div></section>
-<section class="panel"><h2>Your next practice focus</h2><ul id="recommendations"></ul><p class="small">This demonstration uses simple, transparent coaching rules—not an AI judgement, grading, hiring prediction, or credential decision.</p><button id="print" type="button">Print / Save Reflection as PDF</button></section>
+<section class="panel"><h2>AI Interview Coach</h2><p class="muted">Generate specific coaching grounded in this fictional interview. Requires Level Up sign-in; uses the configured AI API but no live interviewer.</p><button id="generateAI" type="button">Generate AI Developmental Feedback</button><p id="aiStatus" class="small" role="status"></p><div id="aiFeedback" hidden></div><hr style="border:0;border-top:1px solid #315778;margin:24px 0"><h2>Rule-based practice checklist</h2><ul id="recommendations"></ul><p class="small">This demonstration uses simple, transparent coaching rules—not an AI judgement, grading, hiring prediction, or credential decision.</p><button id="print" type="button">Print / Save Reflection as PDF</button></section>
 </div>
 <footer>Development preview only. Do not use simulated coaching outcomes for eligibility or case-management decisions.</footer>
-</main><script>
+</main><script type="module">
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/+esm';
+const supabase=createClient('https://dnijrzotfyvmmnmueknk.supabase.co','sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const aiEndpoint='https://dnijrzotfyvmmnmueknk.supabase.co/functions/v1/levelup-interview-feedback-lab';
 const questions=[
 { id:'q1',text:'What interests you about this position and what experience would help you succeed?'},
 { id:'q2',text:'What workplace responsibilities have best prepared you to work with a team?'},
@@ -45,6 +48,7 @@ if(words<25)opportunities.push('Expand with a concrete detail');
 return {words,positives,opportunities};
 }
 function render(){
+$('aiFeedback').hidden=true;$('aiFeedback').replaceChildren();$('aiStatus').textContent='';$('generateAI').disabled=false;
 const data=sample[$('scenario').value],complete=data.answers.length===questions.length;
 $('report').hidden=!complete;
 $('eligibility').innerHTML=complete?'<strong>Interview evidence: Complete</strong><p>All '+questions.length+' configured questions have a participant response. Feedback is available in this fictional example.</p>':'<strong>Interview evidence: Incomplete</strong><p>Only '+data.answers.length+' of '+questions.length+' required questions have responses. The real participant feedback button would remain hidden.</p>';
@@ -56,5 +60,30 @@ $('questions').replaceChildren();const recs=new Set;
 questions.forEach((q,i)=>{const ans=data.answers[i],notes=observe(ans);notes.opportunities.forEach(n=>recs.add(n));const card=document.createElement('article');card.className='card';const h=document.createElement('h3');h.textContent='Question '+(i+1)+': '+q.text;const response=document.createElement('p');response.textContent='Your answer (simulated): '+ans;const info=document.createElement('p');info.className='small';info.textContent=(notes.positives.length?'What worked: '+notes.positives.join('; ')+'. ':'')+(notes.opportunities.length?'Try next: '+notes.opportunities.join('; ')+'.':'Keep practicing this level of detail.');card.append(h,response,info);$('questions').append(card)});
 $('recommendations').replaceChildren();[...recs].slice(0,4).concat('Use a simple Situation → Action → Result structure when it fits the question.').forEach(x=>{const li=document.createElement('li');li.textContent=x;$('recommendations').append(li)});
 }
+function element(tag,content){const node=document.createElement(tag);node.textContent=String(content||'');return node;}
+$('generateAI').onclick=async()=>{
+ const button=$('generateAI');button.disabled=true;$('aiStatus').textContent='Generating individualized coaching…';$('aiFeedback').hidden=true;
+ try{
+  const scenario=$('scenario').value;
+  if(scenario==='incomplete')throw Error('Incomplete interviews do not unlock coaching.');
+  const {data:{session}}=await supabase.auth.getSession();
+  if(!session||session.user?.is_anonymous)throw Error('Sign in to your Level Up account before generating AI feedback.');
+  const result=await fetch(aiEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'sample',scenario})});
+  const payload=await result.json().catch(()=>({}));
+  if(!result.ok)throw Error(payload.message|| (payload.error==='ai_not_configured'?'The AI provider key is not configured in Supabase yet.':payload.error==='feedback_unavailable'?'The AI service is temporarily unavailable.':payload.error==='sign_in_required'?'Please sign in to Level Up.':'AI feedback was not available.'));
+  if($('scenario').value!==scenario)return;
+  const view=$('aiFeedback');view.replaceChildren();
+  view.append(element('h3','Your individualized interview overview'),element('p',payload.overview));
+  for(const row of payload.questions||[]){
+   const idx=Number(row.index);if(!Number.isInteger(idx)||idx<0||idx>=questions.length)continue;
+   const card=element('article','');card.className='card';
+   card.append(element('h3','Question '+(idx+1)+': '+questions[idx].text),element('p','What you demonstrated: '+row.strength),element('p','Development opportunity: '+row.growth),element('p','A stronger approach: '+row.stronger_approach));view.append(card);
+  }
+  view.append(element('h3','Your next 2–3 practice goals'));
+  const ul=document.createElement('ul');for(const step of payload.next_steps||[])ul.append(element('li',step));view.append(ul);
+  view.hidden=false;$('aiStatus').textContent='AI-generated coaching based on the fictional transcript. No actual interview was assessed.';
+ }catch(err){$('aiStatus').textContent=err?.message||'Unable to generate coaching.';}
+ finally{button.disabled=false;}
+};
 $('scenario').addEventListener('change',render);$('print').onclick=()=>window.print();render();
 </script></body></html>
