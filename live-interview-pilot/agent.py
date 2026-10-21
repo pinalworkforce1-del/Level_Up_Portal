@@ -64,7 +64,7 @@ async def report_completion(room_name: str, answers: list, event: str = 'intervi
         })
         with urllib.request.urlopen(request, timeout=8) as response:
             payload = response.read(300).decode("utf-8", errors="replace")
-            if response.status != 200 or '"recorded":true' not in payload.replace(" ", ""):
+            if response.status != 200 or not ('"recorded":true' in payload.replace(" ", "") or '"ok":true' in payload.replace(" ", "")):
                 logger.error("INTERVIEW_COMPLETION callback rejected: status=%s response=%s", response.status, payload[:200])
                 return False
             return True
