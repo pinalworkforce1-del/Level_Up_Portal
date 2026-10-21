@@ -10,7 +10,7 @@
 <p class="hint">Career choices are captured for this pilot; occupation-specific question adaptation will be enabled after the agent's next deployment.</p>
 <p class="notice">Pilot session: not yet counted toward course completion or Coach View. A signed-in Level Up account is required. Live sessions may incur usage charges.</p>
 <div class="row"><button id="start" type="button">Begin live interview</button><button id="end" class="secondary" type="button" disabled>End interview</button><button id="enableAudio" class="secondary" type="button" hidden>Enable Audio</button></div>
-<div id="feedbackActions" hidden><button id="viewFeedback" type="button">View My Interview Feedback</button><div id="feedbackReport" class="notice" hidden></div></div>
+<div id="feedbackActions" hidden><button id="viewFeedback" type="button">View Interview Feedback from Nova</button><div id="feedbackReport" class="notice" hidden></div></div>
 <p id="allowance" class="hint">Pilot policy: 8 minutes per session, 2 sessions per 30 days. Quota activation pending.</p><p id="status" role="status" aria-live="polite"><span class="indicator"></span>Ready when you are.</p><p class="hint" id="connection">Tip: Turn off nearby TVs or use headphones to avoid accidental interruptions.</p>
 </section><section class="panel"><div class="stage" id="stage"><video id="avatar" autoplay playsinline aria-label="Live video of your AI practice interviewer"></video><div class="placeholder" id="placeholder"><strong>Interview Intelligence</strong><p>Jacqueline is ready to meet you.</p><p class="muted">Your interviewer's video will appear here when connected.</p></div><div id="remoteAudio"></div></div><div class="row"><span class="indicator" id="indicator"></span><span id="trackState">Not connected</span></div><p class="muted">If video pauses, your audio interview may continue. The session remains open until you end it.</p></section></div>
 </main>
@@ -20,6 +20,7 @@ import {Room,RoomEvent,Track} from 'https://cdn.jsdelivr.net/npm/livekit-client@
 const SUPABASE_URL='https://dnijrzotfyvmmnmueknk.supabase.co';
 const SUPABASE_KEY='sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc';
 const client=createClient(SUPABASE_URL,SUPABASE_KEY,{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const feedbackEndpoint=SUPABASE_URL+'/functions/v1/levelup-interview-feedback-lab';
 const tokenEndpoint=SUPABASE_URL+'/functions/v1/levelup-live-interview-token';
 const $=id=>document.getElementById(id), start=$('start'),end=$('end'),avatar=$('avatar'),placeholder=$('placeholder');
 let room=null,videoTrack=null,connected=false,closedByUser=false,sessionRoomName=null,feedbackRoom=null;
@@ -58,19 +59,35 @@ for(let attempt=0;attempt<6;attempt++){await showOutcome(endedRoom);if(!$('feedb
 state('Connecting to LiveKit…');await room.connect(data.server_url,data.participant_token);
 await room.startAudio();await room.localParticipant.setMicrophoneEnabled(true);connected=true;end.disabled=false;if(videoTrack){state('Connected • your interviewer is here','live');trackLabel('Interviewer video connected')}else{state('Connected • waiting for interviewer video…','live');trackLabel('Waiting for Synthesia video…')}
 }catch(e){const oldRoom=room;room=null;if(oldRoom)await oldRoom.disconnect().catch(()=>{});clearMedia();start.disabled=false;end.disabled=true;$('occupation').disabled=false;sessionRoomName=null;state('Could not start: '+(e?.message||String(e)),'warn')}}
-$('viewFeedback').onclick=async()=>{if(!feedbackRoom)return;const report=$('feedbackReport');report.hidden=false;report.replaceChildren();try{
-const {data:{session}}=await client.auth.getSession();if(!session)throw Error('Sign in to view your feedback.');
-const response=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'session_status',room_name:feedbackRoom})});
-if(!response.ok)throw Error('Could not load the interview report.');
-const data=await response.json();
-if(data.status!=='completed'||data.feedback_ready!==true||!data.evidence_complete)throw Error('Interview feedback is not yet available.');
-const h=document.createElement('h3');h.textContent='Your Interview Reflection';report.append(h);
-const intro=document.createElement('p');intro.textContent='All required questions were answered. These are the responses captured during your practice, not an automated performance rating.';report.append(intro);
-const answers=Array.isArray(data.answer_evidence)?data.answer_evidence:[];
-const qs=Array.isArray(data.required_questions)?data.required_questions:[];
-for(let i=0;i<answers.length;i++){const q=document.createElement('p');const strong=document.createElement('strong');strong.textContent=(qs[i]?.text||'Question '+(i+1));q.append(strong);const a=document.createElement('p');a.textContent=answers[i].response||'Response unavailable';report.append(q,a)}
-const tip=document.createElement('p');tip.textContent='Developmental next step: Review whether each example explains the situation, your action, and the outcome. A more detailed coach-ready assessment is planned.';report.append(tip);
-}catch(e){report.textContent=e?.message||'Feedback could not be loaded.'}};
+$('viewFeedback').onclick=async()=>{
+ if(!feedbackRoom)return;
+ const report=$('feedbackReport'),button=$('viewFeedback');button.disabled=true;report.hidden=false;report.textContent='Nova is reviewing your interview…';
+ try {
+  const {data:{session}}=await client.auth.getSession();if(!session)throw Error('Sign in to view your feedback.');
+  const headers={'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token};
+  const check=await fetch(tokenEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'session_status',room_name:feedbackRoom})});
+  if(!check.ok)throw Error('Could not verify interview completion.');
+  const status=await check.json();
+  if(status.status!=='completed'||status.feedback_ready!==true||status.evidence_complete!==true||status.ending_reason==='participant_ended')throw Error('Interview feedback is not yet available.');
+  const result=await fetch(feedbackEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'live',room_name:feedbackRoom})});
+  const data=await result.json().catch(()=>({}));
+  if(!result.ok)throw Error(data.message||({feedback_not_authorized:'Interview completion is not verified.',incomplete_evidence:'Interview responses are not available yet.',ai_not_configured:'Nova is not configured yet.'}[data.error])||'Nova feedback is temporarily unavailable.');
+  report.replaceChildren();
+  const line=(tag,text)=>{const e=document.createElement(tag);e.textContent=String(text||'');return e};
+  report.append(line('h3','Nova’s Interview Overview'),line('p',data.overview));
+  const qs=Array.isArray(status.required_questions)?status.required_questions:[];
+  const answers=Array.isArray(status.answer_evidence)?status.answer_evidence:[];
+  report.append(line('h3','Your Questions and Growth Opportunities'));
+  for(const row of data.questions||[]){
+   const i=Number(row.index);if(!Number.isInteger(i)||i<0||i>=qs.length)continue;
+   const card=document.createElement('div');card.style.cssText='padding:12px;margin:12px 0;border:1px solid #456e90;border-radius:12px';
+   card.append(line('h3','Question '+(i+1)+': '+(qs[i]?.text||'')),line('p','Your response: '+(answers[i]?.response||'')),line('p','Growth opportunity: '+row.growth));report.append(card);
+  }
+  report.append(line('h3','Nova’s Suggested Practice Goals'));
+  const list=document.createElement('ul');for(const x of data.next_steps||[])list.append(line('li',x));report.append(list);
+  report.append(line('p','Developmental practice feedback—not a hiring assessment.'));
+ }catch(e){report.textContent=e?.message||'Feedback could not be loaded.'}finally{button.disabled=false}
+};
 $('enableAudio').onclick=async()=>{try{await room?.startAudio();$('enableAudio').hidden=true;state('Audio enabled • Jacqueline can speak','live')}catch(e){state('Audio activation failed: '+e.message,'warn')}};
 end.onclick=finish;window.addEventListener('pagehide',()=>{if(room)room.disconnect()});
 </script></body></html>
