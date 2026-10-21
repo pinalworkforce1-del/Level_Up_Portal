@@ -281,7 +281,7 @@
     $('stageHomeProgress').className=`status-pill ${complete?'complete':''}`;
     $('requiredPathTitle').textContent=complete?'Review required scenarios':'Continue required scenarios';
     $('requiredPathMeta').textContent=complete?`${total} of ${total} complete • revisit any decision`:`${done} of ${total} complete • skill impact updates after every decision`;
-    $('requiredPathBtn').onclick=()=>route('scene',{index:firstIncompleteIndex(stage)});
+    const firstStageIndex=firstIncompleteIndex(stage); const firstStageScene=scenes[firstStageIndex]; $('requiredPathBtn').href='index.html#scene-'+firstStageScene.id; $('requiredPathBtn').onclick=(event)=>{event.preventDefault();try{route('scene',{index:firstStageIndex});}catch(error){console.error('Ready 2 Work scenario entry failed',error);window.location.href='index.html#scene-'+firstStageScene.id;}};
     const grid=$('stageExperienceGrid'); grid.querySelectorAll('.resume-builder-card').forEach(x=>x.remove());
     if(stage==='Interview Landing'){
       const scenariosDone=done===total, completed=linkedInterviewComplete();
