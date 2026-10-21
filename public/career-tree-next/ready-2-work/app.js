@@ -9,7 +9,7 @@
   const INTERVIEW_URL = 'https://pinalworkforce1-del.github.io/Interview_Arena/';
   const MODULE_COMPLETIONS = {resume:false, interview:false};
   function launchLevelUp(url){ saveState(); window.location.href=url; }
-  function linkedResumeComplete(){return MODULE_COMPLETIONS.resume;}
+  function linkedResumeComplete(){return MODULE_COMPLETIONS.resume || state.resumeBuilderCloudSaved===true;}
   function linkedInterviewComplete(){return MODULE_COMPLETIONS.interview;}
   function levelUpSession(){
     try{ const x=JSON.parse(sessionStorage.getItem('level-up-supabase-session-v1')||'null');if(x?.access_token&&x?.user)return x;}catch{}
@@ -213,7 +213,7 @@
   function allComplete(){ return answeredCount()===scenes.length && linkedResumeComplete() && linkedInterviewComplete(); }
   function stageUnlocked(stage){
     const i=stageOrder.indexOf(stage);
-    return i<=0 || stageComplete(stageOrder[i-1]);
+    return i<=0 || (stageOrder[i-1]==='Resume Retreat'?stageAnswered('Resume Retreat')===stageScenes('Resume Retreat').length:stageComplete(stageOrder[i-1]));
   }
   function firstIncompleteIndex(stage){
     const list=stageScenes(stage);
@@ -536,7 +536,7 @@
   $('printCertificateBtn').onclick=()=>window.print();
   $('resetBtn').onclick=()=>{ if(confirm('Start Ready 2 Work over on this device? This clears decisions, skill evidence, and certificate progress.')){ localStorage.removeItem(STORAGE_KEY); location.hash='#map'; location.reload(); } };
 
-  loadState(); recalcScores(); updateOverall();
+  loadState(); if(new URLSearchParams(location.search).get('resume_saved')==='1'){state.resumeBuilderCloudSaved=true;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}} recalcScores(); updateOverall();
   document.getElementById('syncSoftSkillsNow')?.addEventListener('click',()=>{const snapshot=softSkillsSnapshot();syncStatus('Sending '+snapshot.completed_scenes+' of '+snapshot.total_scenes+' recorded Soft Skills decisions…');cloudRevision++;flushCloudSave();});
   loadCloudSoftSkills();
   refreshLinkedCompletions();
