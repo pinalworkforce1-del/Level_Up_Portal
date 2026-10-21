@@ -243,6 +243,13 @@
 
   function renderMap(){
     updateOverall();
+    const certButton=document.getElementById('ready2workCertificateButton');
+    if(certButton){
+      const eligible=allComplete();
+      certButton.disabled=!eligible;
+      certButton.setAttribute('aria-disabled',String(!eligible));
+      certButton.textContent=eligible?'Get My READY 2 WORK Certificate →':'Complete all requirements to unlock certificate';
+    }
     document.querySelectorAll('.map-hotspot').forEach(h=>{
       h.classList.remove('map-complete','map-locked','map-current');
       h.querySelector('.map-state-indicator')?.remove();
