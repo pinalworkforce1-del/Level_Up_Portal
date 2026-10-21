@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Interview Intelligence | Developmental Feedback Lab</title>
+<style>
+:root{color-scheme:dark;--bg:#081325;--panel:#112841;--line:#315778;--text:#ebf6ff;--muted:#b9cfe1;--cyan:#62ddf0;--gold:#ffd17d;--good:#62dbaa}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 50% -15%,#1d547b,var(--bg) 58%);color:var(--text);font:16px/1.55 system-ui,sans-serif}main{max-width:1080px;margin:auto;padding:24px 18px 80px}a{color:#a4ecff}header{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.eyebrow{font-size:.76rem;font-weight:800;letter-spacing:.14em;color:var(--gold)}h1{font-size:clamp(2rem,5vw,3.1rem);line-height:1.12;margin:22px 0 12px}h2{font-size:1.3rem;margin:0 0 12px}h3{font-size:1.08rem;margin:0 0 7px}.muted,.small{color:var(--muted)}.small{font-size:.83rem}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.panel{border:1px solid var(--line);border-radius:19px;background:#102841e6;padding:22px;margin:18px 0}.stat{font-size:2.4rem;font-weight:800;line-height:1.1}.bar{height:19px;display:flex;border-radius:999px;overflow:hidden;background:#30475d;margin:15px 0}.candidate{background:linear-gradient(90deg,#00a9bc,var(--cyan))}.interviewer{background:#e1af55}.row{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.chips{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}.chip{border:1px solid #52748c;padding:4px 10px;border-radius:999px;font-size:.78rem}.card{background:#0b1e31;border:1px solid #355a77;border-radius:14px;padding:16px;margin:12px 0}.card p{margin:7px 0}strong{color:#f4f9fe}select,button{font:inherit;border-radius:10px;padding:10px 14px}select{background:#142e48;color:white;border:1px solid #7798ae}button{background:#137493;color:white;border:1px solid #65d7eb;cursor:pointer;font-weight:700}button:hover{background:#1b8eac}.note{border-left:3px solid var(--gold);padding:9px 14px;background:#263649;margin:16px 0}ul{padding-left:22px}li{margin:7px 0}footer{color:var(--muted);font-size:.83rem;margin-top:25px}@media(max-width:650px){.grid{grid-template-columns:1fr}.stat{font-size:2rem}}
+</style></head><body><main>
+<header><div class="eyebrow">LEVEL UP / READY 2 WORK / INTERVIEW INTELLIGENCE</div><a href="live-interview-pilot.html">← Interview pilot</a></header>
+<h1>Your Interview Reflection</h1><p class="muted">A no-cost developmental feedback preview using fictional interview transcripts. No LiveKit, Synthesia, microphone, or Supabase access.</p>
+<section class="panel"><div class="row"><div><h2>Feedback demonstration</h2><p class="small">Switch samples to see how coaching changes when answers contain examples or lack detail.</p></div><div><label for="scenario">Interview sample</label><br><select id="scenario"><option value="developing">Brief answers</option><option value="examples">Strong workplace examples</option><option value="incomplete">Interview ended early</option></select></div></div><p class="note" id="testNotice">SIMULATED DATA — these are not scores from a real participant.</p><div id="eligibility"></div></section>
+<div id="report" hidden>
+<section class="panel"><h2>Conversation Balance: The 80/20 Principle</h2><div class="grid"><div><div class="stat" id="candidatePct">—</div><div>Candidate speaking time</div></div><div><div class="stat" id="interviewerPct">—</div><div>Jacqueline speaking time</div></div></div><div class="bar" aria-label="Speaking time distribution"><div class="candidate" id="candidateBar"></div><div class="interviewer" id="interviewerBar"></div></div><p id="ratioCoaching"></p><p class="small">Calculated from example turn durations, excluding silence. The 80/20 guideline is a coaching reference—not a pass/fail rule. Production reports require reliable per-speaker timing; word count must be labeled as a proxy.</p></section>
+<section class="panel"><h2>Question-by-question reflection</h2><div id="questions"></div></section>
+<section class="panel"><h2>Your next practice focus</h2><ul id="recommendations"></ul><p class="small">This demonstration uses simple, transparent coaching rules—not an AI judgement, grading, hiring prediction, or credential decision.</p><button id="print" type="button">Print / Save Reflection as PDF</button></section>
+</div>
+<footer>Development preview only. Do not use simulated coaching outcomes for eligibility or case-management decisions.</footer>
+</main><script>
+const questions=[
+{ id:'q1',text:'What interests you about this position and what experience would help you succeed?'},
+{ id:'q2',text:'What workplace responsibilities have best prepared you to work with a team?'},
+{ id:'q3',text:'What would you do if you encountered a customer or coworker who needed assistance while you were busy?'}];
+const sample={
+developing:{turns:[{role:'assistant',duration:22},{role:'user',duration:18},{role:'assistant',duration:20},{role:'user',duration:14},{role:'assistant',duration:24},{role:'user',duration:16}],answers:[
+'I want to work here because it seems like a good company.',
+'I have worked with people before and I am good at teams.',
+'I would try to help them and do my best.']},
+examples:{turns:[{role:'assistant',duration:14},{role:'user',duration:68},{role:'assistant',duration:14},{role:'user',duration:75},{role:'assistant',duration:19},{role:'user',duration:81}],answers:[
+'I enjoy solving problems and helping customers. In my previous job I handled order issues by listening, checking the records, and following up. This helped our team reduce repeat calls.',
+'At my last workplace our team was behind on a deadline. I organized the task list and checked in with coworkers so we could divide responsibilities. We completed the work on time.',
+'I would acknowledge their request and explain when I could help. During a busy shift a coworker needed support while I was finishing an urgent order, so I gave them a clear time and followed through.']},
+incomplete:{turns:[{role:'assistant',duration:18},{role:'user',duration:33},{role:'assistant',duration:19}],answers:['I like working with people. I helped customers at my prior job.']}}
+};
+const $=id=>document.getElementById(id);
+const escapeHTML=s=>String(s).replace(/[&<>"']/g,x=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[x]));
+function observe(answer){
+const words=answer.trim().split(/\s+/).filter(Boolean).length;
+const hasExample=/\b(when|during|once|last|previous|example|shift|project|workplace|job)\b/i.test(answer);
+const hasAction=/\b(i (helped|organized|resolved|checked|explained|created|handled|followed|listened|gave|worked|completed)|we (completed|finished|resolved))\b/i.test(answer);
+const hasOutcome=/\b(result|reduced|improved|completed|on time|increased|solved|followed through|saved)\b/i.test(answer);
+const positives=[];const opportunities=[];
+if(hasExample)positives.push('Includes a workplace context');else opportunities.push('Add a real workplace example');
+if(hasAction)positives.push('Describes an action');else opportunities.push('Explain what you personally did');
+if(hasOutcome)positives.push('Mentions an outcome');else opportunities.push('Explain what happened afterward');
+if(words<25)opportunities.push('Expand with a concrete detail');
+return {words,positives,opportunities};
+}
+function render(){
+const data=sample[$('scenario').value],complete=data.answers.length===questions.length;
+$('report').hidden=!complete;
+$('eligibility').innerHTML=complete?'<strong>Interview evidence: Complete</strong><p>All '+questions.length+' configured questions have a participant response. Feedback is available in this fictional example.</p>':'<strong>Interview evidence: Incomplete</strong><p>Only '+data.answers.length+' of '+questions.length+' required questions have responses. The real participant feedback button would remain hidden.</p>';
+if(!complete)return;
+const seconds=data.turns.reduce((out,t)=>(out[t.role]+=t.duration,out),{user:0,assistant:0}),total=seconds.user+seconds.assistant,candidate=Math.round(seconds.user/total*100),interviewer=100-candidate;
+$('candidatePct').textContent=candidate+'%';$('interviewerPct').textContent=interviewer+'%';$('candidateBar').style.width=candidate+'%';$('interviewerBar').style.width=interviewer+'%';
+$('ratioCoaching').textContent=candidate<65?'You had less than two-thirds of the speaking time in this example. Consider adding a specific situation, your action, and the result to shorter responses.':candidate>90?'You gave extended answers. Practice organizing examples concisely and leaving room for follow-up questions.':'You had substantial speaking time to demonstrate your experience. Focus on making each example specific, organized, and relevant.';
+$('questions').replaceChildren();const recs=new Set;
+questions.forEach((q,i)=>{const ans=data.answers[i],notes=observe(ans);notes.opportunities.forEach(n=>recs.add(n));const card=document.createElement('article');card.className='card';const h=document.createElement('h3');h.textContent='Question '+(i+1)+': '+q.text;const response=document.createElement('p');response.textContent='Your answer (simulated): '+ans;const info=document.createElement('p');info.className='small';info.textContent=(notes.positives.length?'What worked: '+notes.positives.join('; ')+'. ':'')+(notes.opportunities.length?'Try next: '+notes.opportunities.join('; ')+'.':'Keep practicing this level of detail.');card.append(h,response,info);$('questions').append(card)});
+$('recommendations').replaceChildren();[...recs].slice(0,4).concat('Use a simple Situation → Action → Result structure when it fits the question.').forEach(x=>{const li=document.createElement('li');li.textContent=x;$('recommendations').append(li)});
+}
+$('scenario').addEventListener('change',render);$('print').onclick=()=>window.print();render();
+</script></body></html>
