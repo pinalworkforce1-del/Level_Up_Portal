@@ -131,6 +131,13 @@
         const resumeRes=await fetch(CLOUD_URL+'?on_conflict=user_id,module_id',{method:'POST',headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(resumeRow)});
         if(!resumeRes.ok)console.warn('Resume decisions saved locally but cloud sync was unavailable',resumeRes.status);
       }
+      const interviewChoices=Object.fromEntries(Object.entries(state.sceneSelections).filter(([id])=>scenes.some(scene=>String(scene.id)===String(id)&&scene.stage==='Interview Landing')));
+      const interviewTotal=stageScenes('Interview Landing').length;
+      if(Object.keys(interviewChoices).length){
+        const interviewRow={user_id:owner,module_id:'ready2work-interview-scenarios',journey_state:{data:{scene_selections:interviewChoices,completed_scenes:Object.keys(interviewChoices).length,total_scenes:interviewTotal,source:'ready-2-work',saved_at:new Date().toISOString()}},is_complete:Object.keys(interviewChoices).length===interviewTotal,updated_at:new Date().toISOString(),...(Object.keys(interviewChoices).length===interviewTotal?{completed_at:new Date().toISOString()}:{})};
+        const interviewRes=await fetch(CLOUD_URL+'?on_conflict=user_id,module_id',{method:'POST',headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token,'Content-Type':'application/json',Prefer:'resolution=merge-duplicates,return=minimal'},body:JSON.stringify(interviewRow)});
+        if(!interviewRes.ok)console.warn('Interview scenario cloud sync unavailable',interviewRes.status);
+      }
       cloudOwner=owner;
       syncStatus('Synced '+evidence.completed_scenes+' of '+evidence.total_scenes+' Soft Skills decisions to Level Up cloud ✓',true);
     }catch(err){syncStatus('Saved on this device; cloud sync failed. Sign in again to Level Up and reopen this page.');console.warn('Soft Skills cloud save unavailable; local progress remains saved.',err);}
@@ -157,6 +164,10 @@
       }
       const resumeUrl=CLOUD_URL+'?select=journey_state&user_id=eq.'+encodeURIComponent(initialOwner)+'&module_id=eq.ready2work-resume-scenarios&limit=1';
       try{const rr=await fetch(resumeUrl,{headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token}});if(rr.ok){const records=await rr.json();const remote=records[0]?.journey_state?.data||{};const choices=remote.choice_version===2?(remote.scene_selections||{}):migrateResumeChoices(remote.scene_selections||{});if(levelUpSession()?.user?.id===initialOwner){state.sceneSelections={...choices,...state.sceneSelections};try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}}}}catch(error){console.warn('Résumé decisions remain locally saved',error)}
+      try{
+        const interviewRes=await fetch(CLOUD_URL+'?select=journey_state&user_id=eq.'+encodeURIComponent(initialOwner)+'&module_id=eq.ready2work-interview-scenarios&limit=1',{headers:{apikey:CLOUD_KEY,Authorization:'Bearer '+session.access_token}});
+        if(interviewRes.ok){const interviewRows=await interviewRes.json(),interviewCloud=interviewRows[0]?.journey_state?.data?.scene_selections||{};if(levelUpSession()?.user?.id===initialOwner){state.sceneSelections={...interviewCloud,...state.sceneSelections};try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}}}
+      }catch(error){console.warn('Interview scenario cloud restore unavailable',error)}
       cloudOwner=initialOwner;
       queueCloudSave();
     }catch(err){console.warn('Soft Skills cloud restore unavailable; local progress remains available.',err);}
