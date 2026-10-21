@@ -221,28 +221,28 @@ window.R2W_COURSE = {
       }
     },
     "21": {
-      "A": {
+      "D": {
         "PRO": -3
       },
-      "B": {
+      "A": {
         "PRO": -2
       },
-      "C": {
+      "B": {
         "PRO": 3,
         "COM": 1
       },
-      "D": {
+      "C": {
         "COM": -1
       }
     },
     "22": {
-      "A": {
+      "B": {
         "PRO": -3
       },
-      "B": {
+      "C": {
         "PRO": -2
       },
-      "C": {
+      "A": {
         "COM": 2,
         "PRO": 2
       },
@@ -251,48 +251,48 @@ window.R2W_COURSE = {
       }
     },
     "23": {
-      "A": {
+      "C": {
         "PRO": -3
       },
-      "B": {
+      "D": {
         "PRO": 0
       },
-      "C": {
+      "A": {
         "PRO": 3,
         "PSA": 1
       },
-      "D": {
+      "B": {
         "PSA": -1
       }
     },
     "24": {
-      "A": {
+      "B": {
         "COM": -1
       },
-      "B": {
+      "C": {
         "COM": 1
       },
-      "C": {
+      "D": {
         "COM": 2,
         "QUAL": 2,
         "TIME": 1
       },
-      "D": {
+      "A": {
         "PRO": -2
       }
     },
     "25": {
-      "A": {
+      "D": {
         "COM": 0
       },
       "B": {
         "COM": 0
       },
-      "C": {
+      "A": {
         "COM": 2,
         "PSA": 1
       },
-      "D": {
+      "C": {
         "PRO": -3
       }
     },
@@ -893,38 +893,38 @@ window.R2W_COURSE = {
       "promptVtt": "assests/VEED-subtitles_R2W-S21-PROMPT_en-US.vtt",
       "setup": "A friend suggests changing your previous job title to a more impressive title that better matches the job you want.",
       "choices": {
-        "A": "Use the stronger title because your duties were similar.",
-        "B": "Use the stronger title but explain it if asked.",
-        "C": "Keep the accurate title and strengthen the description of your real responsibilities and accomplishments.",
-        "D": "Remove the job entirely."
+        "D": "Use the stronger title because your duties were similar.",
+        "A": "Use the stronger title but explain it if asked.",
+        "B": "Keep the accurate title and strengthen the description of your real responsibilities and accomplishments.",
+        "C": "Remove the job entirely."
       },
       "impact": {
-        "A": {
+        "D": {
           "file": "assests/R2W-S21-IMPACT-A.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S21-IMPACT-A_en-US.vtt",
           "narration": "You chose: Use the stronger title because your duties were similar. That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity.",
           "feedback": "That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity."
         },
-        "B": {
+        "A": {
           "file": "assests/R2W-S21-IMPACT-B.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S21-IMPACT-B_en-US.vtt",
           "narration": "You chose: Use the stronger title but explain it if asked. That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity.",
           "feedback": "That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity."
         },
-        "C": {
+        "B": {
           "file": "assests/R2W-S21-IMPACT-C.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S21-IMPACT-C_en-US.vtt",
           "narration": "You chose: Keep the accurate title and strengthen the description of your real responsibilities and accomplishments. Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Professionalism & Integrity and Communication.",
           "feedback": "Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Professionalism & Integrity and Communication."
         },
-        "D": {
+        "C": {
           "file": "assests/R2W-S21-IMPACT-D.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S21-IMPACT-D_en-US.vtt",
           "narration": "You chose: Remove the job entirely. That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Communication.",
           "feedback": "That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Communication."
         }
       },
-      "strongest": "C"
+      "strongest": "B"
     },
     {
       "id": 22,
@@ -935,25 +935,25 @@ window.R2W_COURSE = {
       "promptVtt": "assests/VEED-subtitles_R2W-S22-PROMPT_en-US.vtt",
       "setup": "You have a gap in employment and are worried employers will judge it.",
       "choices": {
-        "A": "Create a job entry to fill the gap.",
-        "B": "Use confusing dates so the gap is harder to notice.",
-        "C": "Keep dates accurate and prepare a concise, professional explanation if the gap is relevant.",
+        "B": "Create a job entry to fill the gap.",
+        "C": "Use confusing dates so the gap is harder to notice.",
+        "A": "Keep dates accurate and prepare a concise, professional explanation if the gap is relevant.",
         "D": "Write a long explanation directly on the resume."
       },
       "impact": {
-        "A": {
+        "B": {
           "file": "assests/R2W-S22-IMPACT-A.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S22-IMPACT-A_en-US.vtt",
           "narration": "You chose: Create a job entry to fill the gap. That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity.",
           "feedback": "That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity."
         },
-        "B": {
+        "C": {
           "file": "assests/R2W-S22-IMPACT-B.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S22-IMPACT-B_en-US.vtt",
           "narration": "You chose: Use confusing dates so the gap is harder to notice. That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity.",
           "feedback": "That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity."
         },
-        "C": {
+        "A": {
           "file": "assests/R2W-S22-IMPACT-C.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S22-IMPACT-C_en-US.vtt",
           "narration": "You chose: Keep dates accurate and prepare a concise, professional explanation if the gap is relevant. Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Communication and Professionalism & Integrity.",
@@ -966,7 +966,7 @@ window.R2W_COURSE = {
           "feedback": "That response helps with part of the situation, but it leaves useful information, preparation, or follow- through on the table. You're demonstrating Communication."
         }
       },
-      "strongest": "C"
+      "strongest": "A"
     },
     {
       "id": 23,
@@ -977,38 +977,38 @@ window.R2W_COURSE = {
       "promptVtt": "assests/VEED-subtitles_R2W-S23-PROMPT_en-US.vtt",
       "setup": "You have used a software tool a few times. The posting asks for proficiency.",
       "choices": {
-        "A": "List yourself as an expert to get through screening.",
-        "B": "List the skill without any proficiency level and hope it is enough.",
-        "C": "Describe your actual level accurately and highlight your ability to learn or related experience.",
-        "D": "Leave off every skill unless you have formal certification."
+        "C": "List yourself as an expert to get through screening.",
+        "D": "List the skill without any proficiency level and hope it is enough.",
+        "A": "Describe your actual level accurately and highlight your ability to learn or related experience.",
+        "B": "Leave off every skill unless you have formal certification."
       },
       "impact": {
-        "A": {
+        "C": {
           "file": "assests/R2W-S23-IMPACT-A.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S23-IMPACT-A_en-US.vtt",
           "narration": "You chose: List yourself as an expert to get through screening. That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity.",
           "feedback": "That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity."
         },
-        "B": {
+        "D": {
           "file": "assests/R2W-S23-IMPACT-B.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S23-IMPACT-B_en-US.vtt",
           "narration": "You chose: List the skill without any proficiency level and hope it is enough. That response may get you through the immediate moment, but it does not fully address what the situation requires. Consider what a stronger response would change for the people and work affected.",
           "feedback": "That response may get you through the immediate moment, but it does not fully address what the situation requires. Consider what a stronger response would change for the people and work affected."
         },
-        "C": {
+        "A": {
           "file": "assests/R2W-S23-IMPACT-C.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S23-IMPACT-C_en-US.vtt",
           "narration": "You chose: Describe your actual level accurately and highlight your ability to learn or related experience. Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Professionalism & Integrity and Problem Solving & Adaptability.",
           "feedback": "Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Professionalism & Integrity and Problem Solving & Adaptability."
         },
-        "D": {
+        "B": {
           "file": "assests/R2W-S23-IMPACT-D.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S23-IMPACT-D_en-US.vtt",
           "narration": "You chose: Leave off every skill unless you have formal certification. That response is overly cautious and may cause you to leave out legitimate skills you can honestly demonstrate. Employers need an accurate picture of what you can do, not only skills backed by formal certification. A stronger approach is to include skills you have actually used and describe your level accurately. This helps the employer understand your real experience while showing that you can continue learning and growing. You’re demonstrating Professionalism & Integrity and Problem Solving & Adaptability when you present your qualifications honestly and clearly.",
           "feedback": "That response is overly cautious and may cause you to leave out legitimate skills you can honestly demonstrate. Employers need an accurate picture of what you can do, not only skills backed by formal certification. A stronger approach is to include skills you have actually used and describe your level accurately. This helps the employer understand your real experience while showing that you can continue learning and growing. You’re demonstrating Professionalism & Integrity and Problem Solving & Adaptability when you present your qualifications honestly and clearly."
         }
       },
-      "strongest": "C"
+      "strongest": "A"
     },
     {
       "id": 24,
@@ -1019,38 +1019,38 @@ window.R2W_COURSE = {
       "promptVtt": "assests/VEED-subtitles_R2W-S24-PROMPT_en-US.vtt",
       "setup": "You find a job you really want, but your current resume was written for a different type of position.",
       "choices": {
-        "A": "Send it immediately; experience is experience.",
-        "B": "Change only the objective statement.",
-        "C": "Tailor the resume to the posting's relevant skills and evidence while keeping all facts accurate.",
-        "D": "Rewrite every job to copy the posting language exactly."
+        "B": "Send it immediately; experience is experience.",
+        "C": "Change only the objective statement.",
+        "D": "Tailor the resume to the posting's relevant skills and evidence while keeping all facts accurate.",
+        "A": "Rewrite every job to copy the posting language exactly."
       },
       "impact": {
-        "A": {
+        "B": {
           "file": "assests/R2W-S24-IMPACT-A.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S24-IMPACT-A_en-US.vtt",
           "narration": "You chose: Send it immediately; experience is experience. That response can create additional problems because the underlying issue is still unresolved or another workplace risk is introduced. This is an opportunity to strengthen Communication.",
           "feedback": "That response can create additional problems because the underlying issue is still unresolved or another workplace risk is introduced. This is an opportunity to strengthen Communication."
         },
-        "B": {
+        "C": {
           "file": "assests/R2W-S24-IMPACT-B.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S24-IMPACT-B_en-US.vtt",
           "narration": "You chose: Change only the objective statement. That response helps with part of the situation, but it leaves useful information, preparation, or follow- through on the table. You're demonstrating Communication.",
           "feedback": "That response helps with part of the situation, but it leaves useful information, preparation, or follow- through on the table. You're demonstrating Communication."
         },
-        "C": {
+        "D": {
           "file": "assests/R2W-S24-IMPACT-C.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S24-IMPACT-C_en-US.vtt",
           "narration": "You chose: Tailor the resume to the posting's relevant skills and evidence while keeping all facts accurate. Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Communication, Quality & Attention to Detail, and Planning & Time Management.",
           "feedback": "Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Communication, Quality & Attention to Detail, and Planning & Time Management."
         },
-        "D": {
+        "A": {
           "file": "assests/R2W-S24-IMPACT-D.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S24-IMPACT-D_en-US.vtt",
           "narration": "You chose: Rewrite every job to copy the posting language exactly. That response can create additional problems because the underlying issue is still unresolved or another workplace risk is introduced. This is an opportunity to strengthen Professionalism & Integrity.",
           "feedback": "That response can create additional problems because the underlying issue is still unresolved or another workplace risk is introduced. This is an opportunity to strengthen Professionalism & Integrity."
         }
       },
-      "strongest": "C"
+      "strongest": "D"
     },
     {
       "id": 25,
@@ -1061,13 +1061,13 @@ window.R2W_COURSE = {
       "promptVtt": "assests/VEED-subtitles_R2W-S25-PROMPT_en-US.vtt",
       "setup": "Your resume currently says only what you were responsible for.",
       "choices": {
-        "A": "Keep the duty list because employers know what the job involves.",
+        "D": "Keep the duty list because employers know what the job involves.",
         "B": "Add vague claims like 'excellent employee.'",
-        "C": "Show selected duties through actions, contributions, improvements, or measurable results when available.",
-        "D": "Invent a number so every bullet has a metric."
+        "A": "Show selected duties through actions, contributions, improvements, or measurable results when available.",
+        "C": "Invent a number so every bullet has a metric."
       },
       "impact": {
-        "A": {
+        "D": {
           "file": "assests/R2W-S25-IMPACT-A.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S25-IMPACT-A_en-US.vtt",
           "narration": "You chose: Keep the duty list because employers know what the job involves. That response may get you through the immediate moment, but it does not fully address what the situation requires. Consider what a stronger response would change for the people and work affected.",
@@ -1079,20 +1079,20 @@ window.R2W_COURSE = {
           "narration": "You chose: Add vague claims like 'excellent employee.' That response may get you through the immediate moment, but it does not fully address what the situation requires. Consider what a stronger response would change for the people and work affected.",
           "feedback": "That response may get you through the immediate moment, but it does not fully address what the situation requires. Consider what a stronger response would change for the people and work affected."
         },
-        "C": {
+        "A": {
           "file": "assests/R2W-S25-IMPACT-C.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S25-IMPACT-C_en-US.vtt",
           "narration": "You chose: Show selected duties through actions, contributions, improvements, or measurable results when available. Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Communication and Problem Solving & Adaptability.",
           "feedback": "Strong decision. That response keeps the information credible while helping the employer understand the value of your real experience. You're demonstrating Communication and Problem Solving & Adaptability."
         },
-        "D": {
+        "C": {
           "file": "assests/R2W-S25-IMPACT-D.mp3",
           "vtt": "assests/VEED-subtitles_R2W-S25-IMPACT-D_en-US.vtt",
           "narration": "You chose: Invent a number so every bullet has a metric. That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity.",
           "feedback": "That response may appear to solve the immediate problem, but it creates a larger risk involving trust, accuracy, confidentiality, or safety. This raises a serious concern in Professionalism & Integrity."
         }
       },
-      "strongest": "C"
+      "strongest": "A"
     },
     {
       "id": 31,
