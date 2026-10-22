@@ -1,0 +1,9 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><title>LiveKit credential check</title></head><body style="font-family:system-ui;background:#10243b;color:white;padding:3rem"><h1>Jacqueline connection check</h1><p>Tests credentials without creating a room or starting an interview.</p><button id="test">Check connection</button><p id="status">Not tested</p><script type="module">
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/+esm';
+const client=createClient('https://dnijrzotfyvmmnmueknk.supabase.co','sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc');
+document.getElementById('test').onclick=async()=>{
+const out=document.getElementById('status');out.textContent='Checking…';
+try{const {data,error}=await client.functions.invoke('levelup-livekit-credential-diagnostic',{body:{}});
+out.textContent=error?'Diagnostic request failed: '+error.message:data?.ok?'PASS: credentials authenticated with LiveKit':'FAIL: '+(data?.result||'request unsuccessful');}
+catch(e){out.textContent=e.message}
+};</script></body></html>
