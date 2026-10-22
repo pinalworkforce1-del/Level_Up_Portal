@@ -27,7 +27,6 @@ jobs:
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
           SECRET_LIST: ${{ secrets.LIVEKIT_AGENT_SECRET_LIST }}
           SECRET_INTERVIEW_CALLBACK_SECRET: ${{ secrets.INTERVIEW_CALLBACK_SECRET }}
-          SECRET_INTERVIEW_CALLBACK_SECRET: ${{ secrets.INTERVIEW_CALLBACK_SECRET }}
         run: |
           test -n "$LIVEKIT_URL" || { echo "::error::Missing LIVEKIT_URL secret"; exit 1; }
           test -n "$LIVEKIT_API_KEY" || { echo "::error::Missing LIVEKIT_API_KEY secret"; exit 1; }
@@ -46,6 +45,7 @@ jobs:
           LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
           SECRET_LIST: ${{ secrets.LIVEKIT_AGENT_SECRET_LIST }}
+          SECRET_INTERVIEW_CALLBACK_SECRET: ${{ secrets.INTERVIEW_CALLBACK_SECRET }}
         with:
           OPERATION: deploy
           WORKING_DIRECTORY: live-interview-pilot
