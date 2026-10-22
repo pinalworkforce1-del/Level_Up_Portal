@@ -83,6 +83,7 @@ $('viewFeedback').onclick=async()=>{
    const card=document.createElement('div');card.style.cssText='padding:12px;margin:12px 0;border:1px solid #456e90;border-radius:12px';
    card.append(line('h3','Question '+(i+1)+': '+(qs[i]?.text||'')),line('p','Your response: '+(answers[i]?.response||'')),line('p','Growth opportunity: '+row.growth));report.append(card);
   }
+  if(status.conversation_balance){const b=status.conversation_balance;report.append(line('h3','Conversation balance • 80/20 practice target'),line('p','You spoke approximately '+b.participant_percent+'% of the transcript words; Jacqueline '+b.interviewer_percent+'%. The practice target is 80% participant / 20% interviewer.'),line('p','This is a transcript word-count estimate, not measured speaking time or a performance score.'))}
   report.append(line('h3','Nova’s Suggested Practice Goals'));
   const list=document.createElement('ul');for(const x of data.next_steps||[])list.append(line('li',x));report.append(list);
   report.append(line('p','Developmental practice feedback—not a hiring assessment.'));
