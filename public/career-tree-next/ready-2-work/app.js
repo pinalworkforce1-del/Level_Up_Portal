@@ -317,7 +317,7 @@
       b.className='board-card resume-builder-card'+(scenariosDone?'':' locked');
       b.disabled=!scenariosDone;
       b.innerHTML='<span class="card-kicker">REQUIRED • STEP 2</span><strong>Jacqueline Live Interview</strong><small>'+
-        (!scenariosDone?'Complete the 5 Interview Intelligence decisions to unlock.':completed?'Interview complete ✓':'Launch Jacqueline's live practice interview.')+
+        (!scenariosDone?'Complete the 5 Interview Intelligence decisions to unlock.':completed?'Interview complete ✓':'Launch the Jacqueline live practice interview.')+
         '</small><span class="card-arrow">'+(completed?'✓':'→')+'</span>';
       if(scenariosDone)b.onclick=()=>launchLevelUp(INTERVIEW_URL);
       grid.prepend(b);
