@@ -58,6 +58,36 @@ jobs:
           WORKING_DIRECTORY: live-interview-pilot
           TIMEOUT: 5m
 
+      - name: Verify LiveKit project credentials
+        env:
+          LIVEKIT_URL: ${{ secrets.LIVEKIT_URL }}
+          LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+        run: |
+          python - <<'PY'
+          import os, base64, json, hmac, hashlib, time, urllib.request, urllib.error, urllib.parse
+          url=os.environ['LIVEKIT_URL'].replace('wss://','https://').replace('ws://','http://').rstrip('/')
+          now=int(time.time())
+          def enc(data):
+              return base64.urlsafe_b64encode(json.dumps(data,separators=(',',':')).encode()).rstrip(b'=')
+          header=enc({'alg':'HS256','typ':'JWT'})
+          payload=enc({'iss':os.environ['LIVEKIT_API_KEY'],'sub':os.environ['LIVEKIT_API_KEY'],'iat':now,'nbf':now,'exp':now+120,'video':{'roomList':True}})
+          unsigned=header+b'.'+payload
+          signature=base64.urlsafe_b64encode(hmac.new(os.environ['LIVEKIT_API_SECRET'].encode(),unsigned,hashlib.sha256).digest()).rstrip(b'=')
+          req=urllib.request.Request(url+'/twirp/livekit.RoomService/ListRooms',data=b'{}',headers={'Authorization':'Bearer '+(unsigned+b'.'+signature).decode(),'Content-Type':'application/json'})
+          try:
+              with urllib.request.urlopen(req,timeout=15) as result:
+                  status=result.status
+                  result.read(500)
+          except urllib.error.HTTPError as e:
+              status=e.code
+              e.read(500)
+          if status == 200:
+              print('PASS: LiveKit accepts configured key and secret for this project.')
+          else:
+              raise SystemExit('FAIL: LiveKit credential verification returned HTTP '+str(status))
+          PY
+
       - name: Verify Supabase callback signing
         env:
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
