@@ -11,6 +11,8 @@ import json
 import time
 import urllib.request
 import logging
+import re
+from difflib import SequenceMatcher
 
 logger = logging.getLogger('livekit.agents.interview_completion')
 
@@ -28,24 +30,59 @@ PILOT_QUESTIONS = [
 ]
 
 
-INTERVIEW_INSTRUCTIONS = """
-You are a realistic, professional United States English speaking interviewer for
-Level Up's Interview Intelligence training experience.
-Disclose clearly that you are an AI practice interviewer.
-This is an employment-practice simulation, not a real hiring decision.
-Conduct the required interview questions in order, one at a time. This pilot uses three
-questions, but completion must use the required question list rather than a hardcoded count.
-1. What interests you about this position and what experience would help you succeed?
-2. What workplace responsibilities have best prepared you to work with a team?
-3. What would you do if you encountered a customer or coworker who needed assistance while you were busy?
-Conversation history captures participant responses automatically; never call a tool to record answers.
-Wait for each response. Ask no more than one brief clarification when necessary.
-Use short spoken sentences, do not interrupt, and do not disclose grades.
-Never assume certifications, diagnoses, or personal background.
-After all required questions have participant responses, call finish_interview exactly once.
-Do not independently deliver a farewell before using the tool.
-Never say the participant has passed a real job interview.
+def build_interview_instructions(questions):
+    numbered = "\n".join(f"{i}. {q['text']}" for i, q in enumerate(questions, 1))
+    return f"""You are Jacqueline, a professional United States English speaking interviewer
+for Level Up's Interview Intelligence. Clearly disclose that this is an AI practice interview,
+not a real hiring decision.
+Ask the following {len(questions)} required questions in order, one at a time.
+Keep each required question recognizable; do not replace its central meaning.
+{numbered}
+Wait for the participant's response before moving on. One brief clarification is allowed.
+A short, uncertain, or poor-quality answer still counts as an answer; Nova evaluates quality later.
+Do not invent an answer if the participant refuses or does not respond.
+After all required questions have participant responses, call finish_interview once.
+Never say the participant has passed a real job interview or reveal grades.
 """
+
+
+def question_match(spoken, expected):
+    """Tolerance for natural lead-ins/paraphrases, without relying on a 30-char prefix."""
+    def normalized(value):
+        return re.sub(r"[^a-z0-9 ]", " ", value.lower()).split()
+    a, b = normalized(spoken), normalized(expected)
+    if not a or not b:
+        return False
+    sa, sb = " ".join(a), " ".join(b)
+    if sb in sa:
+        return True
+    keywords = {w for w in b if len(w) > 4}
+    overlap = len(keywords.intersection(a)) / max(len(keywords), 1)
+    return overlap >= 0.72 and SequenceMatcher(None, sa, sb).ratio() >= 0.48
+
+
+def extract_question_answers(turns, questions):
+    """Only attribute verbatim participant turns to questions; never manufacture evidence."""
+    answers = []
+    cursor = 0
+    for question in questions:
+        first = next((i for i in range(cursor, len(turns))
+                      if turns[i]["role"] == "assistant" and question_match(turns[i]["text"], question["text"])), None)
+        if first is None:
+            break
+        next_question_text = questions[len(answers)+1]["text"] if len(answers)+1 < len(questions) else None
+        next_index = next((i for i in range(first + 1, len(turns))
+                           if next_question_text and turns[i]["role"] == "assistant"
+                           and question_match(turns[i]["text"], next_question_text)), len(turns))
+        replies = [x["text"].strip() for x in turns[first+1:next_index]
+                   if x["role"] == "user" and len(x["text"].strip()) >= 3]
+        if not replies:
+            break
+        # Supabase validates each extracted answer against a captured participant turn.
+        answers.append({"question_id": question["id"], "response": replies[0][:5000]})
+        cursor = next_index if next_index < len(turns) else len(turns)
+    return answers
+
 
 async def report_completion(room_name: str, answers: list, event: str = 'interview_completed', turns=None) -> bool:
     dedicated_key = os.getenv("INTERVIEW_CALLBACK_SECRET")
@@ -81,15 +118,15 @@ async def report_completion(room_name: str, answers: list, event: str = 'intervi
 
 
 class PracticeInterviewer(Agent):
-    def __init__(self, room_name: str):
-        super().__init__(instructions=INTERVIEW_INSTRUCTIONS)
+    def __init__(self, room_name: str, questions):
+        super().__init__(instructions=build_interview_instructions(questions))
         self.room_name = room_name
         self._finished = False
         self._answers = {}
 
     @function_tool()
     async def finish_interview(self, context: RunContext) -> str:
-        """Use once after the participant has finished answering all three interview questions.
+        """Use only after the participant has answered every configured required interview question.
         This delivers the final goodbye and officially completes the interview.
         """
         if self._finished:
@@ -127,6 +164,7 @@ async def interview(ctx: agents.JobContext):
         llm="openai/gpt-4.1-mini",
         tts=f"cartesia/sonic-3:{os.getenv('INTERVIEW_TTS_VOICE_ID', '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc')}",
     )
+    questions = [{"id": qid, "text": wording} for qid, wording in PILOT_QUESTIONS]
     transcript_turns = []
     transcript_flush = None
     @session.on("conversation_item_added")
@@ -147,20 +185,7 @@ async def interview(ctx: agents.JobContext):
         if not transcript_turns:
             logger.warning("INTERVIEW_TRANSCRIPT missing turns")
             return
-        answers = []
-        for index, (qid, question) in enumerate(PILOT_QUESTIONS):
-            first = next((i for i, turn in enumerate(transcript_turns)
-                          if turn["role"] == "assistant" and question[:30].lower() in turn["text"].lower()), None)
-            if first is None:
-                break
-            following_prefix = PILOT_QUESTIONS[index+1][1][:30].lower() if index+1 < len(PILOT_QUESTIONS) else None
-            last = next((i for i in range(first+1,len(transcript_turns))
-                         if following_prefix and transcript_turns[i]["role"] == "assistant"
-                         and following_prefix in transcript_turns[i]["text"].lower()),len(transcript_turns))
-            parts = [x["text"] for x in transcript_turns[first+1:last] if x["role"] == "user"]
-            if not parts:
-                break
-            answers.append({"question_id": qid, "response": " ".join(parts)[:5000]})
+        answers = extract_question_answers(transcript_turns, questions)
         logger.info("INTERVIEW_TRANSCRIPT upload turns=%d answers=%d",len(transcript_turns),len(answers))
         await report_completion(ctx.room.name,answers,event="interview_transcript",turns=transcript_turns)
 
@@ -183,7 +208,7 @@ async def interview(ctx: agents.JobContext):
         join_timeout=60.0,
     )
     await avatar.start(session, room=ctx.room)
-    await session.start(room=ctx.room, agent=PracticeInterviewer(ctx.room.name))
+    await session.start(room=ctx.room, agent=PracticeInterviewer(ctx.room.name, questions))
     # Give the browser a short window to enable microphone/audio before the greeting.
     await asyncio.sleep(3)
     await session.generate_reply(instructions="Introduce yourself as the AI practice interviewer and ask the first interview question.")
