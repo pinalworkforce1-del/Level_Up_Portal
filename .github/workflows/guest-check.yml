@@ -1,0 +1,28 @@
+name: Guest portal build check
+on:
+  push:
+    branches:
+      - feature/guest-showcase-2026
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Check guest route is isolated
+        run: |
+          node --input-type=module <<'EOF'
+          import fs from 'node:fs';
+          const app=fs.readFileSync('src/App.tsx','utf8');
+          if(!app.includes('guestMode')) throw Error('Guest route missing');
+          if(!app.includes('!session && !guestMode')) throw Error('Auth bypass missing');
+          if(!app.includes('LU_Discovery/?mode=guest')) throw Error('Discovery guest launch missing');
+          EOF
