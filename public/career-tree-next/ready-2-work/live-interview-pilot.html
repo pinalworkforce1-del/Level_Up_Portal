@@ -10,7 +10,7 @@
 <p class="hint">Career choices are captured for this pilot; occupation-specific question adaptation will be enabled after the agent's next deployment.</p>
 <p class="notice">Pilot session: not yet counted toward course completion or Coach View. A signed-in Level Up account is required. Live sessions may incur usage charges.</p>
 <div class="row"><button id="start" type="button">Begin live interview</button><button id="end" class="secondary" type="button" disabled>End interview</button><button id="enableAudio" class="secondary" type="button" hidden>Enable Audio</button></div>
-<div id="feedbackActions" hidden><button id="viewFeedback" type="button">View Interview Feedback from Nova</button><div id="feedbackReport" class="notice" hidden></div></div>
+<button id="pastFeedback" type="button" class="secondary" hidden>View My Previous Interview Feedback</button><div id="feedbackActions" hidden><button id="viewFeedback" type="button">View Interview Feedback from Nova</button><div id="feedbackReport" class="notice" hidden></div></div>
 <p id="allowance" class="hint">Pilot policy: 8 minutes per session, 2 sessions per 30 days. Quota activation pending.</p><p id="status" role="status" aria-live="polite"><span class="indicator"></span>Ready when you are.</p><p class="hint" id="connection">Tip: Turn off nearby TVs or use headphones to avoid accidental interruptions.</p>
 </section><section class="panel"><div class="stage" id="stage"><video id="avatar" autoplay playsinline aria-label="Live video of your AI practice interviewer"></video><div class="placeholder" id="placeholder"><strong>Interview Intelligence</strong><p>Jacqueline is ready to meet you.</p><p class="muted">Your interviewer's video will appear here when connected.</p></div><div id="remoteAudio"></div></div><div class="row"><span class="indicator" id="indicator"></span><span id="trackState">Not connected</span></div><p class="muted">If video pauses, your audio interview may continue. The session remains open until you end it.</p></section></div>
 </main>
@@ -89,5 +89,16 @@ $('viewFeedback').onclick=async()=>{
  }catch(e){report.textContent=e?.message||'Feedback could not be loaded.'}finally{button.disabled=false}
 };
 $('enableAudio').onclick=async()=>{try{await room?.startAudio();$('enableAudio').hidden=true;state('Audio enabled • Jacqueline can speak','live')}catch(e){state('Audio activation failed: '+e.message,'warn')}};
+async function loadLastInterview(){
+ const {data:{session}}=await client.auth.getSession();
+ if(!session)return;
+ const result=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'latest_completed'})});
+ if(!result.ok)return;
+ const data=await result.json();
+ if(!data.room_name)return;
+ const button=$('pastFeedback');button.hidden=false;
+ button.onclick=()=>{feedbackRoom=data.room_name;$('feedbackActions').hidden=false;$('viewFeedback').click()};
+}
+loadLastInterview().catch(()=>{});
 end.onclick=finish;window.addEventListener('pagehide',()=>{if(room)room.disconnect()});
 </script></body></html>
