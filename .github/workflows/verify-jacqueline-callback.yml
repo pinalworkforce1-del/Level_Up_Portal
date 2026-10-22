@@ -1,0 +1,34 @@
+name: Verify Jacqueline callback signature
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Test signed callback without creating a session
+        env:
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+        run: |
+          python - <<'PY'
+          import hashlib, hmac, json, os, time, urllib.error, urllib.request
+          secret = os.environ.get("LIVEKIT_API_SECRET", "")
+          if not secret:
+              raise SystemExit("FAIL: GitHub LIVEKIT_API_SECRET is not configured")
+          body = json.dumps({"event":"interview_transcript","room_name":"diagnostic-invalid-room","answers":[],"turns":[]},separators=(",",":")).encode()
+          ts = str(int(time.time()))
+          signature = hmac.new(secret.encode(),ts.encode()+b"."+body,hashlib.sha256).hexdigest()
+          request = urllib.request.Request("https://dnijrzotfyvmmnmueknk.supabase.co/functions/v1/levelup-interview-agent-complete",data=body,method="POST",headers={"Content-Type":"application/json","x-agent-timestamp":ts,"x-agent-signature":signature})
+          try:
+              with urllib.request.urlopen(request,timeout=15) as response:
+                  status, payload = response.status,response.read(300).decode()
+          except urllib.error.HTTPError as error:
+              status, payload = error.code,error.read(300).decode()
+          if status == 400 and "invalid_request" in payload:
+              print("PASS: Supabase accepted the GitHub-signed callback. No interview data was modified.")
+          elif status == 401:
+              raise SystemExit("FAIL: Supabase rejected the GitHub-signed callback (HTTP 401).")
+          else:
+              raise SystemExit(f"Unexpected callback result: HTTP {status}, {payload[:120]}")
+          PY
