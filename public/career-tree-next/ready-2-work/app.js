@@ -169,6 +169,11 @@
         if(interviewRes.ok){const interviewRows=await interviewRes.json(),interviewCloud=interviewRows[0]?.journey_state?.data?.scene_selections||{};if(levelUpSession()?.user?.id===initialOwner){state.sceneSelections={...interviewCloud,...state.sceneSelections};try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}}}
       }catch(error){console.warn('Interview scenario cloud restore unavailable',error)}
       cloudOwner=initialOwner;
+      recalcScores();
+      updateOverall();
+      const visible=document.querySelector('.view:not([hidden])');
+      if(visible?.id==='viewMap')renderMap();
+      else if(visible?.id==='viewStage')renderStageHome(activeStage);
       queueCloudSave();
     }catch(err){console.warn('Soft Skills cloud restore unavailable; local progress remains available.',err);}
   }
