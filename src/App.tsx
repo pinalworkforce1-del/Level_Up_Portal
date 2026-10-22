@@ -489,7 +489,7 @@ export function App() {
   function navigate(href?: string) {
     // Do not open production modules from an anonymous guest session: downstream
     // apps must first be individually verified not to write participant progress.
-    if (guestMode) { setMessage("Select a destination to try a guest sample; full standalone modules are not yet guest-enabled."); return; }
+    if (guestMode) { setMessage("This destination has not yet passed guest isolation checks. Discovery is available for the real-module guest pilot."); return; }
     if (href) window.location.assign(href);
   }
 
@@ -497,6 +497,7 @@ export function App() {
     const state = districtState(district);
     if (!district.href || !district.moduleId) return;
     if (state === "locked") return;
+    if (guestMode && district.key === "discovery") { window.location.assign("https://pinalworkforce1-del.github.io/LU_Discovery/?mode=guest"); return; }
     if (guestMode) { openDistrict(district.key); return; }
     navigate(district.href);
   }
@@ -581,7 +582,7 @@ export function App() {
             key={`journey-${key}`}
             className={`journey-marker ${state}`}
             style={position}
-            onClick={() => state !== "locked" && (guestMode ? openDistrict(key) : navigate(district.href))}
+            onClick={() => state !== "locked" && (guestMode && key === "discovery" ? enterDistrict(district) : guestMode ? openDistrict(key) : navigate(district.href))}
             disabled={state === "locked"}
             aria-label={label}
             data-label={state === "complete" ? "Complete" : state === "current" ? "Enter" : state === "started" ? "Continue" : "Locked"}
