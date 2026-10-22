@@ -126,6 +126,7 @@ async def interview(ctx: agents.JobContext):
         tts=f"cartesia/sonic-3:{os.getenv('INTERVIEW_TTS_VOICE_ID', '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc')}",
     )
     transcript_turns = []
+    transcript_flush = None
     @session.on("conversation_item_added")
     def capture_turn(event):
         item = event.item
@@ -135,6 +136,10 @@ async def interview(ctx: agents.JobContext):
         if content.strip():
             transcript_turns.append({"role": item.role, "text": content[:5000]})
             logger.info("INTERVIEW_TRANSCRIPT captured role=%s total=%d", item.role, len(transcript_turns))
+            nonlocal transcript_flush
+            if transcript_flush and not transcript_flush.done():
+                transcript_flush.cancel()
+            transcript_flush = asyncio.create_task(flush_when_quiet())
 
     async def upload_transcript():
         if not transcript_turns:
@@ -156,6 +161,15 @@ async def interview(ctx: agents.JobContext):
             answers.append({"question_id": qid, "response": " ".join(parts)[:5000]})
         logger.info("INTERVIEW_TRANSCRIPT upload turns=%d answers=%d",len(transcript_turns),len(answers))
         await report_completion(ctx.room.name,answers,event="interview_transcript",turns=transcript_turns)
+
+    async def flush_when_quiet():
+        try:
+            await asyncio.sleep(2)
+            await upload_transcript()
+        except asyncio.CancelledError:
+            return
+        except Exception:
+            logger.exception("INTERVIEW_TRANSCRIPT periodic upload failed")
 
     @session.on("close")
     def save_when_session_closes(event):
