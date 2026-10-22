@@ -33,6 +33,9 @@ jobs:
           test -n "$SECRET_LIST" || { echo "::error::Missing LIVEKIT_AGENT_SECRET_LIST secret (include SYNTHESIA_API_KEY)"; exit 1; }
           echo "Required secret settings are present (values not printed)."
 
+      - name: Validate interview agent Python syntax
+        run: python -m py_compile live-interview-pilot/agent.py
+
       - name: Create LiveKit interview pilot agent
         uses: livekit/deploy-action@v2.12.2
         env:
