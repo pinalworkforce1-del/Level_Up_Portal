@@ -626,10 +626,6 @@ export function App() {
               <button className={districtPlaying ? "audio-playing" : ""} onClick={toggleDistrictAudio}>{districtPlaying ? <Pause /> : <Volume2 />} {districtPlaying ? "Pause Nova" : "Hear Nova"}</button>
               {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button className="primary-action" onClick={() => guestMode ? window.location.assign("/career-tree-next/") : undefined}>View Career Tree Map<ChevronRight /></button> : guestMode && activeDistrict.key !== "discovery" ? <button disabled>Full Experience Available to Participants</button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
             </div>
-            
-              <button type="button" onClick={()=>setGuestSelection("")}>Reset sample</button>
-              <p>This short interactive sample is not the complete module and has no cloud save or certificate action.</p>
-            </section> : null}
             <p className="progress-note">Exploring this card does not write to Supabase, award XP, mark completion, or unlock a district.</p>
             <audio ref={districtAudioRef} preload="none" onEnded={() => setDistrictPlaying(false)} />
           </div>
