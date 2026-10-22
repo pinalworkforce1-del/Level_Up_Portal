@@ -194,6 +194,9 @@ function profileNameKey(userId: string) {
 }
 
 export function App() {
+  // Guest mode intentionally avoids auth, profiles, module_progress, and cloud syncing.
+  // This is a safe map preview until each separately hosted module has an isolated guest route.
+  const guestMode = new URLSearchParams(window.location.search).get("mode") === "guest";
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -217,6 +220,7 @@ export function App() {
   const districtAudioRef = useRef<HTMLAudioElement>(null);
 
   useEffect(() => {
+    if (guestMode) { setAuthReady(true); setLoading(false); return; }
     if (!supabase) { setAuthReady(true); setLoading(false); return; }
     const client = supabase;
     let active = true;
@@ -260,6 +264,7 @@ export function App() {
   }, []);
 
   useEffect(() => {
+    if (guestMode) { setLoading(false); return; }
     if (!session || !supabase) { if (authReady) setLoading(false); return; }
     let active = true;
     setLoading(true);
@@ -316,7 +321,7 @@ export function App() {
   }, [session?.user.id, authReady]);
 
   useEffect(() => {
-    if (!session || !supabase) return;
+    if (guestMode || !session || !supabase) return;
     const syncPending = async () => {
       const refreshed = await flushOfflineProgress(supabase, session.user.id);
       if (refreshed) setRows(mergeOfflineProgress(refreshed as ProgressRow[], session.user.id));
@@ -346,6 +351,7 @@ export function App() {
   }, [currentModuleId]);
 
   function districtState(district: District): JourneyState {
+    if (guestMode && district.moduleId) return "current";
     if (!district.moduleId) return "locked";
     if (complete(district.moduleId)) return "complete";
     if (currentModuleId === district.moduleId) return "current";
@@ -478,6 +484,9 @@ export function App() {
   }
 
   function navigate(href?: string) {
+    // Do not open production modules from an anonymous guest session: downstream
+    // apps must first be individually verified not to write participant progress.
+    if (guestMode) { setMessage("This destination is available for preview. Interactive guest activities will open after the module has its own isolated guest access."); return; }
     if (href) window.location.assign(href);
   }
 
@@ -497,8 +506,8 @@ export function App() {
   const shadowComplete = complete("shadow-passage");
 
   if (!authReady || loading) return <main className="loading"><span className="brand-mark">LU</span><p>Loading Opportunity City…</p></main>;
-  if (configured && !session) return <SignIn email={email} setEmail={setEmail} county={county} setCounty={setCounty} sent={sent} message={message} onSubmit={signIn} />;
-  if (configured && session && needsName) return <NameGate value={nameDraft} setValue={setNameDraft} saving={savingName} message={message} onSave={saveProfileName} onSignOut={signOut} />;
+  if (configured && !session && !guestMode) return <SignIn email={email} setEmail={setEmail} county={county} setCounty={setCounty} sent={sent} message={message} onSubmit={signIn} />;
+  if (configured && session && needsName && !guestMode) return <NameGate value={nameDraft} setValue={setNameDraft} saving={savingName} message={message} onSave={saveProfileName} onSignOut={signOut} />;
 
   return (
     <main className="portal-shell opportunity-shell">
@@ -507,13 +516,13 @@ export function App() {
         <div className="header-stats">
           <span><Trophy /> <b>{totalXp}</b> XP</span>
           <span><Check /> <b>{completedCount}/{CORE_SEQUENCE.length}</b> complete</span>
-          <span className="cloud"><Cloud /> Cloud synced</span>
+          <span className="cloud">{guestMode ? "Guest preview • No cloud saves" : <><Cloud /> Cloud synced</>}</span>
         </div>
         {session ? <button className="icon-button" onClick={signOut} aria-label="Sign out"><LogOut /></button> : null}
       </header>
 
       <section className="city-intro" aria-label="Level Up journey status">
-        <div><p className="eyebrow">WELCOME, {name.toUpperCase()}</p><h1>Opportunity City</h1><p>Your progress shapes the city. Explore anywhere, then enter the next unlocked stop on your Level Up journey.</p></div>
+        <div><p className="eyebrow">WELCOME, {guestMode ? "GUEST" : name.toUpperCase()}</p><h1>Opportunity City</h1><p>{guestMode ? "Explore all destinations on the map. Guest activities are isolated from participant records and will be enabled after downstream validation." : "Your progress shapes the city. Explore anywhere, then enter the next unlocked stop on your Level Up journey."}</p></div>
         <div className="journey-meter"><span>{seriesComplete ? "WORK READY SERIES COMPLETE" : "CURRENT PATH"}</span><strong>{currentPath}</strong><div><i style={{ width: `${Math.min(100, (completedCount / CORE_SEQUENCE.length) * 100)}%` }} /></div><b>{completedCount} OF {CORE_SEQUENCE.length} EXPERIENCES COMPLETE</b></div>
       </section>
 
