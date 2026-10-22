@@ -497,7 +497,7 @@ export function App() {
     const state = districtState(district);
     if (!district.href || !district.moduleId) return;
     if (state === "locked") return;
-    if (guestMode && district.key === "resume") { window.location.assign("https://level-up-resume-guest-pw7hyx8dg-aaronmoonjr-3945.vercel.app/?mode=guest"); return; }
+    if (guestMode && district.key === "resume") { openDistrict("resume"); return; }
     if (guestMode && district.key === "discovery") { window.location.assign("https://level-up-discovery-guest-k7wq5imq7-aaronmoonjr-3945.vercel.app/?mode=guest"); return; }
     if (guestMode && district.key === "career") { window.location.assign("/career-tree-next/"); return; }
     if (guestMode) { openDistrict(district.key); return; }
@@ -529,7 +529,7 @@ export function App() {
       </header>
 
       <section className="city-intro" aria-label="Level Up journey status">
-        <div><p className="eyebrow">WELCOME, {guestMode ? "GUEST" : name.toUpperCase()}</p><h1>Opportunity City</h1><p>{guestMode ? "Welcome to Opportunity City! Try Discovery, Resume District, and Career Tree. The remaining destinations are part of the full participant experience." : "Your progress shapes the city. Explore anywhere, then enter the next unlocked stop on your Level Up journey."}</p></div>
+        <div><p className="eyebrow">WELCOME, {guestMode ? "GUEST" : name.toUpperCase()}</p><h1>Opportunity City</h1><p>{guestMode ? "Explore Opportunity City: try the real Discovery module, view the Career Tree map and its four pathways, and preview the destinations in the full participant experience." : "Your progress shapes the city. Explore anywhere, then enter the next unlocked stop on your Level Up journey."}</p></div>
         <div className="journey-meter"><span>{seriesComplete ? "WORK READY SERIES COMPLETE" : "CURRENT PATH"}</span><strong>{currentPath}</strong><div><i style={{ width: `${Math.min(100, (completedCount / CORE_SEQUENCE.length) * 100)}%` }} /></div><b>{completedCount} OF {CORE_SEQUENCE.length} EXPERIENCES COMPLETE</b></div>
       </section>
 
@@ -584,7 +584,7 @@ export function App() {
             key={`journey-${key}`}
             className={`journey-marker ${state}`}
             style={position}
-            onClick={() => state !== "locked" && (guestMode && (key === "discovery" || key === "resume") ? enterDistrict(district) : guestMode ? openDistrict(key) : navigate(district.href))}
+            onClick={() => state !== "locked" && (guestMode && key === "discovery" ? enterDistrict(district) : guestMode ? openDistrict(key) : navigate(district.href))}
             disabled={state === "locked"}
             aria-label={label}
             data-label={state === "complete" ? "Complete" : state === "current" ? "Enter" : state === "started" ? "Continue" : "Locked"}
@@ -624,9 +624,9 @@ export function App() {
             {activeDistrict.special ? <div className="district-special">{activeDistrict.special}</div> : null}
             <div className="district-actions">
               <button className={districtPlaying ? "audio-playing" : ""} onClick={toggleDistrictAudio}>{districtPlaying ? <Pause /> : <Volume2 />} {districtPlaying ? "Pause Nova" : "Hear Nova"}</button>
-              {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button className="primary-action" onClick={() => guestMode ? window.location.assign("/career-tree-next/") : undefined}>Explore Career Tree<ChevronRight /></button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
+              {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button className="primary-action" onClick={() => guestMode ? window.location.assign("/career-tree-next/") : undefined}>View Career Tree Map<ChevronRight /></button> : guestMode && activeDistrict.key !== "discovery" ? <button disabled>Full Experience Available to Participants</button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
             </div>
-            {guestMode && GUEST_ACTIVITIES[activeDistrict.key] ? <section style={{padding:"16px",border:"1px solid #a6b6ca",borderRadius:"12px",margin:"12px 0"}} aria-label="Guest activity sample">
+            {false && guestMode && GUEST_ACTIVITIES[activeDistrict.key] ? <section style={{padding:"16px",border:"1px solid #a6b6ca",borderRadius:"12px",margin:"12px 0"}} aria-label="Guest activity sample">
               <strong>GUEST SAMPLE • No records saved</strong>
               <p>{GUEST_ACTIVITIES[activeDistrict.key].question}</p>
               <div style={{display:"grid",gap:"8px"}}>{GUEST_ACTIVITIES[activeDistrict.key].options.map(option=><button key={option} type="button" onClick={()=>setGuestSelection(option)} aria-pressed={guestSelection===option}>{option}</button>)}</div>
