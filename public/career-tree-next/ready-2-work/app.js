@@ -310,16 +310,17 @@
     $('requiredPathTitle').textContent=complete?'Review required scenarios':'Continue required scenarios';
     $('requiredPathMeta').textContent=complete?`${total} of ${total} complete • revisit any decision`:`${done} of ${total} complete • skill impact updates after every decision`;
     const firstStageIndex=firstIncompleteIndex(stage); const firstStageScene=scenes[firstStageIndex]; $('requiredPathBtn').href='index.html?entry=scenario#scene-'+firstStageScene.id; $('requiredPathBtn').onclick=null;
-    const grid=$('stageExperienceGrid'); grid.querySelectorAll('.resume-builder-card').forEach(x=>x.remove());
+    const grid=$('stageExperienceGrid'); grid.querySelectorAll('.resume-builder-card, .interview-launch-card').forEach(x=>x.remove());
     if(stage==='Interview Landing'){
       const scenariosDone=done===total, completed=linkedInterviewComplete();
-      const b=document.createElement('button');b.type='button';
-      b.className='board-card resume-builder-card'+(scenariosDone?'':' locked');
-      b.disabled=!scenariosDone;
+      const b=document.createElement('a');
+      b.className='board-card interview-launch-card'+(scenariosDone?'':' locked');
+      b.href=scenariosDone?INTERVIEW_URL:'#stage-interview-landing';
+      b.setAttribute('aria-disabled',String(!scenariosDone));
       b.innerHTML='<span class="card-kicker">REQUIRED • STEP 2</span><strong>Jacqueline Live Interview</strong><small>'+
         (!scenariosDone?'Complete the 5 Interview Intelligence decisions to unlock.':completed?'Interview complete ✓':'Launch the Jacqueline live practice interview.')+
         '</small><span class="card-arrow">'+(completed?'✓':'→')+'</span>';
-      if(scenariosDone)b.onclick=()=>launchLevelUp(INTERVIEW_URL);
+      if(!scenariosDone)b.onclick=e=>e.preventDefault();
       grid.prepend(b);
       $('stageHomeProgress').textContent=stageComplete(stage)?'Complete':scenariosDone?'Interview Arena required':done+' of '+total+' decisions';
     }
