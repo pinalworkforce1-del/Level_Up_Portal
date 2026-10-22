@@ -497,7 +497,7 @@ export function App() {
     const state = districtState(district);
     if (!district.href || !district.moduleId) return;
     if (state === "locked") return;
-    if (guestMode && district.key === "discovery") { window.location.assign("https://pinalworkforce1-del.github.io/LU_Discovery/?mode=guest"); return; }
+    if (guestMode && district.key === "discovery") { window.location.assign("https://level-up-discovery-guest-k7wq5imq7-aaronmoonjr-3945.vercel.app/?mode=guest"); return; }
     if (guestMode) { openDistrict(district.key); return; }
     navigate(district.href);
   }
