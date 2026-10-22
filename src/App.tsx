@@ -1,3 +1,4 @@
+import { GUEST_ACTIVITIES } from "./guestActivities";
 import type { Session } from "@supabase/supabase-js";
 import {
   Check,
@@ -197,6 +198,7 @@ export function App() {
   // Guest mode intentionally avoids auth, profiles, module_progress, and cloud syncing.
   // This is a safe map preview until each separately hosted module has an isolated guest route.
   const guestMode = new URLSearchParams(window.location.search).get("mode") === "guest";
+  const [guestSelection, setGuestSelection] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -462,6 +464,7 @@ export function App() {
   function openDistrict(key: DistrictKey) {
     stopWelcome();
     stopDistrictAudio();
+    setGuestSelection("");
     setActiveKey(key);
   }
 
@@ -486,7 +489,7 @@ export function App() {
   function navigate(href?: string) {
     // Do not open production modules from an anonymous guest session: downstream
     // apps must first be individually verified not to write participant progress.
-    if (guestMode) { setMessage("This destination is available for preview. Interactive guest activities will open after the module has its own isolated guest access."); return; }
+    if (guestMode) { setMessage("Select a destination to try a guest sample; full standalone modules are not yet guest-enabled."); return; }
     if (href) window.location.assign(href);
   }
 
@@ -494,6 +497,7 @@ export function App() {
     const state = districtState(district);
     if (!district.href || !district.moduleId) return;
     if (state === "locked") return;
+    if (guestMode) { openDistrict(district.key); return; }
     navigate(district.href);
   }
 
@@ -577,7 +581,7 @@ export function App() {
             key={`journey-${key}`}
             className={`journey-marker ${state}`}
             style={position}
-            onClick={() => state !== "locked" && navigate(district.href)}
+            onClick={() => state !== "locked" && (guestMode ? openDistrict(key) : navigate(district.href))}
             disabled={state === "locked"}
             aria-label={label}
             data-label={state === "complete" ? "Complete" : state === "current" ? "Enter" : state === "started" ? "Continue" : "Locked"}
@@ -619,6 +623,14 @@ export function App() {
               <button className={districtPlaying ? "audio-playing" : ""} onClick={toggleDistrictAudio}>{districtPlaying ? <Pause /> : <Volume2 />} {districtPlaying ? "Pause Nova" : "Hear Nova"}</button>
               {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button disabled>Explore now • pathway module coming later</button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
             </div>
+            {guestMode && GUEST_ACTIVITIES[activeDistrict.key] ? <section style={{padding:"16px",border:"1px solid #a6b6ca",borderRadius:"12px",margin:"12px 0"}} aria-label="Guest activity sample">
+              <strong>GUEST SAMPLE • No records saved</strong>
+              <p>{GUEST_ACTIVITIES[activeDistrict.key].question}</p>
+              <div style={{display:"grid",gap:"8px"}}>{GUEST_ACTIVITIES[activeDistrict.key].options.map(option=><button key={option} type="button" onClick={()=>setGuestSelection(option)} aria-pressed={guestSelection===option}>{option}</button>)}</div>
+              {guestSelection ? <p role="status">{GUEST_ACTIVITIES[activeDistrict.key].takeaway}</p> : null}
+              <button type="button" onClick={()=>setGuestSelection("")}>Reset sample</button>
+              <p>This short interactive sample is not the complete module and has no cloud save or certificate action.</p>
+            </section> : null}
             <p className="progress-note">Exploring this card does not write to Supabase, award XP, mark completion, or unlock a district.</p>
             <audio ref={districtAudioRef} preload="none" onEnded={() => setDistrictPlaying(false)} />
           </div>
