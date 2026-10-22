@@ -54,3 +54,27 @@ jobs:
           OPERATION: status-retry
           WORKING_DIRECTORY: live-interview-pilot
           TIMEOUT: 5m
+
+      - name: Verify Supabase callback signing
+        env:
+          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+        run: |
+          python - <<'PY'
+          import hashlib, hmac, json, os, time, urllib.error, urllib.request
+          secret = os.environ["LIVEKIT_API_SECRET"]
+          body = json.dumps({"event":"interview_transcript","room_name":"diagnostic-invalid-room","answers":[],"turns":[]},separators=(",",":")).encode()
+          ts = str(int(time.time()))
+          signature = hmac.new(secret.encode(),ts.encode()+b"."+body,hashlib.sha256).hexdigest()
+          request = urllib.request.Request("https://dnijrzotfyvmmnmueknk.supabase.co/functions/v1/levelup-interview-agent-complete",data=body,method="POST",headers={"Content-Type":"application/json","x-agent-timestamp":ts,"x-agent-signature":signature})
+          try:
+              with urllib.request.urlopen(request,timeout=15) as response:
+                  status, payload = response.status,response.read(300).decode()
+          except urllib.error.HTTPError as error:
+              status, payload = error.code,error.read(300).decode()
+          if status == 400 and "invalid_request" in payload:
+              print("PASS: Supabase accepted the signed request and rejected the nonexistent diagnostic room.")
+          elif status == 401:
+              raise SystemExit("FAIL: Supabase rejected the signature (401). Check LIVEKIT_API_SECRET on both sides.")
+          else:
+              raise SystemExit(f"Unexpected response: HTTP {status}, {payload[:120]}")
+          PY
