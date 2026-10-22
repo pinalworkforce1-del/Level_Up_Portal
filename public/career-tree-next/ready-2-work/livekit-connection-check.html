@@ -4,6 +4,6 @@ const client=createClient('https://dnijrzotfyvmmnmueknk.supabase.co','sb_publish
 document.getElementById('test').onclick=async()=>{
 const out=document.getElementById('status');out.textContent='Checking…';
 try{const {data,error}=await client.functions.invoke('levelup-livekit-credential-diagnostic',{body:{}});
-out.textContent=error?'Diagnostic request failed: '+error.message:data?.ok?'PASS: credentials authenticated with LiveKit':'FAIL: '+(data?.result||'request unsuccessful');}
+out.textContent=error?'Diagnostic request failed: '+error.message+' | '+(error.context?.status||'no HTTP status')+' | '+(error.context?.statusText||'') : data?.ok?'PASS: credentials authenticated with LiveKit':'FAIL: '+(data?.result||'request unsuccessful');}
 catch(e){out.textContent=e.message}
 };</script></body></html>
