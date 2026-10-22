@@ -48,7 +48,9 @@ Never say the participant has passed a real job interview.
 """
 
 async def report_completion(room_name: str, answers: list, event: str = 'interview_completed', turns=None) -> bool:
-    key = os.getenv("INTERVIEW_CALLBACK_SECRET") or os.getenv("LIVEKIT_API_SECRET", "")
+    dedicated_key = os.getenv("INTERVIEW_CALLBACK_SECRET")
+    key = dedicated_key or os.getenv("LIVEKIT_API_SECRET", "")
+    logger.info("INTERVIEW_COMPLETION signing_source=%s", "dedicated_callback_secret" if dedicated_key else ("livekit_api_secret_fallback" if key else "missing"))
     if not key:
         logger.error("INTERVIEW_COMPLETION missing callback signing key")
         return False
