@@ -497,7 +497,7 @@ export function App() {
     const state = districtState(district);
     if (!district.href || !district.moduleId) return;
     if (state === "locked") return;
-    if (guestMode && district.key === "resume") { setMessage("Resume District guest build is being validated. Discovery and Career Tree are ready to explore."); return; }
+    if (guestMode && district.key === "resume") { window.location.assign("https://level-up-resume-guest-pw7hyx8dg-aaronmoonjr-3945.vercel.app/?mode=guest"); return; }
     if (guestMode && district.key === "discovery") { window.location.assign("https://level-up-discovery-guest-k7wq5imq7-aaronmoonjr-3945.vercel.app/?mode=guest"); return; }
     if (guestMode && district.key === "career") { window.location.assign("/career-tree-next/"); return; }
     if (guestMode) { openDistrict(district.key); return; }
@@ -529,7 +529,7 @@ export function App() {
       </header>
 
       <section className="city-intro" aria-label="Level Up journey status">
-        <div><p className="eyebrow">WELCOME, {guestMode ? "GUEST" : name.toUpperCase()}</p><h1>Opportunity City</h1><p>{guestMode ? "Welcome to Opportunity City! Explore Discovery and the Career Tree map. Resume District is being prepared; other districts belong to the full participant experience." : "Your progress shapes the city. Explore anywhere, then enter the next unlocked stop on your Level Up journey."}</p></div>
+        <div><p className="eyebrow">WELCOME, {guestMode ? "GUEST" : name.toUpperCase()}</p><h1>Opportunity City</h1><p>{guestMode ? "Welcome to Opportunity City! Try Discovery, Resume District, and Career Tree. The remaining destinations are part of the full participant experience." : "Your progress shapes the city. Explore anywhere, then enter the next unlocked stop on your Level Up journey."}</p></div>
         <div className="journey-meter"><span>{seriesComplete ? "WORK READY SERIES COMPLETE" : "CURRENT PATH"}</span><strong>{currentPath}</strong><div><i style={{ width: `${Math.min(100, (completedCount / CORE_SEQUENCE.length) * 100)}%` }} /></div><b>{completedCount} OF {CORE_SEQUENCE.length} EXPERIENCES COMPLETE</b></div>
       </section>
 
