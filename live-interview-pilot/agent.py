@@ -157,6 +157,10 @@ async def interview(ctx: agents.JobContext):
         logger.info("INTERVIEW_TRANSCRIPT upload turns=%d answers=%d",len(transcript_turns),len(answers))
         await report_completion(ctx.room.name,answers,event="interview_transcript",turns=transcript_turns)
 
+    @session.on("close")
+    def save_when_session_closes(event):
+        asyncio.create_task(upload_transcript())
+
     ctx.add_shutdown_callback(upload_transcript)
     avatar = synthesia.AvatarSession(
         synthesia.AvatarConfig(avatar_ids=[AVATAR_ID]),
