@@ -1,4 +1,3 @@
-import { GUEST_ACTIVITIES } from "./guestActivities";
 import type { Session } from "@supabase/supabase-js";
 import {
   Check,
@@ -198,7 +197,6 @@ export function App() {
   // Guest mode intentionally avoids auth, profiles, module_progress, and cloud syncing.
   // This is a safe map preview until each separately hosted module has an isolated guest route.
   const guestMode = new URLSearchParams(window.location.search).get("mode") === "guest";
-  const [guestSelection, setGuestSelection] = useState("");
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -464,7 +462,6 @@ export function App() {
   function openDistrict(key: DistrictKey) {
     stopWelcome();
     stopDistrictAudio();
-    setGuestSelection("");
     setActiveKey(key);
   }
 
