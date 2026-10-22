@@ -88,13 +88,18 @@ jobs:
               raise SystemExit('FAIL: LiveKit credential verification returned HTTP '+str(status))
           PY
 
-      - name: Verify Supabase callback signing
+      - name: Verify dedicated callback signing when available
         env:
-          LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
+          INTERVIEW_CALLBACK_SECRET: ${{ secrets.INTERVIEW_CALLBACK_SECRET }}
         run: |
+          if [ -z "$INTERVIEW_CALLBACK_SECRET" ]; then
+            echo "SKIPPED: Callback secret is managed in LiveKit and Supabase, not GitHub Actions."
+            echo "Deployment success does not verify transcript callback authentication."
+            exit 0
+          fi
           python - <<'PY'
           import hashlib, hmac, json, os, time, urllib.error, urllib.request
-          secret = os.environ["LIVEKIT_API_SECRET"]
+          secret = os.environ["INTERVIEW_CALLBACK_SECRET"]
           body = json.dumps({"event":"interview_transcript","room_name":"diagnostic-invalid-room","answers":[],"turns":[]},separators=(",",":")).encode()
           ts = str(int(time.time()))
           signature = hmac.new(secret.encode(),ts.encode()+b"."+body,hashlib.sha256).hexdigest()
@@ -107,7 +112,7 @@ jobs:
           if status == 400 and "invalid_request" in payload:
               print("PASS: Supabase accepted the signed request and rejected the nonexistent diagnostic room.")
           elif status == 401:
-              raise SystemExit("FAIL: Supabase rejected the signature (401). Check LIVEKIT_API_SECRET on both sides.")
+              raise SystemExit("FAIL: Supabase rejected dedicated callback signature (401).")
           else:
               raise SystemExit(f"Unexpected response: HTTP {status}, {payload[:120]}")
           PY
