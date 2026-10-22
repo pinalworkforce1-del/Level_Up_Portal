@@ -48,9 +48,9 @@ Never say the participant has passed a real job interview.
 """
 
 async def report_completion(room_name: str, answers: list, event: str = 'interview_completed', turns=None) -> bool:
-    key = os.getenv("LIVEKIT_API_SECRET", "")
+    key = os.getenv("INTERVIEW_CALLBACK_SECRET") or os.getenv("LIVEKIT_API_SECRET", "")
     if not key:
-        logger.error("INTERVIEW_COMPLETION missing LiveKit signing key")
+        logger.error("INTERVIEW_COMPLETION missing callback signing key")
         return False
     body = json.dumps({"event": event, "room_name": room_name, "answers": answers, "turns": turns or []}, separators=(",", ":")).encode()
     timestamp = str(int(time.time()))
