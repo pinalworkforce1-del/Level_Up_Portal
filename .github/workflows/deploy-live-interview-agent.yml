@@ -26,11 +26,14 @@ jobs:
           LIVEKIT_API_KEY: ${{ secrets.LIVEKIT_API_KEY }}
           LIVEKIT_API_SECRET: ${{ secrets.LIVEKIT_API_SECRET }}
           SECRET_LIST: ${{ secrets.LIVEKIT_AGENT_SECRET_LIST }}
+          SECRET_INTERVIEW_CALLBACK_SECRET: ${{ secrets.INTERVIEW_CALLBACK_SECRET }}
+          SECRET_INTERVIEW_CALLBACK_SECRET: ${{ secrets.INTERVIEW_CALLBACK_SECRET }}
         run: |
           test -n "$LIVEKIT_URL" || { echo "::error::Missing LIVEKIT_URL secret"; exit 1; }
           test -n "$LIVEKIT_API_KEY" || { echo "::error::Missing LIVEKIT_API_KEY secret"; exit 1; }
           test -n "$LIVEKIT_API_SECRET" || { echo "::error::Missing LIVEKIT_API_SECRET secret"; exit 1; }
           test -n "$SECRET_LIST" || { echo "::error::Missing LIVEKIT_AGENT_SECRET_LIST secret (include SYNTHESIA_API_KEY)"; exit 1; }
+          test -n "$SECRET_INTERVIEW_CALLBACK_SECRET" || { echo "::error::Missing INTERVIEW_CALLBACK_SECRET GitHub secret"; exit 1; }
           echo "Required secret settings are present (values not printed)."
 
       - name: Validate interview agent Python syntax
