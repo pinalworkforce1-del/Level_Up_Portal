@@ -54,11 +54,11 @@ def question_match(spoken, expected):
     if not a or not b:
         return False
     sa, sb = " ".join(a), " ".join(b)
-    if sb in sa:
+    if sb in sa or sb.replace(" ", "") in sa.replace(" ", ""):
         return True
     keywords = {w for w in b if len(w) > 4}
     overlap = len(keywords.intersection(a)) / max(len(keywords), 1)
-    return overlap >= 0.72 and SequenceMatcher(None, sa, sb).ratio() >= 0.48
+    return overlap >= 0.72 and (SequenceMatcher(None, sa, sb).ratio() >= 0.32 or len(a) >= len(b))
 
 
 def extract_question_answers(turns, questions):
