@@ -643,6 +643,33 @@ function NameGate({ value, setValue, saving, message, onSave, onSignOut }: { val
 const PINAL_SMS_PILOT_ACTIVE = false;
 
 function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | ""; setCounty: (value: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
+  const [method,setMethod]=useState<"email"|"sms">("email");
+  const [phone,setPhone]=useState("");
+  const [otp,setOtp]=useState("");
+  const [smsStage,setSmsStage]=useState<"entry"|"code">("entry");
+  const [smsBusy,setSmsBusy]=useState(false);
+  const [smsMessage,setSmsMessage]=useState("");
+  const smsAvailable=county==="Pinal"&&PINAL_SMS_PILOT_ACTIVE;
+  async function sendSms(){
+    if(!smsAvailable||!supabase)return;
+    const normalized=phone.replace(/[^0-9]/g,"");
+    if(normalized.length!==10){setSmsMessage("Enter a 10-digit US mobile phone number.");return}
+    setSmsBusy(true);setSmsMessage("");
+    localStorage.setItem("level-up-pending-county","Pinal");
+    const {error}=await supabase.auth.signInWithOtp({phone:"+1"+normalized});
+    setSmsBusy(false);
+    if(error){setSmsMessage(error.message);return}
+    setSmsStage("code");
+    setSmsMessage("A one-time code was sent to your phone.");
+  }
+  async function confirmSms(){
+    if(!smsAvailable||!supabase||!/^\\d{6}$/.test(otp.trim())){setSmsMessage("Enter the six-digit verification code.");return}
+    const normalized=phone.replace(/[^0-9]/g,"");
+    setSmsBusy(true);setSmsMessage("");
+    const {error}=await supabase.auth.verifyOtp({phone:"+1"+normalized,token:otp.trim(),type:"sms"});
+    setSmsBusy(false);
+    if(error)setSmsMessage(error.message);
+  }
   return <main className="signin-shell city-signin">
     <img src={`${ASSET}opportunity-city.png`} alt="" aria-hidden="true" />
     <div className="signin-shade" />
@@ -661,12 +688,30 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
         </select>
         {county === "Pinal" ? <div className="notice" style={{marginTop:12,marginBottom:12}}>
           <strong>Pinal County sign-in</strong>
-          <p style={{margin:"6px 0 0"}}>Email is available now. SMS verification is an upcoming optional Pinal pilot.</p>
-          {!PINAL_SMS_PILOT_ACTIVE ? <p style={{margin:"6px 0 0",fontSize:12}}>Text-message verification is not yet enabled. Continue using email.</p> : null}
+          <p style={{margin:"6px 0 0"}}>Choose email or text-message verification. Text-message sign-in is in pilot setup and will become available after activation.</p>
         </div> : null}
-        <label htmlFor="email">Email address</label>
-        <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit()} placeholder="you@example.com" autoComplete="email" />
-        <button onClick={onSubmit}>Email my sign-in link <ChevronRight /></button>
+        {county==="Pinal" ? <div style={{display:"flex",gap:8,margin:"12px 0"}}>
+          <button type="button" className="text-button" aria-pressed={method==="email"} onClick={()=>{setMethod("email");setSmsMessage("")}}>Email</button>
+          <button type="button" className="text-button" aria-pressed={method==="sms"} onClick={()=>{setMethod("sms");setSmsMessage("")}}>Text message</button>
+        </div> : null}
+        {method==="sms"&&county==="Pinal" ? <>
+          {!smsAvailable ? <div className="notice">SMS sign-in is being prepared for the Pinal pilot. Please select Email to continue today.</div> : <>
+            <label htmlFor="smsPhone">Mobile phone number</label>
+            <input id="smsPhone" type="tel" value={phone} disabled={smsStage==="code"||smsBusy} onChange={e=>setPhone(e.target.value)} placeholder="(555) 123-4567" autoComplete="tel-national" />
+            {smsStage==="code" ? <>
+              <label htmlFor="smsCode">Text verification code</label>
+              <input id="smsCode" inputMode="numeric" autoComplete="one-time-code" value={otp} onChange={e=>setOtp(e.target.value)} placeholder="6-digit code" />
+              <button type="button" disabled={smsBusy} onClick={confirmSms}>Verify and enter Opportunity City</button>
+              <button type="button" className="text-button" onClick={()=>{setSmsStage("entry");setOtp("");setSmsMessage("")}}>Use another phone number</button>
+            </> : <button type="button" disabled={smsBusy} onClick={sendSms}>Text my sign-in code</button>}
+            {smsMessage ? <div className="notice" role="status">{smsMessage}</div> : null}
+            <small>Using a different phone number than your existing account may create a separate Level Up profile. Existing participants should continue with email until their phone number is linked to their account.</small>
+          </>}
+        </> : <>
+          <label htmlFor="email">Email address</label>
+          <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit()} placeholder="you@example.com" autoComplete="email" />
+          <button onClick={onSubmit}>Email my sign-in link <ChevronRight /></button>
+        </>}
       </>}
       {message ? <div className="error">{message}</div> : null}
       <small>Your Level Up account securely connects your progress across the Opportunity City experiences.</small>
