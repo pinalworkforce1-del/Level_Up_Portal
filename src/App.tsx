@@ -648,8 +648,6 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
       <h1>Enter Opportunity City</h1>
       <p>Sign in to restore your completed experiences, XP, and next unlocked destination.</p>
       {sent ? <div className="sent"><Mail /><div><strong>Check your email</strong><span>Open the secure link to return to Opportunity City.</span></div></div> : <>
-        <label htmlFor="email">Email address</label>
-        <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit()} placeholder="you@example.com" autoComplete="email" />
         <label htmlFor="county">County</label>
         <select id="county" value={county} onChange={(event) => setCounty(event.target.value as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "")}>
           <option value="">Choose county</option>
@@ -657,6 +655,12 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
           <option value="Northern">Northern</option>
           <option value="UFO - Eastern New Mexico">UFO - Eastern New Mexico</option>
         </select>
+        {county === "Pinal" ? <div className="notice" style={{marginTop:12,marginBottom:12}}>
+          <strong>Pinal County access options</strong>
+          <p style={{margin:"6px 0 0"}}>Email sign-in is available now. Optional text-message sign-in is being prepared for the Pinal pilot and is not yet active.</p>
+        </div> : null}
+        <label htmlFor="email">Email address</label>
+        <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit()} placeholder="you@example.com" autoComplete="email" />
         <button onClick={onSubmit}>Email my sign-in link <ChevronRight /></button>
       </>}
       {message ? <div className="error">{message}</div> : null}
