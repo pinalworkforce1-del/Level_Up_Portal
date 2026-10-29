@@ -203,6 +203,12 @@ export function App() {
   const [nameDraft, setNameDraft] = useState("");
   const [savingName, setSavingName] = useState(false);
   const [email, setEmail] = useState("");
+  const [linkPhone,setLinkPhone]=useState("");
+  const [linkCode,setLinkCode]=useState("");
+  const [linkStage,setLinkStage]=useState<"entry"|"code">("entry");
+  const [linkBusy,setLinkBusy]=useState(false);
+  const [linkNotice,setLinkNotice]=useState("");
+
   const [county, setCounty] = useState<"Pinal" | "Northern" | "UFO - Eastern New Mexico" | "">(() => (localStorage.getItem("level-up-pending-county") as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") || "");
   const [sent, setSent] = useState(false);
   const [message, setMessage] = useState("");
@@ -394,6 +400,29 @@ export function App() {
     setNeedsName(false);
   }
 
+  async function requestPhoneLink() {
+    if (!PINAL_SMS_PILOT_ACTIVE || county !== "Pinal" || !session || !supabase) return;
+    const digits=linkPhone.replace(/\\D/g,"");
+    if(digits.length!==10){setLinkNotice("Enter a 10-digit US mobile phone number.");return}
+    setLinkBusy(true);setLinkNotice("");
+    const {error}=await supabase.auth.updateUser({phone:"+1"+digits});
+    setLinkBusy(false);
+    if(error){setLinkNotice(error.message);return}
+    setLinkStage("code");
+    setLinkNotice("Enter the code sent to your phone to finish linking.");
+  }
+  async function confirmPhoneLink() {
+    if (!PINAL_SMS_PILOT_ACTIVE || county !== "Pinal" || !session || !supabase) return;
+    const digits=linkPhone.replace(/\\D/g,"");
+    if(!/^\\d{6}$/.test(linkCode.trim())){setLinkNotice("Enter the six-digit code.");return}
+    setLinkBusy(true);setLinkNotice("");
+    const {error}=await supabase.auth.verifyOtp({phone:"+1"+digits,token:linkCode.trim(),type:"phone_change"});
+    setLinkBusy(false);
+    if(error){setLinkNotice(error.message);return}
+    setLinkStage("entry");setLinkPhone("");setLinkCode("");
+    setLinkNotice("Phone verified and linked to this Level Up account. Your progress remains on the same account.");
+  }
+
   async function signOut() {
     stopWelcome();
     stopDistrictAudio();
@@ -518,6 +547,19 @@ export function App() {
       </section>
 
       {message ? <div className="notice">{message}</div> : null}
+      {PINAL_SMS_PILOT_ACTIVE && county==="Pinal" && session && !session.user.phone ? <section className="notice" aria-label="Link mobile phone" style={{margin:"12px 0",padding:16}}>
+        <strong>Add text-message sign-in to this account</strong>
+        <p>Verify your mobile number while signed in with email to keep all your Level Up progress together.</p>
+        <label htmlFor="linkPhone">Mobile number</label>
+        <input id="linkPhone" type="tel" autoComplete="tel-national" value={linkPhone} disabled={linkBusy || linkStage==="code"} onChange={e=>setLinkPhone(e.target.value)} placeholder="(555) 123-4567" />
+        {linkStage==="code" ? <>
+          <label htmlFor="linkCode">Verification code</label>
+          <input id="linkCode" inputMode="numeric" autoComplete="one-time-code" value={linkCode} onChange={e=>setLinkCode(e.target.value)} placeholder="6-digit code" />
+          <button type="button" disabled={linkBusy} onClick={confirmPhoneLink}>Verify and link phone</button>
+          <button type="button" disabled={linkBusy} onClick={()=>{setLinkStage("entry");setLinkCode("");setLinkNotice("")}}>Change number</button>
+        </> : <button type="button" disabled={linkBusy} onClick={requestPhoneLink}>Send phone verification code</button>}
+        {linkNotice ? <p role="status">{linkNotice}</p> : null}
+      </section> : null}
       <OfflinePanel currentModuleId={currentModuleId} />
 
       <section className="opportunity-stage" aria-label="Interactive Opportunity City map">
