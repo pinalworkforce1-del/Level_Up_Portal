@@ -638,6 +638,10 @@ function NameGate({ value, setValue, saving, message, onSave, onSignOut }: { val
   </main>;
 }
 
+// SMS is restricted to the Pinal pilot. Keep disabled until a server-side
+// authorization gateway and linked-account flow have passed verification.
+const PINAL_SMS_PILOT_ACTIVE = false;
+
 function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | ""; setCounty: (value: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
   return <main className="signin-shell city-signin">
     <img src={`${ASSET}opportunity-city.png`} alt="" aria-hidden="true" />
@@ -656,8 +660,9 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
           <option value="UFO - Eastern New Mexico">UFO - Eastern New Mexico</option>
         </select>
         {county === "Pinal" ? <div className="notice" style={{marginTop:12,marginBottom:12}}>
-          <strong>Pinal County access options</strong>
-          <p style={{margin:"6px 0 0"}}>Email sign-in is available now. Optional text-message sign-in is being prepared for the Pinal pilot and is not yet active.</p>
+          <strong>Pinal County sign-in</strong>
+          <p style={{margin:"6px 0 0"}}>Email is available now. SMS verification is an upcoming optional Pinal pilot.</p>
+          {!PINAL_SMS_PILOT_ACTIVE ? <p style={{margin:"6px 0 0",fontSize:12}}>Text-message verification is not yet enabled. Continue using email.</p> : null}
         </div> : null}
         <label htmlFor="email">Email address</label>
         <input id="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} onKeyDown={(event) => event.key === "Enter" && onSubmit()} placeholder="you@example.com" autoComplete="email" />
