@@ -691,16 +691,18 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
   const [smsStage,setSmsStage]=useState<"entry"|"code">("entry");
   const [smsBusy,setSmsBusy]=useState(false);
   const [smsMessage,setSmsMessage]=useState("");
+  const [understandsNewAccount,setUnderstandsNewAccount]=useState(false);
   const smsAvailable=county==="Pinal"&&PINAL_SMS_PILOT_ACTIVE;
   async function sendSms(){
     if(!smsAvailable||!supabase)return;
     const normalized=phone.replace(/[^0-9]/g,"");
     if(normalized.length!==10){setSmsMessage("Enter a 10-digit US mobile phone number.");return}
+    if(!understandsNewAccount){setSmsMessage("Please confirm you understand that an unlinked number may start a separate Level Up account.");return}
     setSmsBusy(true);setSmsMessage("");
     localStorage.setItem("level-up-pending-county","Pinal");
-    const {error}=await supabase.auth.signInWithOtp({phone:"+1"+normalized,options:{shouldCreateUser:false}});
+    const {error}=await supabase.auth.signInWithOtp({phone:"+1"+normalized,options:{shouldCreateUser:true}});
     setSmsBusy(false);
-    if(error){setSmsMessage("This number could not be signed in. If you previously used email, sign in with email first and link your phone from Opportunity City.");return}
+    if(error){setSmsMessage(error.message);return}
     setSmsStage("code");
     setSmsMessage("A one-time code was sent to your phone.");
   }
@@ -730,7 +732,7 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
         </select>
         {county === "Pinal" ? <div className="notice" style={{marginTop:12,marginBottom:12}}>
           <strong>Pinal County sign-in</strong>
-          <p style={{margin:"6px 0 0"}}>Choose email or text-message verification. Text-message sign-in is in pilot setup and will become available after activation.</p>
+          <p style={{margin:"6px 0 0"}}>Choose Email or Text Message to sign in. New participants can begin with either method.</p>
         </div> : null}
         {county==="Pinal" ? <div style={{display:"flex",gap:8,margin:"12px 0"}}>
           <button type="button" className="text-button" aria-pressed={method==="email"} onClick={()=>{setMethod("email");setSmsMessage("")}}>Email</button>
@@ -745,9 +747,9 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
               <input id="smsCode" inputMode="numeric" autoComplete="one-time-code" value={otp} onChange={e=>setOtp(e.target.value)} placeholder="6-digit code" />
               <button type="button" disabled={smsBusy} onClick={confirmSms}>Verify and enter Opportunity City</button>
               <button type="button" className="text-button" onClick={()=>{setSmsStage("entry");setOtp("");setSmsMessage("")}}>Use another phone number</button>
-            </> : <button type="button" disabled={smsBusy} onClick={sendSms}>Text my sign-in code</button>}
+            </> : <><label style={{display:"flex",alignItems:"flex-start",gap:8,margin:"12px 0"}}><input type="checkbox" checked={understandsNewAccount} onChange={e=>setUnderstandsNewAccount(e.target.checked)} style={{width:"auto",marginTop:3}} /><span>If I used Level Up before with email, I understand that using an unlinked phone number may start a separate account with no previous progress.</span></label><button type="button" disabled={smsBusy || !understandsNewAccount} onClick={sendSms}>Text my sign-in code</button></>}
             {smsMessage ? <div className="notice" role="status">{smsMessage}</div> : null}
-            <small>First time using text messages? If you already have Level Up progress, choose Email first. After signing in, verify your phone under “Add text-message sign-in to this account.” Your next visit can use either method.</small>
+            <small>New to Level Up? You can begin with text messages alone. Already used email? Sign in with email and link your phone to preserve your existing XP and completed modules. Staff-assisted account recovery is planned but is not available yet.</small>
           </>}
         </> : <>
           <label htmlFor="email">Email address</label>
