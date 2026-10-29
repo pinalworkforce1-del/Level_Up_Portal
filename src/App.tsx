@@ -420,7 +420,7 @@ export function App() {
     setLinkBusy(false);
     if(error){setLinkNotice(error.message);return}
     setLinkStage("entry");setLinkPhone("");setLinkCode("");
-    setLinkNotice("Phone verified and linked to this Level Up account. Your progress remains on the same account.");
+    setLinkNotice("Phone verified. You can now sign in using either email or text message; both use this Level Up account.");
   }
 
   async function signOut() {
@@ -700,7 +700,7 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
     localStorage.setItem("level-up-pending-county","Pinal");
     const {error}=await supabase.auth.signInWithOtp({phone:"+1"+normalized,options:{shouldCreateUser:false}});
     setSmsBusy(false);
-    if(error){setSmsMessage(error.message);return}
+    if(error){setSmsMessage("This number could not be signed in. If you previously used email, sign in with email first and link your phone from Opportunity City.");return}
     setSmsStage("code");
     setSmsMessage("A one-time code was sent to your phone.");
   }
@@ -747,7 +747,7 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
               <button type="button" className="text-button" onClick={()=>{setSmsStage("entry");setOtp("");setSmsMessage("")}}>Use another phone number</button>
             </> : <button type="button" disabled={smsBusy} onClick={sendSms}>Text my sign-in code</button>}
             {smsMessage ? <div className="notice" role="status">{smsMessage}</div> : null}
-            <small>Using a different phone number than your existing account may create a separate Level Up profile. Existing participants should continue with email until their phone number is linked to their account.</small>
+            <small>First time using text messages? If you already have Level Up progress, choose Email first. After signing in, verify your phone under “Add text-message sign-in to this account.” Your next visit can use either method.</small>
           </>}
         </> : <>
           <label htmlFor="email">Email address</label>
