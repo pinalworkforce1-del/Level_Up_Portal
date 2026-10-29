@@ -402,7 +402,7 @@ export function App() {
 
   async function requestPhoneLink() {
     if (!PINAL_SMS_PILOT_ACTIVE || county !== "Pinal" || !session || !supabase) return;
-    const digits=linkPhone.replace(/\\D/g,"");
+    const digits=linkPhone.replace(/\D/g,"");
     if(digits.length!==10){setLinkNotice("Enter a 10-digit US mobile phone number.");return}
     setLinkBusy(true);setLinkNotice("");
     const {error}=await supabase.auth.updateUser({phone:"+1"+digits});
@@ -413,8 +413,8 @@ export function App() {
   }
   async function confirmPhoneLink() {
     if (!PINAL_SMS_PILOT_ACTIVE || county !== "Pinal" || !session || !supabase) return;
-    const digits=linkPhone.replace(/\\D/g,"");
-    if(!/^\\d{6}$/.test(linkCode.trim())){setLinkNotice("Enter the six-digit code.");return}
+    const digits=linkPhone.replace(/\D/g,"");
+    if(!/^\d{6}$/.test(linkCode.trim())){setLinkNotice("Enter the six-digit code.");return}
     setLinkBusy(true);setLinkNotice("");
     const {error}=await supabase.auth.verifyOtp({phone:"+1"+digits,token:linkCode.trim(),type:"phone_change"});
     setLinkBusy(false);
@@ -698,14 +698,14 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
     if(normalized.length!==10){setSmsMessage("Enter a 10-digit US mobile phone number.");return}
     setSmsBusy(true);setSmsMessage("");
     localStorage.setItem("level-up-pending-county","Pinal");
-    const {error}=await supabase.auth.signInWithOtp({phone:"+1"+normalized});
+    const {error}=await supabase.auth.signInWithOtp({phone:"+1"+normalized,options:{shouldCreateUser:false}});
     setSmsBusy(false);
     if(error){setSmsMessage(error.message);return}
     setSmsStage("code");
     setSmsMessage("A one-time code was sent to your phone.");
   }
   async function confirmSms(){
-    if(!smsAvailable||!supabase||!/^\\d{6}$/.test(otp.trim())){setSmsMessage("Enter the six-digit verification code.");return}
+    if(!smsAvailable||!supabase||!/^\d{6}$/.test(otp.trim())){setSmsMessage("Enter the six-digit verification code.");return}
     const normalized=phone.replace(/[^0-9]/g,"");
     setSmsBusy(true);setSmsMessage("");
     const {error}=await supabase.auth.verifyOtp({phone:"+1"+normalized,token:otp.trim(),type:"sms"});
