@@ -402,7 +402,7 @@ export function App() {
 
   async function requestPhoneLink() {
     if (!PINAL_SMS_PILOT_ACTIVE || county !== "Pinal" || !session || !supabase) return;
-    const digits=linkPhone.replace(/\\D/g,"");
+    const digits=linkPhone.replace(/\D/g,"");
     if(digits.length!==10){setLinkNotice("Enter a 10-digit US mobile phone number.");return}
     setLinkBusy(true);setLinkNotice("");
     const {error}=await supabase.auth.updateUser({phone:"+1"+digits});
@@ -413,14 +413,14 @@ export function App() {
   }
   async function confirmPhoneLink() {
     if (!PINAL_SMS_PILOT_ACTIVE || county !== "Pinal" || !session || !supabase) return;
-    const digits=linkPhone.replace(/\\D/g,"");
-    if(!/^\\d{6}$/.test(linkCode.trim())){setLinkNotice("Enter the six-digit code.");return}
+    const digits=linkPhone.replace(/\D/g,"");
+    if(!/^\d{6}$/.test(linkCode.trim())){setLinkNotice("Enter the six-digit code.");return}
     setLinkBusy(true);setLinkNotice("");
     const {error}=await supabase.auth.verifyOtp({phone:"+1"+digits,token:linkCode.trim(),type:"phone_change"});
     setLinkBusy(false);
     if(error){setLinkNotice(error.message);return}
     setLinkStage("entry");setLinkPhone("");setLinkCode("");
-    setLinkNotice("Phone verified and linked to this Level Up account. Your progress remains on the same account.");
+    setLinkNotice("Phone verified. You can now sign in using either email or text message; both use this Level Up account.");
   }
 
   async function signOut() {
@@ -682,7 +682,7 @@ function NameGate({ value, setValue, saving, message, onSave, onSignOut }: { val
 
 // SMS is restricted to the Pinal pilot. Keep disabled until a server-side
 // authorization gateway and linked-account flow have passed verification.
-const PINAL_SMS_PILOT_ACTIVE = false;
+const PINAL_SMS_PILOT_ACTIVE = true;
 
 function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | ""; setCounty: (value: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
   const [method,setMethod]=useState<"email"|"sms">("email");
@@ -698,14 +698,14 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
     if(normalized.length!==10){setSmsMessage("Enter a 10-digit US mobile phone number.");return}
     setSmsBusy(true);setSmsMessage("");
     localStorage.setItem("level-up-pending-county","Pinal");
-    const {error}=await supabase.auth.signInWithOtp({phone:"+1"+normalized});
+    const {error}=await supabase.auth.signInWithOtp({phone:"+1"+normalized,options:{shouldCreateUser:false}});
     setSmsBusy(false);
-    if(error){setSmsMessage(error.message);return}
+    if(error){setSmsMessage("This number could not be signed in. If you previously used email, sign in with email first and link your phone from Opportunity City.");return}
     setSmsStage("code");
     setSmsMessage("A one-time code was sent to your phone.");
   }
   async function confirmSms(){
-    if(!smsAvailable||!supabase||!/^\\d{6}$/.test(otp.trim())){setSmsMessage("Enter the six-digit verification code.");return}
+    if(!smsAvailable||!supabase||!/^\d{6}$/.test(otp.trim())){setSmsMessage("Enter the six-digit verification code.");return}
     const normalized=phone.replace(/[^0-9]/g,"");
     setSmsBusy(true);setSmsMessage("");
     const {error}=await supabase.auth.verifyOtp({phone:"+1"+normalized,token:otp.trim(),type:"sms"});
@@ -747,7 +747,7 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
               <button type="button" className="text-button" onClick={()=>{setSmsStage("entry");setOtp("");setSmsMessage("")}}>Use another phone number</button>
             </> : <button type="button" disabled={smsBusy} onClick={sendSms}>Text my sign-in code</button>}
             {smsMessage ? <div className="notice" role="status">{smsMessage}</div> : null}
-            <small>Using a different phone number than your existing account may create a separate Level Up profile. Existing participants should continue with email until their phone number is linked to their account.</small>
+            <small>First time using text messages? If you already have Level Up progress, choose Email first. After signing in, verify your phone under “Add text-message sign-in to this account.” Your next visit can use either method.</small>
           </>}
         </> : <>
           <label htmlFor="email">Email address</label>
