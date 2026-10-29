@@ -202,6 +202,10 @@ export function App() {
   const [needsName, setNeedsName] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
   const [savingName, setSavingName] = useState(false);
+  const [optionalEmail, setOptionalEmail] = useState("");
+  const [optionalEmailBusy, setOptionalEmailBusy] = useState(false);
+  const [optionalEmailNotice, setOptionalEmailNotice] = useState("");
+  const [optionalEmailSkipped, setOptionalEmailSkipped] = useState(false);
   const [email, setEmail] = useState("");
   const [linkPhone,setLinkPhone]=useState("");
   const [linkCode,setLinkCode]=useState("");
@@ -400,6 +404,33 @@ export function App() {
     setNeedsName(false);
   }
 
+  async function addOptionalEmail() {
+    if (!supabase || !session || session.user.email) return;
+    const value = optionalEmail.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
+      setOptionalEmailNotice("Enter a valid email address.");
+      return;
+    }
+    setOptionalEmailBusy(true);
+    setOptionalEmailNotice("");
+    const { error } = await supabase.auth.updateUser(
+      { email: value },
+      { emailRedirectTo: redirectUrl() }
+    );
+    setOptionalEmailBusy(false);
+    if (error) {
+      setOptionalEmailNotice(error.message.includes("already") ? "That email may belong to another Level Up account. Continue with SMS and contact staff for account recovery; do not create another account." : error.message);
+      return;
+    }
+    setOptionalEmailNotice("Check your inbox to verify this email. You can continue using SMS while verification is pending.");
+    setOptionalEmailSkipped(true);
+  }
+
+  function skipOptionalEmail() {
+    if (session) localStorage.setItem("level-up-optional-email-skip:" + session.user.id, "1");
+    setOptionalEmailSkipped(true);
+  }
+
   async function requestPhoneLink() {
     if (!PINAL_SMS_PILOT_ACTIVE || county !== "Pinal" || !session || !supabase) return;
     const digits=linkPhone.replace(/\D/g,"");
@@ -528,6 +559,7 @@ export function App() {
   if (!authReady || loading) return <main className="loading"><span className="brand-mark">LU</span><p>Loading Opportunity City…</p></main>;
   if (configured && !session) return <SignIn email={email} setEmail={setEmail} county={county} setCounty={setCounty} sent={sent} message={message} onSubmit={signIn} />;
   if (configured && session && needsName) return <NameGate value={nameDraft} setValue={setNameDraft} saving={savingName} message={message} onSave={saveProfileName} onSignOut={signOut} />;
+  if (configured && session && !session.user.email && !optionalEmailSkipped && localStorage.getItem("level-up-optional-email-skip:" + session.user.id) !== "1") return <OptionalEmailGate value={optionalEmail} setValue={setOptionalEmail} busy={optionalEmailBusy} notice={optionalEmailNotice} onAdd={addOptionalEmail} onSkip={skipOptionalEmail} />;
 
   return (
     <main className="portal-shell opportunity-shell">
@@ -659,6 +691,25 @@ export function App() {
       </section>
     </main>
   );
+}
+
+function OptionalEmailGate({ value, setValue, busy, notice, onAdd, onSkip }: { value: string; setValue: (v: string) => void; busy: boolean; notice: string; onAdd: () => void; onSkip: () => void }) {
+  return <main className="signin-shell city-signin">
+    <img src={`${ASSET}opportunity-city.png`} alt="" aria-hidden="true" />
+    <div className="signin-shade" />
+    <section className="signin-card">
+      <div className="brand"><span className="brand-mark">LU</span><div><strong>LEVEL UP</strong><span>OPPORTUNITY CITY</span></div></div>
+      <p className="eyebrow">OPTIONAL ACCOUNT ACCESS</p>
+      <h1>Add an email sign-in?</h1>
+      <p>You are already signed in with your phone. Adding and verifying an email gives you a second way to access this same Level Up account. You do not need an email to continue.</p>
+      <label htmlFor="optional-email">Email address (optional)</label>
+      <input id="optional-email" type="email" autoComplete="email" value={value} onChange={e=>setValue(e.target.value)} placeholder="you@example.com" />
+      <button type="button" disabled={busy} onClick={onAdd}>{busy ? "Sending…" : "Send email verification"}</button>
+      {notice ? <div className="notice" role="status">{notice}</div> : null}
+      <button className="text-button" type="button" onClick={onSkip}>Skip for now — enter Opportunity City</button>
+      <small>If you previously used a different email account with saved progress, skip this step and ask staff for account recovery. Adding an email does not merge two existing accounts.</small>
+    </section>
+  </main>;
 }
 
 function NameGate({ value, setValue, saving, message, onSave, onSignOut }: { value: string; setValue: (value: string) => void; saving: boolean; message: string; onSave: () => void; onSignOut: () => void }) {
