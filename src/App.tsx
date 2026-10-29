@@ -682,7 +682,7 @@ function NameGate({ value, setValue, saving, message, onSave, onSignOut }: { val
 
 // SMS is restricted to the Pinal pilot. Keep disabled until a server-side
 // authorization gateway and linked-account flow have passed verification.
-const PINAL_SMS_PILOT_ACTIVE = false;
+const PINAL_SMS_PILOT_ACTIVE = true;
 
 function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | ""; setCounty: (value: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
   const [method,setMethod]=useState<"email"|"sms">("email");
