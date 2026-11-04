@@ -30,6 +30,29 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 .artDialog{width:min(96vw,1600px);max-width:1600px;max-height:96vh;margin:auto;padding:0;border:1px solid #c4a6f4;border-radius:16px;background:#071128;color:#fff;box-shadow:0 20px 80px #000}
 .artDialog::backdrop{background:#030715eb;backdrop-filter:blur(5px)}.artDialog img{display:block;width:100%;max-height:86vh;object-fit:contain}
 .artDialog .closeArt{position:absolute;top:12px;right:12px;z-index:1;padding:9px 14px;border:1px solid #b99cff;border-radius:12px;background:#101933ed;color:#fff;font-weight:850;cursor:pointer}.artDialog .closeArt:focus-visible{outline:3px solid var(--cyan)}
+.visual{cursor:default}
+.visual img{cursor:zoom-in}
+.imageChoiceHits{position:absolute;inset:0;pointer-events:none}
+.imageChoiceHit,.imageMapHit{position:absolute;z-index:2;border:1px solid transparent;border-radius:12px;background:transparent;pointer-events:auto;cursor:pointer;color:transparent;font-size:0;transition:background .15s,box-shadow .15s,border-color .15s}
+.imageChoiceHit:hover,.imageChoiceHit:focus-visible,.imageMapHit:hover,.imageMapHit:focus-visible{outline:2px solid var(--cyan);outline-offset:0;background:#4be9ff16;box-shadow:0 0 21px #4be9ff65}
+.imageChoiceHit.selected{border-color:#94f2d880;box-shadow:inset 0 0 0 1px #94f2d844}
+.artExpand{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:3;padding:7px 11px;border:1px solid #bb9ff499;border-radius:999px;background:#090d28e6;color:#fff;font-size:12px;line-height:1.25;font-weight:850;white-space:nowrap}
+.artExpand:hover,.artExpand:focus-visible{outline:2px solid var(--cyan);background:#23144d}
+.choiceHint{margin:0 0 10px;color:#d3ccec;font-size:14px}
+.choiceFallback summary{cursor:pointer;font-weight:750;color:#a9efff;padding:8px 0}
+.choiceFallback .choices{margin:8px 0 0}
+.answerDialog{width:min(92vw,640px);max-width:640px;max-height:90vh;overflow-y:auto;margin:auto;border:1px solid #b888f1;border-radius:21px;background:linear-gradient(160deg,#1b1945,#0b1530 72%);color:#f7f3ff;padding:23px;box-shadow:0 20px 80px #000}
+.answerDialog::backdrop{background:#040616e8;backdrop-filter:blur(7px)}
+.answerDialogTop{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.answerDialogTop button{padding:7px 11px;border-radius:9px;border:1px solid #8566c9;background:#172146;color:#fff}
+.answerDialog h2{font-size:clamp(22px,4vw,32px);margin:12px 0 6px;color:#ffe19b}
+.answerDialog .selectedAnswer{font-size:17px;line-height:1.5;color:#e9e5ff;padding:11px 13px;background:#151b42;border:1px solid #6758a9;border-radius:12px}
+.answerDialog .ariaReply{font-size:16px;line-height:1.65}
+.answerDialog .answerTip{background:#1a1541;padding:14px;border-left:4px solid #c27bff;border-radius:10px}
+.answerDialog .answerTip p{margin:7px 0;line-height:1.5}
+.answerDialog .answerXP{display:inline-flex;padding:7px 11px;border-radius:999px;background:#173a3c;border:1px solid #75dec0;color:#adf9d5;font-size:13px;font-weight:900}
+.answerDialog .actions{margin-top:18px}
+@media(max-width:680px){.artExpand{font-size:10px;padding:5px 8px}.scenarioCard,.decisionCard{padding:15px}.answerDialog{padding:16px}.visualBadge{font-size:10px;padding:5px 7px}}
 @media(max-width:920px){.overview,.scene{grid-template-columns:1fr}.mapGrid{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){main{padding:12px}.mapGrid{grid-template-columns:1fr}.hero{min-height:250px}.stats strong{font-size:20px}}@media(prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
 </head>
@@ -60,14 +83,23 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 <section class="panel stage" id="challenge" hidden>
 <div class="stageTitle"><div><div class="eyebrow" id="stageNumber"></div><h2 id="stageTitle"></h2><p class="zoneTagline" id="tagline"></p></div><button class="btn secondary" type="button" id="backMap">← Return to Peak Map</button></div>
 <div class="scene">
-<button type="button" class="visual" id="expandArt" aria-label="Enlarge Leadership Peak challenge illustration" title="Click to enlarge the artwork"><img id="sceneArt" src="./assets/slide-04.webp" alt="Leadership Peak challenge illustration" decoding="async"><span class="visualBadge" aria-hidden="true">⤢ View artwork</span></button>
+<div class="visual" id="visualCanvas"><img id="sceneArt" src="./assets/slide-04.webp" alt="Leadership Peak challenge illustration" decoding="async"><div class="imageChoiceHits" id="imageChoiceHits"></div><button type="button" class="artExpand" id="expandArt" aria-label="Enlarge Leadership Peak challenge illustration">⤢ Enlarge artwork</button><span class="visualBadge" aria-hidden="true">Choose A, B or C</span></div>
 <section class="scenarioCard" aria-labelledby="scenarioHeading"><h3 id="scenarioHeading">Scenario</h3><p class="scenario" id="scenario"></p></section>
-<section class="decisionCard" aria-labelledby="decisionHeading"><h3 id="decisionHeading">What would you do?</h3><div class="choices" id="choices"></div></section>
+<section class="decisionCard" aria-labelledby="decisionHeading"><h3 id="decisionHeading">What would you do?</h3><p class="choiceHint">Select A, B, or C directly on the illustration. Aria will respond to your choice.</p><details id="choiceFallback" class="choiceFallback"><summary>Prefer larger text choices? Open them here</summary><div class="choices" id="choices"></div></details></section>
 <section class="ariaCard" aria-label="Aria guidance"><strong>ARIA SAYS</strong><p id="ariaSays"></p><div class="muted small" id="zoneTip"></div></section>
 </div>
 <div class="feedbackBox" id="feedback" hidden role="status" aria-live="polite"><strong id="earnedXP"></strong><p id="feedbackText"></p><div class="actions"><button class="btn green" type="button" id="nextZone">Return to mountain map →</button></div></div>
 </section>
 <dialog id="artDialog" class="artDialog" aria-label="Enlarged Leadership Peak illustration"><button type="button" class="closeArt" id="closeArt">✕ Close</button><img id="artDialogImage" alt="Enlarged Leadership Peak challenge illustration"></dialog>
+<dialog id="answerDialog" class="answerDialog" aria-labelledby="answerDialogTitle">
+<div class="answerDialogTop"><span class="eyebrow">✦ ARIA · YOUR CHOICE</span><button type="button" id="closeAnswer" aria-label="Close feedback">✕ Close</button></div>
+<h2 id="answerDialogTitle">Leadership feedback</h2>
+<p class="selectedAnswer" id="answerChoiceText"></p>
+<p class="ariaReply" id="answerResponseText"></p>
+<div class="answerTip"><strong>ARIA SAYS</strong><p id="answerAriaText"></p><p class="small muted" id="answerTipText"></p></div>
+<p class="answerXP" id="answerCredit"></p>
+<div class="actions"><button type="button" class="btn secondary" id="answerAgain">Explore this zone</button><button type="button" class="btn green" id="answerReturn">Return to Peak Map →</button></div>
+</dialog>
 <section class="panel" id="review" hidden style="margin-top:18px"><div class="eyebrow">Influence Summit reached</div><h2>One last reflection</h2><p>Leadership isn't about getting every choice right. What is one leadership habit you'll practice the next time you're part of a team?</p><div class="field"><label for="reflection">My next leadership step</label><textarea id="reflection" maxlength="2500" placeholder="For example: I'll make space for everyone to share an idea, then help our group choose one next step."></textarea></div><div class="actions"><button type="button" class="btn green" id="completePeak">Complete Leadership Peak & save →</button></div></section>
 <section class="panel" id="summary" hidden style="margin-top:18px"><div class="eyebrow">✓ Summit reached</div><h2>Leadership Peak complete!</h2><p>You've practiced all six leadership decisions and made a commitment to keep growing. Your next destination is the real world.</p><p class="muted">Your Leadership Trail Badge Book is now available. Its points track documented activities—not the XP you earned in the learning module.</p><a href="badge-book.html" class="btn green badgeLink">Begin Leadership Trail →</a></section>
 <div class="foot">Leadership Peak is a Level Up developmental experience. Challenge XP is not a hiring assessment, WIOA service verification, or a credential. Real-world Leadership Trail activities are reviewed separately by your Career Coach.</div>
@@ -119,15 +151,59 @@ function render(){const count=done().length;$('doneCount').textContent=count+' /
  $('zoneMap').replaceChildren();
  zones.forEach((z,i)=>{const b=document.createElement('button');b.type='button';b.className='zone'+(state.answers[z.id]?' completed':'');b.style.setProperty('--zone-art','url(./assets/slide-'+String([4,8,12,16,20,24][i]).padStart(2,'0')+'.webp)');const k=document.createElement('div');k.className='number';k.textContent='ZONE '+(i+1)+' • '+(state.answers[z.id]?'COMPLETE ✓':'READY');const n=document.createElement('b');n.textContent=z.title;const d=document.createElement('small');d.textContent=z.tagline;const e=document.createElement('div');e.className='result';e.textContent=state.answers[z.id]?(state.answers[z.id].xp+' XP earned'):'Explore challenge →';b.append(k,n,d,e);b.onclick=()=>openZone(z.id);$('zoneMap').append(b)});
  $('review').hidden=count!==6||!!state.completed_at;$('summary').hidden=!state.completed_at;const gate=$('badgeGate');gate.classList.toggle('success',!!state.completed_at);gate.replaceChildren();const strong=document.createElement('strong');strong.textContent=state.completed_at?'Leadership Trail unlocked ✓':'Leadership Trail locked';const p=document.createElement('p');p.className='small muted';p.textContent=state.completed_at?'Your next step is to document real-world leadership activities.':'Complete the six zones and your final reflection to unlock.';gate.append(strong,p);if(state.completed_at){const a=document.createElement('a');a.href='badge-book.html';a.className='badgeLink';a.textContent='Open Leadership Trail →';gate.append(a)}}
-function openZone(id){const z=zones.find(q=>q.id===id);if(!z)return;active=id;$('challenge').hidden=false;const art='./assets/slide-'+String([4,8,12,16,20,24][zones.indexOf(z)]).padStart(2,'0')+'.webp';$('sceneArt').src=art;$('sceneArt').alt=z.title+' challenge scene artwork';$('expandArt').setAttribute('aria-label','Enlarge '+z.title+' artwork');$('stageNumber').textContent='CHALLENGE ZONE '+(zones.indexOf(z)+1);$('stageTitle').textContent=z.title;$('tagline').textContent=z.tagline;$('scenario').textContent=z.scenario;$('ariaSays').textContent=z.aria;$('zoneTip').textContent='Leadership tip: '+z.tip;$('feedback').hidden=true;$('choices').replaceChildren();
+// Artwork uses 1600×900 illustrations. Percent-based hit areas scale with the image.
+ // Zone 3 places its choices on the right; all other zones use the left.
+const artworkChoiceRects=[
+ [[3,50.1,28.6,11.2],[3,62.1,28.6,11.8],[3,74.1,28.6,12.0]],
+ [[2.8,50.1,28.5,11.3],[2.8,62.2,28.5,11.6],[2.8,74.7,28.5,11.8]],
+ [[67.3,35.1,30.4,9.3],[67.3,44.6,30.4,9.2],[67.3,54.2,30.4,9.2]],
+ [[1.8,48.1,27.3,10.1],[1.8,58.5,27.3,9.6],[1.8,68.2,27.3,10]],
+ [[1.5,46.6,26.4,9],[1.5,56,26.4,9.6],[1.5,66.2,26.4,9.8]],
+ [[1.5,45.7,26.5,9.5],[1.5,55.9,26.5,9.5],[1.5,65.8,26.5,15.3]]
+];
+const artworkReturnRects=[
+ [76,88.4,22,10.5],[75,88.4,23,10.5],[68.5,86.3,28,10.5],
+ [75.2,87.3,23,11],[74.5,87.4,24,10.8],[74.7,87.4,24,11]
+];
+function createArtworkTargets(z){
+ const i=zones.indexOf(z),wrap=$('imageChoiceHits');wrap.replaceChildren();
+ z.answers.forEach((a,idx)=>{
+  const box=artworkChoiceRects[i][idx],button=document.createElement('button');
+  button.type='button';
+  button.className='imageChoiceHit'+(state.answers[z.id]?.choice===a[0]?' selected':'');
+  button.style.left=box[0]+'%';button.style.top=box[1]+'%';button.style.width=box[2]+'%';button.style.height=box[3]+'%';
+  button.setAttribute('aria-label','Choose '+a[0]+': '+a[1]);
+  button.title='Choose '+a[0]+': '+a[1];
+  button.onclick=()=>selectAnswer(z,idx);
+  wrap.append(button);
+ });
+ const back=artworkReturnRects[i],button=document.createElement('button');button.type='button';button.className='imageMapHit';
+ button.style.left=back[0]+'%';button.style.top=back[1]+'%';button.style.width=back[2]+'%';button.style.height=back[3]+'%';
+ button.setAttribute('aria-label','Return to Leadership Peak map');button.title='Return to Peak Map';
+ button.onclick=closeZone;wrap.append(button);
+}
+function openAnswerDialog(z,a){
+ $('answerDialogTitle').textContent=z.title+' · Choice '+a[0];
+ $('answerChoiceText').textContent=a[0]+'. '+a[1];
+ $('answerResponseText').textContent=a[3];
+ $('answerAriaText').textContent=z.aria;
+ $('answerTipText').textContent='Leadership tip: '+z.tip;
+ $('answerCredit').textContent=a[2]+' Leadership XP for this response';
+ const dialog=$('answerDialog');if(dialog.open)dialog.close();dialog.showModal();
+}
+function openZone(id){const z=zones.find(q=>q.id===id);if(!z)return;active=id;$('challenge').hidden=false;const art='./assets/slide-'+String([4,8,12,16,20,24][zones.indexOf(z)]).padStart(2,'0')+'.webp';$('sceneArt').src=art;$('sceneArt').alt=z.title+' challenge scene artwork';$('expandArt').setAttribute('aria-label','Enlarge '+z.title+' artwork');createArtworkTargets(z);$('choiceFallback').open=window.matchMedia('(max-width:680px)').matches;$('stageNumber').textContent='CHALLENGE ZONE '+(zones.indexOf(z)+1);$('stageTitle').textContent=z.title;$('tagline').textContent=z.tagline;$('scenario').textContent=z.scenario;$('ariaSays').textContent=z.aria;$('zoneTip').textContent='Leadership tip: '+z.tip;$('feedback').hidden=true;$('choices').replaceChildren();
  z.answers.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.className='choice'+(state.answers[id]?.choice===a[0]?' selected':'');const l=document.createElement('span');l.className='letter';l.textContent=a[0];const t=document.createElement('span');t.textContent=a[1];b.append(l,t);b.onclick=()=>selectAnswer(z,i);$('choices').append(b)});
  if(state.answers[id])showFeedback(z,state.answers[id].choice);$('challenge').scrollIntoView({behavior:'smooth',block:'start'})}
-function selectAnswer(z,i){const a=z.answers[i];state.answers[z.id]={choice:a[0],text:a[1],xp:a[2],answered_at:new Date().toISOString()};queueSave();render();openZoneNoScroll(z);showFeedback(z,a[0])}
+function selectAnswer(z,i){const a=z.answers[i];state.answers[z.id]={choice:a[0],text:a[1],xp:a[2],answered_at:new Date().toISOString()};queueSave();render();openZoneNoScroll(z);createArtworkTargets(z);showFeedback(z,a[0]);openAnswerDialog(z,a)}
 function openZoneNoScroll(z){$('choices').replaceChildren();z.answers.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.className='choice'+(state.answers[z.id]?.choice===a[0]?' selected':'');const l=document.createElement('span');l.className='letter';l.textContent=a[0];const t=document.createElement('span');t.textContent=a[1];b.append(l,t);b.onclick=()=>selectAnswer(z,i);$('choices').append(b)})}
 function showFeedback(z,letter){const a=z.answers.find(v=>v[0]===letter);if(!a)return;$('earnedXP').textContent='+'+a[2]+' Leadership XP';$('feedbackText').textContent=a[3];$('feedback').hidden=false}
 function closeZone(){$('challenge').hidden=true;active=null;render();$('zoneMap').scrollIntoView({behavior:'smooth',block:'start'})}
 $('backMap').onclick=closeZone;$('nextZone').onclick=closeZone;$('saveNow').onclick=()=>{void saveCloud(true)};
 $('expandArt').onclick=()=>{const dialog=$('artDialog');$('artDialogImage').src=$('sceneArt').src;$('artDialogImage').alt=$('sceneArt').alt;dialog.showModal()};
+$('sceneArt').onclick=()=>$('expandArt').click();
+$('closeAnswer').onclick=()=>$('answerDialog').close();
+$('answerAgain').onclick=()=>$('answerDialog').close();
+$('answerReturn').onclick=()=>{$('answerDialog').close();closeZone()};
 $('closeArt').onclick=()=>$('artDialog').close();
 $('artDialog').addEventListener('click',e=>{if(e.target===$('artDialog'))$('artDialog').close()});
 $('reflection').oninput=e=>{state.reflection=e.target.value;queueSave()};
