@@ -51,9 +51,11 @@ async function recordArenaCompletion(session,roomName,status){
     if(row.is_complete!==true)throw Error('Complete the Interview Arena learning activities before earning the Jacqueline practice credit.');
     const journey=row.journey_state&&typeof row.journey_state==='object'?{...row.journey_state}:{};
     const earned=Array.isArray(journey.earned)?[...journey.earned]:[];
-    const already=earned.includes('mock-interview');
-    if(!already)earned.push('mock-interview');
-    const xp=Math.max(Number(row.xp)||0,Number(journey.xp)||0)+(already?0:200);
+    let localPrior={};
+    try{localPrior=JSON.parse(localStorage.getItem('level-up-interview-arena-v3')||'{}')||{}}catch(_){}
+    const already=earned.includes('mock-interview')||(Array.isArray(localPrior.earned)&&localPrior.earned.includes('mock-interview'));
+    if(!earned.includes('mock-interview'))earned.push('mock-interview');
+    const xp=Math.max(Number(row.xp)||0,Number(journey.xp)||0,Number(localPrior.xp)||0)+(already?0:200);
     const next={...journey,earned,xp,mockInterview:{
       ...(journey.mockInterview&&typeof journey.mockInterview==='object'?journey.mockInterview:{}),
       completed:true,provider:'jacqueline',verifiedRoom:roomName,
