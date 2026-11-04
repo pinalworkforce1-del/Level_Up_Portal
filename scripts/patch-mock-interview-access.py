@@ -26,7 +26,7 @@ if "function launchMockInterview()" not in text:
         raise SystemExit("Opportunity City navigate signature changed; mock interview helper not applied")
     text = text.replace(nav_old, nav_new, 1)
 
-actions_old = """              {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button disabled>Explore now • pathway module coming later</button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
+actions_old = """              {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button className="primary-action" onClick={() => navigate(activeDistrict.href)}>Open Career Tree <ChevronRight /></button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
 """
 actions_new = actions_old + """              {activeDistrict.key === "interview" && activeState === "complete" ? <button className="primary-action" onClick={launchMockInterview}><Sparkles /> Practice Mock Interview</button> : null}
 """
@@ -67,7 +67,7 @@ career_new = '''  career: {
   },'''
 if career_old in text:
     text = text.replace(career_old, career_new, 1)
-elif 'href: `${BASE}career-skill-tree/?entry=map#home`' not in text:
+elif 'href: `${BASE}career-tree-next/`' not in text and 'href: `${BASE}career-skill-tree/?entry=map#home`' not in text:
     raise SystemExit("Opportunity City Career Tree district signature changed; launch link not applied")
 
 explore_old = '            onClick={() => openDistrict(key)}\n'
