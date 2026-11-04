@@ -48,6 +48,7 @@ async function recordArenaCompletion(session,roomName,status){
       .eq('user_id',session.user.id).eq('module_id','interview-arena').maybeSingle();
     if(readError)throw readError;
     if(!row)throw Error('Interview Arena progress has not synchronized yet. Return to Interview Arena, then reopen this interview to claim credit.');
+    if(row.is_complete!==true)throw Error('Complete the Interview Arena learning activities before earning the Jacqueline practice credit.');
     const journey=row.journey_state&&typeof row.journey_state==='object'?{...row.journey_state}:{};
     const earned=Array.isArray(journey.earned)?[...journey.earned]:[];
     const already=earned.includes('mock-interview');
