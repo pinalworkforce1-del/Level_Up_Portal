@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#05091d">
   <title>Level Up • Career Tree</title>
-  <link rel="stylesheet" href="styles.css?v=20261013-1">
+  <link rel="stylesheet" href="styles.css?v=20261104-leadership-hotspot">
   <script src="../career-tree-auth-gate.js?v=20261013-auth1"></script>
 </head>
 <body>
@@ -23,12 +23,16 @@
     <p class="sr-only">Choose Discover Me, Explore Careers, Work and Life Plan, Career Quest, or Leadership Peak. You may explore in any order.</p>
 
     <section class="map-shell" aria-label="Career Tree interactive map">
-      <img id="careerTreeMapImage" class="career-map" src="assets/career-tree-map-v2.webp" alt="Career Tree map with four destinations: Discover Me, Explore Careers, Work + Life Plan, and Career Quest." draggable="false">
+      <img id="careerTreeMapImage" class="career-map" src="assets/career-tree-map-v2.webp" alt="Career Tree map with five destinations: Discover Me, Explore Careers, Work + Life Plan, Career Quest, and Leadership Peak." draggable="false">
 
       <a class="hotspot discover" data-destination="discover" href="discover-me/" aria-label="Open Discover Me — O*NET Mini Interest Profiler"><span>Open Discover Me</span></a>
       <a class="hotspot explore" data-destination="explore" href="explore-careers/" aria-label="Open Explore Careers — interests, work preferences, geography, occupations, and labor market information"><span>Open Explore Careers</span></a>
       <a class="hotspot life-plan" data-destination="life-plan" href="work-life-plan/" aria-label="Open Work and Life Plan"><span>Open Work + Life Plan</span></a>
       <a class="hotspot quest" data-destination="career-quest" href="../career-skill-tree/career-quest/" aria-label="Open Career Quest"><span>Open Career Quest</span></a>
+      <a class="hotspot leadership-peak" data-destination="leadership-peak" href="../leadership-peak/" aria-label="Open Leadership Peak — six interactive leadership challenges">
+        <span class="leadership-pin" aria-hidden="true">▲</span>
+        <span class="leadership-label"><strong>Leadership Peak</strong><small>Explore 6 challenges</small></span>
+      </a>
     </section>
 
     <nav class="destination-bar" aria-label="Career Tree destinations">
