@@ -21,4 +21,59 @@ const $=id=>document.getElementById(id);const safe=s=>String(s??'').replace(/[&<
 function render(){for(const f of ['participant','coach','startdate'])$(f).value=state[f==='participant'?'person':f]||'';$('sections').innerHTML=groups.map(g=>`<section><div class="section-heading"><div><h2>${g.title}</h2><p>${g.desc}</p></div><span class="eyebrow" style="color:#65765b">${g.tasks.length} activities</span></div><div class="cards">${g.tasks.map(t=>{const d=state.items[t[0]]||{};return `<article class="task ${d.done?'done':''}"><div class="task-top"><input type="checkbox" aria-label="Complete ${safe(t[1])}" data-id="${t[0]}" data-f="done" ${d.done?'checked':''}><div><h3>${safe(t[1])}</h3><p>${safe(t[3])}</p></div><span class="points">+${t[2]} XP</span></div><div class="detail"><div><label>Activity date</label><input type="date" data-id="${t[0]}" data-f="date" value="${safe(d.date)}"></div><div><label>Organization / location / module</label><input type="text" data-id="${t[0]}" data-f="where" value="${safe(d.where)}" placeholder="Where or with whom?"></div><div class="wide"><label>My notes: what I did and learned</label><textarea data-id="${t[0]}" data-f="notes" placeholder="Describe the activity, your role, and what you learned...">${safe(d.notes)}</textarea></div><div class="wide"><label>Evidence or coach verification reference</label><input type="text" data-id="${t[0]}" data-f="evidence" value="${safe(d.evidence)}" placeholder="Coach initials, case note ref, event details..."></div></div><div class="flag">☐ Participant checkoff · coach reviews supporting details</div></article>`}).join('')}</div></section>`).join('');update()}
 function update(){let done=all.filter(t=>state.items[t.id]?.done),pts=done.reduce((n,t)=>n+t.pts,0),community=done.some(t=>t.group==='community'),team=done.some(t=>t.group==='team'),readyForReview=pts>=200&&community&&team,earned=false;$('score').textContent=pts;$('count').textContent=done.length;$('rank').textContent=readyForReview?'Coach Review':pts>=120?'Trail Guide':pts>=60?'Pathfinder':'Trailhead';$('remaining').textContent=readyForReview?'Ready for coach review':`${Math.max(0,200-pts)} points to goal`;$('progress').style.width=Math.min(100,pts/200*100)+'%';document.querySelector('.progress').setAttribute('aria-valuenow',Math.min(200,pts));let needed=[];if(pts<200)needed.push(`${200-pts} more points`);if(!community)needed.push('a community activity');if(!team)needed.push('a teamwork activity');$('status').textContent=readyForReview?'Participant activity threshold met. Your Career Coach must verify evidence before awarding the badge.':'To request coach review: '+needed.join(' · ')+'.';$('certBtn').disabled=true;$('certBtn').textContent='Certificate requires coach verification';$('certificate').classList.toggle('visible',earned);$('certName').textContent=state.person||'Trailblazer';$('certCoach').textContent=state.coach||'________________';$('certPoints').textContent=pts+' Leadership Points';$('certDate').textContent=new Date().toLocaleDateString();localStorage.setItem(key,JSON.stringify(state));if(window.trailLoaded)window.queueTrailSave?.()}
 $('sections').addEventListener('input',function(e){let id=e.target.dataset.id,f=e.target.dataset.f;if(!id||!f)return;(state.items[id]??={})[f]=f==='done'?e.target.checked:e.target.value;if(f==='done')e.target.closest('.task').classList.toggle('done',e.target.checked);update()});$('sections').addEventListener('change',function(e){if(e.target.dataset.f==='done'){(state.items[e.target.dataset.id]??={}).done=e.target.checked;e.target.closest('.task').classList.toggle('done',e.target.checked);update()}});for(const [field,prop] of [['participant','person'],['coach','coach'],['startdate','startdate']])$(field).addEventListener('input',e=>{state[prop]=e.target.value;update()});$('save').onclick=()=>{const blob=new Blob([JSON.stringify({...state,exportedAt:new Date().toISOString()},null,2)],{type:'application/json'}),a=document.createElement('a'),u=URL.createObjectURL(blob);a.href=u;a.download='leadership-trail-progress.json';a.click();setTimeout(()=>URL.revokeObjectURL(u),2000)};$('load').onclick=()=>$('file').click();$('file').onchange=async e=>{const file=e.target.files[0];if(!file)return;try{const data=JSON.parse(await file.text());if(!data.items||typeof data.items!=='object')throw Error();if(!confirm('Replace current trail progress with this file?'))return;state={person:String(data.person||''),coach:String(data.coach||''),startdate:String(data.startdate||''),items:{}};for(const t of all){const d=data.items[t.id];if(d&&typeof d==='object')state.items[t.id]={done:d.done===true,date:String(d.date||''),where:String(d.where||''),notes:String(d.notes||''),evidence:String(d.evidence||'')}}render()}catch(err){alert('This is not a valid Leadership Trail progress file.')}e.target.value=''};$('print').onclick=()=>window.print();$('certBtn').onclick=()=>{if(!$('certBtn').disabled){document.body.classList.add('certificate-only');window.print()}};$('reset').onclick=()=>{if(confirm('Clear all checkoffs, notes, and participant details? This cannot be undone unless you exported a progress file.')){state={person:'',coach:'',startdate:'',items:{}};render()}};window.addEventListener('afterprint',()=>document.body.classList.remove('certificate-only'));const style=document.createElement('style');style.textContent='@media print{body.certificate-only .hero,body.certificate-only .bar,body.certificate-only .stats,body.certificate-only .progress,body.certificate-only .milestone,body.certificate-only .status,body.certificate-only #sections,body.certificate-only .fine,body.certificate-only .footer{display:none!important}body.certificate-only .certificate{margin-top:12vh}}';document.head.append(style);render();
+</script>
+<script type="module">
+import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/+esm';
+const db=createClient('https://dnijrzotfyvmmnmueknk.supabase.co','sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+const cloud=document.getElementById('cloudStatus');
+let session=null,timer=null,busy=false,again=false;
+function points(){return all.reduce((total,t)=>total+(state.items[t.id]?.done?t.pts:0),0)}
+function eligible(){const a=all.filter(t=>state.items[t.id]?.done);return points()>=200&&a.some(t=>t.group==='community')&&a.some(t=>t.group==='team')}
+async function sync(){
+ if(!session)return;
+ if(busy){again=true;return}
+ busy=true;
+ try{
+   const stamp=new Date().toISOString();
+   const journey={...state,updated_at:stamp,points:points(),ready_for_review:eligible()};
+   const prior=await db.from('module_progress').select('is_complete,completed_at').eq('user_id',session.user.id).eq('module_id','leadership-trail').maybeSingle();
+   if(prior.error)throw prior.error;
+   const result=await db.from('module_progress').upsert({
+     user_id:session.user.id,module_id:'leadership-trail',journey_state:journey,
+     xp:0,is_complete:Boolean(prior.data?.is_complete),completed_at:prior.data?.completed_at||null,updated_at:stamp
+   },{onConflict:'user_id,module_id'});
+   if(result.error)throw result.error;
+   state.updated_at=stamp;
+   localStorage.setItem(key,JSON.stringify(state));
+   cloud.textContent='Saved to Level Up ✓';
+ }catch(err){cloud.textContent='Saved on this device; cloud sync unavailable: '+(err?.message||'try again')}
+ finally{busy=false;if(again){again=false;setTimeout(()=>{void sync()},450)}}
+}
+window.queueTrailSave=()=>{clearTimeout(timer);cloud.textContent='Saving progress…';timer=setTimeout(()=>{void sync()},850)};
+document.getElementById('syncNow').onclick=()=>{void sync()};
+(async()=>{
+ try{
+   const result=await db.auth.getSession();
+   session=result.data.session;
+   if(!session||session.user?.is_anonymous)throw Error('Sign in to Level Up before opening Leadership Trail.');
+   const check=await db.from('module_progress').select('is_complete').eq('user_id',session.user.id).eq('module_id','leadership-peak').maybeSingle();
+   if(check.error)throw check.error;
+   if(!check.data?.is_complete)throw Error('Complete Leadership Peak and save your reflection to your Level Up account first.');
+   key='leadershipTrailBookV1:'+session.user.id;
+   let local={};try{local=JSON.parse(localStorage.getItem(key)||'{}')}catch(err){}
+   const cloudRow=await db.from('module_progress').select('journey_state').eq('user_id',session.user.id).eq('module_id','leadership-trail').maybeSingle();
+   if(cloudRow.error)throw cloudRow.error;
+   const saved=cloudRow.data?.journey_state||{};
+   const newest=String(local.updated_at||'')>String(saved.updated_at||'')?local:saved;
+   state={person:'',coach:'',startdate:'',items:{},updated_at:null,...newest,items:newest.items||{}};
+   document.body.classList.add('trail-unlocked');
+   document.getElementById('trailGate').hidden=true;
+   window.trailLoaded=true;
+   render();
+   cloud.textContent='Connected to Level Up • changes save automatically';
+ }catch(err){
+   document.getElementById('gateStatus').textContent=err?.message||'Leadership Trail is not unlocked.';
+   cloud.textContent='Leadership Trail locked';
+ }
+})();
 </script></body></html>
