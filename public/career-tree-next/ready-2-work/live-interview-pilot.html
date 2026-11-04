@@ -3,14 +3,14 @@
 <style>
 :root{color-scheme:dark;--ink:#e8f5ff;--muted:#aec5da;--cyan:#61e2ff;--gold:#f7ce72}*{box-sizing:border-box}body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 50% 0,#194871,#070e22 66%);color:var(--ink);font:16px/1.5 system-ui,sans-serif}main{max-width:1100px;margin:auto;padding:22px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.top a{color:#b6e9ff}.label{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--gold)}h1{font-size:clamp(30px,5vw,54px);margin:12px 0}h2{margin:0 0 8px}.lead,.muted{color:var(--muted)}.layout{display:grid;grid-template-columns:330px 1fr;gap:20px}.panel{background:#102641e8;border:1px solid #3a668b;border-radius:20px;padding:21px;box-shadow:0 18px 48px #0005}.row{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:14px 0}label{display:block;font-weight:700;font-size:14px;margin:12px 0 5px}select{width:100%;padding:12px;border-radius:9px;background:#092038;border:1px solid #6085a8;color:white;font-size:16px}button{font:inherit;font-weight:750;border-radius:100px;border:1px solid #61caed;background:#116187;color:white;padding:11px 18px;cursor:pointer}button:disabled{opacity:.45;cursor:not-allowed}.secondary{background:#1b3049;border-color:#6085a8}.stage{position:relative;min-height:390px;border:1px solid #3a668b;border-radius:18px;overflow:hidden;background:radial-gradient(circle at center,#234968,#091428 70%);display:grid;place-items:center}.stage video{width:100%;height:100%;min-height:390px;max-height:65vh;object-fit:contain}.placeholder{position:absolute;text-align:center;pointer-events:none;max-width:320px;padding:16px}.placeholder strong{display:block;font-size:23px}.placeholder[hidden]{display:none}.indicator{display:inline-block;width:11px;height:11px;background:#f7ce72;border-radius:100%;margin-right:8px}.indicator.live{background:#3adea7}.indicator.warn{background:#ffae77}.notice{background:#1b334b;border-left:3px solid #edc26b;padding:10px 13px;color:#e6f0fc}.hint{font-size:13px;color:#bbd6e9}#status{min-height:44px}#remoteAudio{position:absolute;width:0;height:0;overflow:hidden}@media(max-width:760px){.layout{grid-template-columns:1fr}.stage,.stage video{min-height:300px}}</style></head>
 <body><main>
-<header class="top"><span class="label">LEVEL UP / READY 2 WORK / INTERVIEW INTELLIGENCE</span><a href="index.html#stage-interview-landing">← Back to Interview Intelligence</a></header>
+<header class="top"><span id="interviewOriginLabel" class="label">LEVEL UP / READY 2 WORK / INTERVIEW INTELLIGENCE</span><a id="interviewOriginReturn" href="index.html#stage-interview-landing">← Back to Interview Intelligence</a></header>
 <h1>Practice with a live interviewer.</h1><p class="lead">A private, real-time AI interview simulation. Choose a career focus, enable your microphone, and speak naturally. Camera access isn't needed.</p>
 <div class="layout"><section class="panel"><h2>Prepare your interview</h2><label for="occupation">Career focus</label><select id="occupation">
 <option value="general">General employment</option><option value="electrician">Electrician</option><option value="nursing_assistant">Nursing Assistant</option><option value="manufacturing">Manufacturing / Team Assembler</option><option value="customer_service">Customer Service</option><option value="cdl_driver">Commercial Driver</option></select>
 <p class="hint">Career choices are captured for this pilot; occupation-specific question adaptation will be enabled after the agent's next deployment.</p>
-<p class="notice">Pilot session: not yet counted toward course completion or Coach View. A signed-in Level Up account is required. Live sessions may incur usage charges.</p>
+<p class="notice" id="interviewOriginNotice">Pilot session: not yet counted toward course completion or Coach View. A signed-in Level Up account is required. Live sessions may incur usage charges.</p>
 <div class="row"><button id="start" type="button">Begin live interview</button><button id="end" class="secondary" type="button" disabled>End interview</button><button id="enableAudio" class="secondary" type="button" hidden>Enable Audio</button></div>
-<button id="pastFeedback" type="button" class="secondary" hidden>View My Previous Interview Feedback</button><div id="feedbackActions" hidden><button id="viewFeedback" type="button">View Interview Feedback from Nova</button><div id="feedbackReport" class="notice" hidden></div></div>
+<button id="pastFeedback" type="button" class="secondary" hidden>View My Previous Interview Feedback</button><div id="feedbackActions" hidden><button id="viewFeedback" type="button">View Interview Feedback from Nova</button><div id="feedbackReport" class="notice" hidden></div></div><p id="arenaCreditStatus" class="hint" role="status" hidden></p>
 <p id="allowance" class="hint">Pilot policy: 8 minutes per session, 2 sessions per 30 days. Quota activation pending.</p><p id="status" role="status" aria-live="polite"><span class="indicator"></span>Ready when you are.</p><p class="hint" id="connection">Tip: Turn off nearby TVs or use headphones to avoid accidental interruptions.</p>
 </section><section class="panel"><div class="stage" id="stage"><video id="avatar" autoplay playsinline aria-label="Live video of your AI practice interviewer"></video><div class="placeholder" id="placeholder"><strong>Interview Intelligence</strong><p>Jacqueline is ready to meet you.</p><p class="muted">Your interviewer's video will appear here when connected.</p></div><div id="remoteAudio"></div></div><div class="row"><span class="indicator" id="indicator"></span><span id="trackState">Not connected</span></div><p class="muted">If video pauses, your audio interview may continue. The session remains open until you end it.</p></section></div>
 </main>
@@ -24,6 +24,55 @@ const feedbackEndpoint=SUPABASE_URL+'/functions/v1/levelup-interview-feedback-la
 const tokenEndpoint=SUPABASE_URL+'/functions/v1/levelup-live-interview-token';
 const $=id=>document.getElementById(id), start=$('start'),end=$('end'),avatar=$('avatar'),placeholder=$('placeholder');
 let room=null,videoTrack=null,connected=false,closedByUser=false,sessionRoomName=null,feedbackRoom=null;
+const fromArena=new URLSearchParams(location.search).get('source')==='interview-arena';
+const ARENA_URL='https://pinalworkforce1-del.github.io/Interview_Arena/';
+let arenaCreditBusy=false;
+if(fromArena){
+  $('interviewOriginLabel').textContent='LEVEL UP / INTERVIEW ARENA / JACQUELINE';
+  $('interviewOriginReturn').href=ARENA_URL;
+  $('interviewOriginReturn').textContent='← Back to Interview Arena';
+  $('interviewOriginNotice').textContent='Complete all five interview questions with Jacqueline. Verified completion can earn the 200 XP Interview Arena practice credit once per account. A Level Up sign-in and internet connection are required. Live sessions may incur usage charges.';
+  $('arenaCreditStatus').hidden=false;
+  $('arenaCreditStatus').textContent='Interview Arena practice credit: not yet earned in this session.';
+}
+async function recordArenaCompletion(session,roomName,status){
+  if(!fromArena||!session?.user?.id||!roomName||arenaCreditBusy)return;
+  if(status.status!=='completed'||status.feedback_ready!==true||status.evidence_complete!==true||status.ending_reason==='participant_ended')return;
+  arenaCreditBusy=true;
+  const notice=$('arenaCreditStatus');notice.hidden=false;notice.textContent='Verifying and saving Interview Arena credit…';
+  try{
+    // This status comes from the JWT-authenticated token endpoint, which verifies
+    // the session belongs to this user and that the five-question evidence is complete.
+    const {data:row,error:readError}=await client.from('module_progress')
+      .select('journey_state,xp,is_complete,completed_at')
+      .eq('user_id',session.user.id).eq('module_id','interview-arena').maybeSingle();
+    if(readError)throw readError;
+    if(!row)throw Error('Interview Arena progress has not synchronized yet. Return to Interview Arena, then reopen this interview to claim credit.');
+    if(row.is_complete!==true)throw Error('Complete the Interview Arena learning activities before earning the Jacqueline practice credit.');
+    const journey=row.journey_state&&typeof row.journey_state==='object'?{...row.journey_state}:{};
+    const earned=Array.isArray(journey.earned)?[...journey.earned]:[];
+    let localPrior={};
+    try{localPrior=JSON.parse(localStorage.getItem('level-up-interview-arena-v3')||'{}')||{}}catch(_){}
+    const already=earned.includes('mock-interview')||(Array.isArray(localPrior.earned)&&localPrior.earned.includes('mock-interview'));
+    if(!earned.includes('mock-interview'))earned.push('mock-interview');
+    const xp=Math.max(Number(row.xp)||0,Number(journey.xp)||0,Number(localPrior.xp)||0)+(already?0:200);
+    const next={...journey,earned,xp,mockInterview:{
+      ...(journey.mockInterview&&typeof journey.mockInterview==='object'?journey.mockInterview:{}),
+      completed:true,provider:'jacqueline',verifiedRoom:roomName,
+      completedAt:journey.mockInterview?.completedAt||new Date().toISOString()}};
+    const {error:saveError}=await client.from('module_progress').upsert({
+      user_id:session.user.id,module_id:'interview-arena',journey_state:next,xp,
+      is_complete:Boolean(row.is_complete),completed_at:row.completed_at||null
+    },{onConflict:'user_id,module_id'});
+    if(saveError)throw saveError;
+    // Keep the same local snapshot as the legacy self-paced mock interview.
+    localStorage.setItem('level-up-interview-arena-v3',JSON.stringify(next));
+    notice.textContent=already?'Interview Arena practice was already credited. You can return safely.':'Interview Arena practice verified • 200 XP saved. Return to Interview Arena.';
+  }catch(error){
+    console.warn('Jacqueline Interview Arena credit could not be saved',error);
+    notice.textContent='Interview completed, but Interview Arena credit could not be saved: '+(error?.message||'Please retry by viewing feedback.');
+  }finally{arenaCreditBusy=false;}
+}
 function state(message,type='idle'){ $('status').textContent=message;$('indicator').className='indicator'+(type==='live'?' live':type==='warn'?' warn':'');}
 function trackLabel(x){$('trackState').textContent=x}
 function clearMedia(){try{videoTrack?.detach(avatar)}catch{}videoTrack=null;avatar.srcObject=null;$('remoteAudio').replaceChildren();placeholder.hidden=false;}
@@ -32,7 +81,7 @@ async function showOutcome(roomName){if(!roomName)return;try{
 const {data:{session}}=await client.auth.getSession();if(!session)return;
 const response=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'session_status',room_name:roomName})});
 if(!response.ok)return;const data=await response.json();
-if(data.status==='completed'&&data.feedback_ready===true){feedbackRoom=roomName;$('feedbackActions').hidden=false;state('Interview complete. Your feedback is available.','live');trackLabel('Practice complete • view your interview feedback')}
+if(data.status==='completed'&&data.feedback_ready===true){await recordArenaCompletion(session,roomName,data);feedbackRoom=roomName;$('feedbackActions').hidden=false;state('Interview complete. Your feedback is available.','live');trackLabel('Practice complete • view your interview feedback')}
 else if(data.status==='timed_out'){state('Eight-minute interview limit reached.','warn');trackLabel('Time limit reached')}
 else if(data.status==='interrupted'){state('Interview ended early.','warn');trackLabel('Practice ended early')}
 }catch(e){console.warn('Could not refresh interview status',e)}}
@@ -69,6 +118,7 @@ $('viewFeedback').onclick=async()=>{
   if(!check.ok)throw Error('Could not verify interview completion.');
   const status=await check.json();
   if(status.status!=='completed'||status.feedback_ready!==true||status.evidence_complete!==true||status.ending_reason==='participant_ended')throw Error('Interview feedback is not yet available.');
+   await recordArenaCompletion(session,feedbackRoom,status);
   const result=await fetch(feedbackEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'live',room_name:feedbackRoom})});
   const data=await result.json().catch(()=>({}));
   if(!result.ok)throw Error(data.message||({feedback_not_authorized:'Interview completion is not verified.',incomplete_evidence:'Interview responses are not available yet.',ai_not_configured:'Nova is not configured yet.'}[data.error])||'Nova feedback is temporarily unavailable.');
