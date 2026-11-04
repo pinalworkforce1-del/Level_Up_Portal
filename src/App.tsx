@@ -11,6 +11,7 @@ import {
   Pause,
   Play,
   RotateCcw,
+  Smartphone,
   Sparkles,
   Trophy,
   Volume2,
@@ -212,6 +213,7 @@ export function App() {
   const [linkStage,setLinkStage]=useState<"entry"|"code">("entry");
   const [linkBusy,setLinkBusy]=useState(false);
   const [linkNotice,setLinkNotice]=useState("");
+  const [phoneSettingsOpen, setPhoneSettingsOpen] = useState(false);
 
   const [county, setCounty] = useState<"Pinal" | "Northern" | "UFO - Eastern New Mexico" | "">(() => (localStorage.getItem("level-up-pending-county") as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") || "");
   const [sent, setSent] = useState(false);
@@ -570,7 +572,16 @@ export function App() {
           <span><Check /> <b>{completedCount}/{CORE_SEQUENCE.length}</b> complete</span>
           <span className="cloud"><Cloud /> Cloud synced</span>
         </div>
-        {session ? <button className="icon-button" onClick={signOut} aria-label="Sign out"><LogOut /></button> : null}
+        {session ? <div className="account-actions">
+          {PINAL_SMS_PILOT_ACTIVE && county === "Pinal" && !session.user.phone ? (
+            <button type="button" className="icon-button" onClick={() => setPhoneSettingsOpen((open) => !open)}
+              aria-label="Text-message sign-in settings" title="Text-message sign-in settings"
+              aria-controls="phone-sign-in-settings" aria-expanded={phoneSettingsOpen}>
+              <Smartphone />
+            </button>
+          ) : null}
+          <button className="icon-button" onClick={signOut} aria-label="Sign out"><LogOut /></button>
+        </div> : null}
       </header>
 
       <section className="city-intro" aria-label="Level Up journey status">
@@ -579,8 +590,8 @@ export function App() {
       </section>
 
       {message ? <div className="notice">{message}</div> : null}
-      {PINAL_SMS_PILOT_ACTIVE && county==="Pinal" && session && !session.user.phone ? <section className="notice" aria-label="Link mobile phone" style={{margin:"12px 0",padding:16}}>
-        <strong>Add text-message sign-in to this account</strong>
+      {PINAL_SMS_PILOT_ACTIVE && county==="Pinal" && session && !session.user.phone && phoneSettingsOpen ? <section id="phone-sign-in-settings" className="phone-link-panel" aria-label="Link mobile phone">
+        <strong>Add text-message sign-in</strong>
         <p>Verify your mobile number while signed in with email to keep all your Level Up progress together.</p>
         <label htmlFor="linkPhone">Mobile number</label>
         <input id="linkPhone" type="tel" autoComplete="tel-national" value={linkPhone} disabled={linkBusy || linkStage==="code"} onChange={e=>setLinkPhone(e.target.value)} placeholder="(555) 123-4567" />
