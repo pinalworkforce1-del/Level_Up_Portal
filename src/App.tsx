@@ -133,9 +133,10 @@ const DISTRICTS: Record<DistrictKey, District> = {
     kicker: "Your first job doesn’t have to be your last stop.",
     what: "Explore career areas, see how your interests might connect, and learn how entry-level experience can grow into new skills and bigger opportunities.",
     practice: "Career exploration • interest alignment • skill growth",
-    leave: "A broader view of entry points and future possibilities.",
-    special: "Exploring here does not lock you into a career choice.",
+    leave: "A broader view of career possibilities and new leadership habits.",
+    special: "Leadership Peak is optional and does not block your Level Up core progression.",
     audio: "nova-career.mp3",
+    href: `${BASE}leadership-peak/`,
   },
   plaza: {
     key: "plaza",
@@ -693,7 +694,7 @@ export function App() {
             {activeDistrict.special ? <div className="district-special">{activeDistrict.special}</div> : null}
             <div className="district-actions">
               <button className={districtPlaying ? "audio-playing" : ""} onClick={toggleDistrictAudio}>{districtPlaying ? <Pause /> : <Volume2 />} {districtPlaying ? "Pause Nova" : "Hear Nova"}</button>
-              {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button disabled>Explore now • pathway module coming later</button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
+              {activeDistrict.key === "plaza" ? <button disabled>Opportunity Plaza is the hub</button> : activeDistrict.key === "career" ? <button className="primary-action" onClick={() => navigate(`${BASE}leadership-peak/`)}>Enter Leadership Peak <ChevronRight /></button> : <button className={activeState === "locked" ? "locked-action" : "primary-action"} disabled={activeState === "locked"} onClick={() => enterDistrict(activeDistrict)}>{activeState === "complete" ? "Revisit District" : activeState === "started" ? "Continue District" : activeState === "current" ? "Enter District" : "Locked — complete the previous step"}<ChevronRight /></button>}
             </div>
             <p className="progress-note">Exploring this card does not write to Supabase, award XP, mark completion, or unlock a district.</p>
             <audio ref={districtAudioRef} preload="none" onEnded={() => setDistrictPlaying(false)} />
