@@ -122,21 +122,80 @@ function queueSave(){
 function viewReport(){
   formValues();
   const root=$('reportContent');root.replaceChildren();
-  function item(label,text){
-    const wrap=document.createElement('div');wrap.className='reportItem';
-    const title=document.createElement('strong');title.textContent=label;
-    const body=document.createElement('p');body.textContent=text||'Not provided';if(!text)body.className='subtle';
-    wrap.append(title,body);root.append(wrap);
+  const make=(tag,className='',text='')=>{
+    const node=document.createElement(tag);
+    if(className)node.className=className;
+    if(text)node.textContent=text;
+    return node;
+  };
+  const provided=id=>String(state.fields[id]||'').trim();
+  const value=id=>provided(id)||'Not recorded';
+  const cell=(label,content,tone,compact=false)=>{
+    const section=make('section','worksheetCell '+tone+(compact?' compact':''));
+    section.append(make('h3','',label));
+    const body=make('div','worksheetValue'+(content==='Not recorded'?' empty':''));
+    body.textContent=content;
+    section.append(body);
+    return section;
+  };
+  const board=make('div','mapWorksheet');
+  board.setAttribute('aria-label','My Path Forward youth discovery worksheet');
+  const intro=make('div','worksheetIntro');
+  intro.append(make('div','worksheetAppendix','A.7 · MY PATH FORWARD'),make('div','worksheetTitle','MY PATH FORWARD'));
+  board.append(intro);
+  const chapter=make('div','worksheetChapter');
+  chapter.append(make('div','chapterLabel','MY NEXT CHAPTER'));
+  const chapterValue=make('div','chapterValue');
+  chapterValue.append(make('small','','What would I like school, training, work, and life to look like?'));
+  chapterValue.append(make('p',provided('nextChapter')?'':'empty',value('nextChapter')));
+  chapter.append(chapterValue);board.append(chapter);
+  const middle=make('div','worksheetMiddle');
+  middle.append(
+    cell('MY STORY',value('myStory'),'sky'),
+    cell('WHERE I AM NOW',value('whereNow'),'sage'),
+    cell('WHAT I BRING',value('strengths'),'sky'),
+    cell('WHAT MOTIVATES ME',value('motivations'),'sage'),
+    cell('PEOPLE & RESOURCES',value('resources'),'sage'),
+    cell('SUPPORT I WANT TO DISCUSS',state.coachConversation?'☑ I would like to talk privately with my Career Coach.':'☐ No private conversation requested.','sky'),
+    (()=>{const section=make('section','worksheetCell sage optionsCell');section.append(make('h3','','OPTIONS I WANT TO EXPLORE'));
+      const list=make('div','worksheetOptions');
+      for(const [key,label] of OPTIONS){
+        list.append(make('span','worksheetOption'+(state.options.includes(key)?' checked':''),(state.options.includes(key)?'☑ ':'☐ ')+label));
+      }
+      section.append(list);return section;
+    })(),
+    cell('MY FUTURE VISION',value('futureVision'),'sky')
+  );
+  board.append(middle);
+  const bottom=make('div','worksheetPlan');
+  bottom.append(
+    cell('ONE GOAL I CHOOSE NOW',value('goal'),'goal',true),
+    cell('MY FIRST NEXT STEP',value('nextStep'),'step',true),
+    cell('WHO WILL SUPPORT ME',value('support'),'support',true),
+    cell('TARGET DATE',value('target'),'target',true),
+    cell('READY 0–10',state.readiness===null?'—':state.readiness+' / 10','score',true)
+  );
+  board.append(bottom);
+  const readiness=make('div','worksheetReadiness');
+  readiness.append(make('h3','','HOW TO CHOOSE A READINESS SCORE'));
+  const levels=make('div','readinessLevels');
+  const descriptions=[
+    ['0–2','Not ready now. Focus on trust, useful information, and immediate support.'],
+    ['3–4','Unsure or mixed. Explore choices and what matters to me.'],
+    ['5–6','Somewhat ready. Identify information, confidence, or support that would help.'],
+    ['7–8','Ready with support. Name a next step and when to take it.'],
+    ['9–10','Ready to act. Schedule the next step and follow through.']
+  ];
+  for(const [range,description] of descriptions){
+    const selected=state.readiness!==null&&((range==='0–2'&&state.readiness<=2)||(range==='3–4'&&state.readiness>=3&&state.readiness<=4)||(range==='5–6'&&state.readiness>=5&&state.readiness<=6)||(range==='7–8'&&state.readiness>=7&&state.readiness<=8)||(range==='9–10'&&state.readiness>=9));
+    const level=make('div','readinessLevel'+(selected?' current':''));
+    level.append(make('strong','',range),make('p','',description));levels.append(level);
   }
-  for(const def of FIELDS)item(def.label,state.fields[def.id]);
-  item('Options I want to explore',OPTIONS.filter(([key])=>state.options.includes(key)).map(([,name])=>name).join(' • '));
-  item('Readiness to begin',state.readiness===null?'Not selected':state.readiness+' / 10');
-  const badge=document.createElement('div');badge.className='reportBadge';
-  badge.textContent=state.coachConversation?'Private conversation requested: Yes — I would like to talk with my Career Coach.':'Private conversation requested: No';
-  root.append(badge);
-  const footer=document.createElement('p');footer.className='small muted';
-  footer.textContent='This optional reflection supports a conversation about career goals. It does not establish program eligibility, service needs, or a formal assessment result.';
-  root.append(footer);
+  readiness.append(levels);
+  readiness.append(make('p','readinessNote','There is no best or passing score. Readiness reflects how I feel about my next step today; it can change.'));
+  board.append(readiness);
+  board.append(make('p','worksheetDisclaimer','My Path Forward is a personal career-exploration reflection—not an eligibility determination, needs assessment, or service verification. Personal circumstances can be discussed privately with a Career Coach.'));
+  root.append(board);
   $('report').hidden=false;
 }
 function build(){
