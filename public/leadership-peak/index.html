@@ -82,22 +82,58 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 .stageHeaderActions{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
 .feedbackWindowTools .autoNarrationSwitch{background:#17213d;border-color:#8c77bc}
 .feedbackWindowTools .autoNarrationSwitch[aria-pressed="true"]{background:#175144;border-color:#75dbbb;color:#dcfff4}
+
+/* The illustrated six-zone map is now the actual navigation, not a background. */
+.visuallyHidden{position:absolute!important;width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+.hero.heroMap{padding:0;min-height:0;line-height:0;background:#070d22;overflow:hidden;border-radius:18px}
+.heroMapImage{display:block;width:100%;height:auto;aspect-ratio:3/2;object-fit:contain}
+.heroMapHit{position:absolute;display:block;z-index:2;background:transparent;border:2px solid transparent;border-radius:13px;color:#fff;cursor:pointer;line-height:1.35}
+.heroMapHit:hover,.heroMapHit:focus-visible{outline:3px solid var(--cyan);outline-offset:0;background:#65d8ff18;box-shadow:0 0 22px #60dbff8a}
+.heroMapHit span{position:absolute;top:100%;left:50%;transform:translateX(-50%);opacity:0;pointer-events:none;border:1px solid #92e8ff;border-radius:9px;background:#090f28f5;color:#fff;padding:7px 10px;font-size:12px;font-weight:850;white-space:nowrap;box-shadow:0 4px 12px #0007}
+.heroMapHit:hover span,.heroMapHit:focus-visible span{opacity:1}
+.heroMapHit.completed:after{content:'✓';position:absolute;top:0;right:0;display:grid;place-items:center;width:clamp(16px,2vw,29px);height:clamp(16px,2vw,29px);font-size:clamp(12px,1.5vw,19px);line-height:1;border-radius:50%;color:#082524;background:#91f1cd;border:2px solid #fff9;box-shadow:0 0 12px #62e9bf}
+.heroMapHit[data-map-zone="voice"]{left:20.1%;top:20.8%;width:16.5%;height:17%}
+.heroMapHit[data-map-zone="courage"]{left:43.1%;top:20.3%;width:17.5%;height:17.2%}
+.heroMapHit[data-map-zone="accountability"]{left:13.8%;top:40.4%;width:19.6%;height:17%}
+.heroMapHit[data-map-zone="feedback"]{left:54.6%;top:41.4%;width:18.2%;height:17.1%}
+.heroMapHit[data-map-zone="team"]{left:24.8%;top:58.9%;width:16.8%;height:18%}
+.heroMapHit[data-map-zone="influence"]{left:51.8%;top:59.0%;width:18.4%;height:17.8%}
+/* Mask the artwork's fixed 0/6 and 0 XP so progress always reflects saved state. */
+.heroMapLive{position:absolute;z-index:1;top:59.2%;left:1.65%;width:18.1%;height:25.5%;padding:clamp(7px,1.2vw,16px);display:flex;flex-direction:column;justify-content:center;gap:clamp(3px,.5vw,7px);border:1px solid #7962ac;border-radius:11px;background:#050e22f5;box-shadow:inset 0 0 15px #2f195856;color:#fff;line-height:1.35;font-size:clamp(8px,.98vw,14px)}
+.heroMapLive strong{color:#c787ff;font-size:1.16em;letter-spacing:.02em}
+.heroMapLiveRow{display:flex;align-items:center;justify-content:space-between;gap:5px;border-top:1px solid #594b80a6;padding-top:5px}
+.heroMapLiveRow b{color:#f8ce69;font-size:1.13em}
+.heroMapLevel{color:#a9f4eb;font-weight:850;line-height:1.2;overflow-wrap:anywhere}
+.zoneListFallback summary{cursor:pointer;color:#9ee9ff;font-size:15px;font-weight:850;padding:10px 0}
+.zoneListFallback summary:hover,.zoneListFallback summary:focus-visible{color:#fff;outline-offset:3px}
+.zoneListFallback .mapGrid{margin-top:9px}
+@media(max-width:680px){.heroMapHit{display:none}.heroMapLive{padding:4px;gap:2px;font-size:6px;border-radius:5px}.heroMapLiveRow{padding-top:2px}.heroMapLive strong{font-size:7px}.heroMapLiveRow b{font-size:7px}.heroMapLevel{font-size:6px}}
 </style>
 </head>
 <body>
 <header class="top"><div class="brand">▲ LEVEL UP · LEADERSHIP PEAK</div><nav><a href="../">← Opportunity City</a><a href="../career-tree-next/">Career Tree</a><a href="badge-book.html">Leadership Trail</a></nav><button type="button" class="autoNarrationSwitch" data-auto-audio-toggle aria-pressed="false" title="Turn on to hear Aria automatically throughout Leadership Peak">🔇 Auto narration: Off</button></header>
 <main>
-<section class="hero">
-<div class="eyebrow">Optional development branch · Six leadership challenges</div>
-<h1>Leadership <em>Peak</em></h1>
-<p>Find your voice, take responsibility, work with others, and practice positive influence. Your choices are opportunities to learn—not a pass/fail test.</p>
-<div class="aria">✦ Aria · Your mountain guide</div>
+<section class="hero heroMap" aria-labelledby="heroPageTitle">
+<h1 id="heroPageTitle" class="visuallyHidden">Leadership Peak — six leadership challenges</h1>
+<img class="heroMapImage" src="./assets/slide-03.webp" alt="Leadership Peak mountain map: Voice Ridge, Courage Crossing, Accountability Cliff, Feedback Lookout, Team Trail, and Influence Summit. Select a zone or use the accessible challenge list below." decoding="async">
+<button type="button" class="heroMapHit" data-map-zone="voice" aria-label="Enter Zone 1, Voice Ridge"><span>Enter Voice Ridge</span></button>
+<button type="button" class="heroMapHit" data-map-zone="courage" aria-label="Enter Zone 2, Courage Crossing"><span>Enter Courage Crossing</span></button>
+<button type="button" class="heroMapHit" data-map-zone="accountability" aria-label="Enter Zone 3, Accountability Cliff"><span>Enter Accountability Cliff</span></button>
+<button type="button" class="heroMapHit" data-map-zone="feedback" aria-label="Enter Zone 4, Feedback Lookout"><span>Enter Feedback Lookout</span></button>
+<button type="button" class="heroMapHit" data-map-zone="team" aria-label="Enter Zone 5, Team Trail"><span>Enter Team Trail</span></button>
+<button type="button" class="heroMapHit" data-map-zone="influence" aria-label="Enter Zone 6, Influence Summit"><span>Enter Influence Summit</span></button>
+<aside class="heroMapLive" aria-label="Live Leadership Peak progress">
+<strong>QUEST STATS · LIVE</strong>
+<div class="heroMapLiveRow"><span>Zones</span><b id="mapLiveCount">0 / 6</b></div>
+<div class="heroMapLiveRow"><span>XP earned</span><b id="mapLiveXp">0</b></div>
+<span class="heroMapLevel" id="mapLiveLevel">Emerging Leader</span>
+</aside>
 </section>
 <div class="overview">
 <section class="panel">
 <div class="eyebrow">Leadership Peak map</div><h2>Choose your next challenge</h2>
-<p class="muted small">Explore in any order. Make a choice, read Aria's response, and return to the mountain map. Finish all six zones and your final reflection to complete the module.</p>
-<div class="mapGrid" id="zoneMap"></div>
+<p class="muted small">Select an illuminated zone on the mountain map above, or use the accessible list below. Explore in any order. Finish all six zones and your final reflection to complete the module.</p>
+<details class="zoneListFallback" id="zoneListFallback"><summary>Browse the six challenges as text</summary><div class="mapGrid" id="zoneMap"></div></details>
 </section>
 <aside class="panel">
 <div class="eyebrow">Your climb</div><div class="stats"><div><strong id="doneCount">0 / 6</strong><div class="muted">Zones completed</div></div><div><strong id="xpCount">0 / 180</strong><div class="muted">Leadership XP</div></div></div>
@@ -259,6 +295,9 @@ async function saveCloud(show=true){localSave();if(!session){if(show)setStatus('
  }catch(e){setStatus('Saved on device. Cloud save unavailable: '+(e?.message||'please try again'));return false}finally{saving=false}}
 function queueSave(){localSave();clearTimeout(timer);timer=setTimeout(()=>{void saveCloud(false)},700)}
 function render(){const count=done().length;$('doneCount').textContent=count+' / 6';$('xpCount').textContent=xp()+' / 180';$('progressFill').style.width=(count/6*100)+'%';document.querySelector('.progressTrack').setAttribute('aria-valuenow',count);
+ $('mapLiveCount').textContent=count+' / 6';$('mapLiveXp').textContent=String(xp());
+ $('mapLiveLevel').textContent=xp()>=180?'Leadership Peak Climber':xp()>=140?'Influence Builder':xp()>=100?'Growing Leader':'Emerging Leader';
+ document.querySelectorAll('[data-map-zone]').forEach(button=>{const zone=zones.find(z=>z.id===button.dataset.mapZone),answer=state.answers[button.dataset.mapZone];if(!zone)return;button.classList.toggle('completed',!!answer);button.setAttribute('aria-label','Enter '+zone.title+(answer?' — '+answer.xp+' XP earned':' — ready to explore'))});
  $('zoneMap').replaceChildren();
  zones.forEach((z,i)=>{const b=document.createElement('button');b.type='button';b.className='zone'+(state.answers[z.id]?' completed':'');b.style.setProperty('--zone-art','url(./assets/slide-'+String([4,8,12,16,20,24][i]).padStart(2,'0')+'.webp)');const k=document.createElement('div');k.className='number';k.textContent='ZONE '+(i+1)+' • '+(state.answers[z.id]?'COMPLETE ✓':'READY');const n=document.createElement('b');n.textContent=z.title;const d=document.createElement('small');d.textContent=z.tagline;const e=document.createElement('div');e.className='result';e.textContent=state.answers[z.id]?(state.answers[z.id].xp+' XP earned'):'Explore challenge →';b.append(k,n,d,e);b.onclick=()=>openZone(z.id);$('zoneMap').append(b)});
  $('review').hidden=count!==6||!!state.completed_at;$('summary').hidden=!state.completed_at;const gate=$('badgeGate');gate.classList.toggle('success',!!state.completed_at);gate.replaceChildren();const strong=document.createElement('strong');strong.textContent=state.completed_at?'Leadership Trail unlocked ✓':'Leadership Trail locked';const p=document.createElement('p');p.className='small muted';p.textContent=state.completed_at?'Your next step is to document real-world leadership activities.':'Complete the six zones and your final reflection to unlock.';gate.append(strong,p);if(state.completed_at){const a=document.createElement('a');a.href='badge-book.html';a.className='badgeLink';a.textContent='Open Leadership Trail →';gate.append(a)}}
@@ -341,6 +380,8 @@ function selectAnswer(z,i){stopAria();const a=z.answers[i];state.answers[z.id]={
 function openZoneNoScroll(z){$('choices').replaceChildren();z.answers.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.className='choice'+(state.answers[z.id]?.choice===a[0]?' selected':'');const l=document.createElement('span');l.className='letter';l.textContent=a[0];const t=document.createElement('span');t.textContent=a[1];b.append(l,t);b.onclick=()=>selectAnswer(z,i);$('choices').append(b)})}
 function showFeedback(z,letter){const a=z.answers.find(v=>v[0]===letter);if(!a)return;$('earnedXP').textContent='+'+a[2]+' Leadership XP';$('feedbackText').textContent=a[3];$('feedback').hidden=false}
 function closeZone(){stopAria();$('challenge').hidden=true;active=null;render();$('zoneMap').scrollIntoView({behavior:'smooth',block:'start'})}
+document.querySelectorAll('[data-map-zone]').forEach(button=>{button.addEventListener('click',()=>openZone(button.dataset.mapZone))});
+if(window.matchMedia('(max-width:680px)').matches)$('zoneListFallback').open=true;
 $('backMap').onclick=closeZone;$('nextZone').onclick=closeZone;$('saveNow').onclick=()=>{void saveCloud(true)};
 $('expandArt').onclick=()=>{const dialog=$('artDialog');$('artDialogImage').src=$('sceneArt').src;$('artDialogImage').alt=$('sceneArt').alt;dialog.showModal()};
 $('sceneArt').onclick=()=>$('expandArt').click();
