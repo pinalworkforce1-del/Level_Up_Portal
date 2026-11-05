@@ -29,3 +29,12 @@ assert.match(discover,/function showOptionalPinalPath\(\)/,'Discover Me results 
 assert.match(intro,/Continue to Explore Careers/,'Existing direct Explore Careers progression kept');
 assert.match(html,/You don't need to share personal details here/,'Private conversation wording present');
 console.log('My Path Forward static privacy, optional gating, example, and saving checks passed.');
+
+assert.match(app,/worksheetMiddle/,'Worksheet grid sections present');
+assert.match(app,/worksheetChapter/,'Next Chapter banner present');
+assert.match(app,/worksheetPlan/,'Five-part action row present');
+assert.match(app,/readinessLevels/,'Readiness bands present');
+assert.match(app,/state\.coachConversation\?'☑ I would like to talk privately/,'Only private conversation checkbox is surfaced');
+assert.doesNotMatch(app,/\{id:'barriers'/,'Do not collect sensitive barriers');
+const css=read('public/career-tree-next/my-path-forward/styles.css');
+assert.match(css,/@page\{size:letter landscape/,'Landscape letter worksheet PDF layout');
