@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#08111f" />
+<title>Maya's Story • Skill District | Level Up</title>
+<link rel="preload" href="./assets/scene-01.webp" as="image" />
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+<a class="skip-link" href="#storyPanel">Skip to story and choices</a>
+<div class="app" id="app">
+ <header class="topbar">
+  <a class="brand" href="../career-tree-next/" id="returnLink" aria-label="Return to the Level Up Career Tree"><span class="brand-emblem">LU<span>↗</span></span><span><strong>LEVEL UP</strong><small>SKILL DISTRICT · IMMERSIVE STORIES</small></span></a>
+  <div class="top-center"><span class="chapter-label" id="chapterLabel">CHAPTER 01 / 17</span><div class="segmented-progress" id="chapterDots" aria-label="Story progress"></div></div>
+  <div class="top-actions"><button class="icon-btn" id="soundBtn" aria-pressed="true" title="Toggle interface sounds">♪<span>Sound on</span></button><button class="icon-btn" id="readBtn" title="Listen to the narration">◖))<span>Hear story</span></button><button class="icon-btn" id="helpBtn" title="Help and controls">?<span>Help</span></button></div>
+ </header>
+ <main class="main-layout">
+  <section class="stage-shell" aria-label="Immersive illustration and clickable hotspots">
+   <div class="stage-head"><div><span class="eyebrow">THE STORY OF MAYA</span><h1 id="storyTitle">ONE REP AT A TIME</h1><p id="storyKicker">Small skills. Big possibilities.</p></div><div class="chapter-badge"><span>SKILL STORY</span><strong id="chapterNumber">01</strong></div></div>
+   <div class="image-frame" id="imageFrame">
+    <img id="sceneImage" class="scene-image" src="./assets/scene-01.webp" alt="" width="1536" height="1024" />
+    <div class="atmosphere" aria-hidden="true"></div>
+    <div id="hotspots" class="hotspot-layer" aria-label="Things to explore in this scene"></div>
+    <div class="image-corner"><span class="pulse-dot"></span> INTERACTIVE SCENE <span id="hotspotHint">· TAP THE GLOWING MARKERS</span></div>
+   </div>
+   <div class="stage-footer"><span id="stageCaption">Explore Maya's story through decisions, small actions, and skill-building moments.</span><button id="artworkBtn" class="link-btn" type="button">⤢ View artwork</button></div>
+  </section>
+  <aside class="story-panel" id="storyPanel" tabindex="-1">
+   <div class="panel-scroll">
+    <div class="section-heading"><span class="pill" id="sceneLabel">STORY BEGINNING</span><span class="mini-index" id="sceneIndex">01 / 17</span></div>
+    <h2 id="panelTitle">Your story starts here.</h2>
+    <p class="story-text" id="storyText"></p>
+    <div class="jax-note" id="jaxNote"><div class="jax-avatar" aria-hidden="true">J</div><div><span>JAX SAYS</span><p id="jaxText"></p></div></div>
+    <div id="interaction" class="interaction" aria-live="polite"></div>
+    <section id="sceneDiscovery" class="discovery-panel" hidden><div class="discovery-icon">✦</div><div><span>YOU NOTICED</span><h3 id="discoveryTitle"></h3><p id="discoveryText"></p></div><button id="discoveryClose" aria-label="Close discovery">×</button></section>
+   </div>
+   <footer class="panel-footer"><div class="skill-row"><div><span class="small-label">YOUR SKILL STORY XP</span><strong id="xpCounter">0 <small>/ 100</small></strong></div><div><span class="small-label">SKILLS PRACTICED</span><strong id="skillCount">0 <small>of 6</small></strong></div></div><div class="xp-track" aria-label="Story XP"><div id="xpFill"></div></div><div class="nav-row"><button class="secondary-btn" id="backBtn">← Back</button><button class="primary-btn" id="nextBtn">Begin the story <span>→</span></button></div><button class="quiet-btn" id="resetBtn">Start this story over</button></footer>
+  </aside>
+ </main>
+ <footer class="bottom-bar"><span>✦ BUILD SKILLS THROUGH STORIES, ONE REP AT A TIME</span><span id="saveStatus" role="status">Progress saved on this device</span><span class="legal">Optional story experience · Does not change Level Up module completion</span></footer>
+</div>
+<div class="modal-wrap" id="modal" hidden><div class="modal-overlay" data-close="true"></div><div class="modal-content" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-header"><h2 id="modalTitle">Scene detail</h2><button class="icon-btn" id="modalClose" aria-label="Close window">×</button></div><div id="modalBody"></div></div></div>
+<script src="./story.js" defer></script>
+</body>
+</html>

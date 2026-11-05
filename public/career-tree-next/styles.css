@@ -36,3 +36,10 @@ a{color:inherit}
 /* Keep the native hover label inside the map near its right edge. */
 .hotspot.leadership-peak span{left:auto;right:0;transform:translateY(8px)}
 .hotspot.leadership-peak:hover span,.hotspot.leadership-peak:focus-visible span{transform:translateY(0)}
+
+/* Maya’s Story: sixth optional Career Tree destination */
+.destination-bar{grid-template-columns:repeat(3,minmax(0,1fr))}
+.destination-bar a[data-destination="maya-story"]{border-color:rgba(157,242,117,.62);background:linear-gradient(145deg,rgba(25,56,63,.96),rgba(13,25,48,.96))}
+.destination-bar a[data-destination="maya-story"] strong{color:#c6ff8c}
+@media(max-width:900px){.destination-bar{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.destination-bar{grid-template-columns:1fr}}
