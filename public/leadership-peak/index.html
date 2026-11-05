@@ -74,10 +74,18 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 .audioControlsDialog{flex:1 1 290px;margin:0;padding:7px 10px;border-color:#6a5491;background:#111e3e}
 .audioControlsDialog .btn{font-size:12px;padding:7px 9px}.audioControlsDialog .audioStatus{flex-basis:100%;font-size:11px}
 #summary .audioControls{margin-top:15px}@media(max-width:560px){.audioControls{padding:10px}.audioControls .btn{flex:1 0 auto}.audioStatus{flex-basis:100%}}
+
+/* One shared auto-narration preference, accessible at the map, inside a zone, and in feedback. */
+.autoNarrationSwitch{flex:0 0 auto;padding:9px 12px;border:1px solid #8c77bc;border-radius:11px;background:#17213d;color:#f0ecff;font-size:13px;font-weight:850;line-height:1.35;white-space:normal;cursor:pointer}
+.autoNarrationSwitch[aria-pressed="true"]{background:#175144;border-color:#75dbbb;color:#dcfff4}
+.autoNarrationSwitch:hover,.autoNarrationSwitch:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.stageHeaderActions{display:flex;flex-wrap:wrap;align-items:center;gap:9px}
+.feedbackWindowTools .autoNarrationSwitch{background:#17213d;border-color:#8c77bc}
+.feedbackWindowTools .autoNarrationSwitch[aria-pressed="true"]{background:#175144;border-color:#75dbbb;color:#dcfff4}
 </style>
 </head>
 <body>
-<header class="top"><div class="brand">▲ LEVEL UP · LEADERSHIP PEAK</div><nav><a href="../">← Opportunity City</a><a href="../career-tree-next/">Career Tree</a><a href="badge-book.html">Leadership Trail</a></nav></header>
+<header class="top"><div class="brand">▲ LEVEL UP · LEADERSHIP PEAK</div><nav><a href="../">← Opportunity City</a><a href="../career-tree-next/">Career Tree</a><a href="badge-book.html">Leadership Trail</a></nav><button type="button" class="autoNarrationSwitch" data-auto-audio-toggle aria-pressed="false" title="Turn on to hear Aria automatically throughout Leadership Peak">🔇 Auto narration: Off</button></header>
 <main>
 <section class="hero">
 <div class="eyebrow">Optional development branch · Six leadership challenges</div>
@@ -102,7 +110,7 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 </aside>
 </div>
 <section class="panel stage" id="challenge" hidden>
-<div class="stageTitle"><div><div class="eyebrow" id="stageNumber"></div><h2 id="stageTitle"></h2><p class="zoneTagline" id="tagline"></p></div><button class="btn secondary" type="button" id="backMap">← Return to Peak Map</button></div>
+<div class="stageTitle"><div><div class="eyebrow" id="stageNumber"></div><h2 id="stageTitle"></h2><p class="zoneTagline" id="tagline"></p></div><div class="stageHeaderActions"><button type="button" class="autoNarrationSwitch" data-auto-audio-toggle aria-pressed="false">🔇 Auto narration: Off</button><button class="btn secondary" type="button" id="backMap">← Return to Peak Map</button></div></div>
 <div class="audioControls" aria-label="Scenario audio controls"><button type="button" class="btn secondary" data-audio-play="prompt">▶ Play scenario and choices</button><button type="button" class="btn secondary" data-audio-replay="prompt">↻ Replay</button><button type="button" class="btn secondary" data-audio-pause="prompt" hidden>Ⅱ Pause</button><span class="audioStatus" data-audio-status="prompt" role="status" aria-live="polite">Read or listen to this challenge.</span></div>
 <div class="scene">
 <div class="visual" id="visualCanvas"><img id="sceneArt" src="./assets/slide-04.webp" alt="Leadership Peak challenge illustration" decoding="async"><div class="imageChoiceHits" id="imageChoiceHits"></div><button type="button" class="artExpand" id="expandArt" aria-label="Enlarge Leadership Peak challenge illustration">⤢ Enlarge artwork</button><span class="visualBadge" aria-hidden="true">Choose A, B or C</span></div>
@@ -116,7 +124,7 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 <dialog id="answerDialog" class="answerDialog" aria-labelledby="answerDialogTitle">
 <div class="answerDialogTop">
 <span class="eyebrow" id="answerDialogTitle">✦ ARIA · YOUR CHOICE</span>
-<div class="feedbackWindowTools"><button type="button" id="zoomAnswer">⤢ Enlarge</button><button type="button" id="closeAnswer" aria-label="Close feedback">✕ Close</button></div>
+<div class="feedbackWindowTools"><button type="button" class="autoNarrationSwitch" data-auto-audio-toggle aria-pressed="false">🔇 Auto narration: Off</button><button type="button" id="zoomAnswer">⤢ Enlarge</button><button type="button" id="closeAnswer" aria-label="Close feedback">✕ Close</button></div>
 </div>
 <div class="feedbackArtwork" id="feedbackArtwork">
 <img id="answerArt" alt="Illustrated feedback for the selected leadership response" decoding="async">
@@ -167,6 +175,34 @@ const $=id=>document.getElementById(id);
 const clean=()=>({version:1,answers:{},reflection:'',completed_at:null});
 const ariaAudio=$('ariaAudio'),audioDir='./assets/audio/';
 let currentClip='',currentKind='',currentLabel='';
+const AUTO_NARRATION_KEY='levelup-leadership-peak-auto-narration-v1';
+let autoNarration=false;
+try{autoNarration=localStorage.getItem(AUTO_NARRATION_KEY)==='on'}catch(error){}
+function syncAutoNarration(){
+  document.querySelectorAll('[data-auto-audio-toggle]').forEach(button=>{
+    button.setAttribute('aria-pressed',String(autoNarration));
+    button.textContent=autoNarration?'🔊 Auto narration: On':'🔇 Auto narration: Off';
+    button.title=autoNarration?'Turn off automatic narration; individual Play buttons remain available':'Turn on Aria narration for the whole experience';
+  });
+}
+function activeNarrationKind(){
+  if($('answerDialog').open)return 'feedback';
+  if(active&&!$('challenge').hidden)return 'prompt';
+  if(!$('summary').hidden)return 'complete';
+  return 'intro';
+}
+function toggleAutoNarration(){
+  autoNarration=!autoNarration;
+  try{localStorage.setItem(AUTO_NARRATION_KEY,autoNarration?'on':'off')}catch(error){}
+  syncAutoNarration();
+  if(autoNarration){
+    // Called directly by the participant's click so the browser allows audio.
+    void playAria(activeNarrationKind(),true);
+  }else{
+    stopAria();
+  }
+}
+syncAutoNarration();
 function audioSrc(kind){
   if(kind==='intro')return audioDir+'lp_intro.mp3';
   if(kind==='complete')return audioDir+'lp_complete.mp3';
@@ -202,9 +238,10 @@ ariaAudio.addEventListener('ended',()=>{audioStatus(currentKind,'Finished. Repla
 ariaAudio.addEventListener('pause',()=>{if(currentKind&&!ariaAudio.ended)audioStatus(currentKind,'Paused. Play to resume.');syncAudioButtons()});
 ariaAudio.addEventListener('error',()=>{if(currentKind)audioStatus(currentKind,'Recording not found. You can still complete this challenge using the text.');syncAudioButtons()});
 document.addEventListener('click',event=>{
-  const b=event.target instanceof Element?event.target.closest('[data-audio-play],[data-audio-replay],[data-audio-pause]'):null;
+  const b=event.target instanceof Element?event.target.closest('[data-auto-audio-toggle],[data-audio-play],[data-audio-replay],[data-audio-pause]'):null;
   if(!b)return;
-  if(b.dataset.audioPlay)void playAria(b.dataset.audioPlay);
+  if(b.hasAttribute('data-auto-audio-toggle'))toggleAutoNarration();
+  else if(b.dataset.audioPlay)void playAria(b.dataset.audioPlay);
   else if(b.dataset.audioReplay)void playAria(b.dataset.audioReplay,true);
   else if(b.dataset.audioPause)ariaAudio.pause();
 });
@@ -293,10 +330,13 @@ function openAnswerDialog(z,a){
  $('zoomAnswer').textContent='⤢ Enlarge';
  if(dialog.open)dialog.close();
  dialog.showModal();
+ if(autoNarration)void playAria('feedback',true);
 }
 function openZone(id){const z=zones.find(q=>q.id===id);if(!z)return;stopAria();active=id;audioStatus('prompt','Ready: '+z.title+' scenario and options.');$('challenge').hidden=false;const art='./assets/slide-'+String([4,8,12,16,20,24][zones.indexOf(z)]).padStart(2,'0')+'.webp';$('sceneArt').src=art;$('sceneArt').alt=z.title+' challenge scene artwork';$('expandArt').setAttribute('aria-label','Enlarge '+z.title+' artwork');createArtworkTargets(z);$('choiceFallback').open=window.matchMedia('(max-width:680px)').matches;$('stageNumber').textContent='CHALLENGE ZONE '+(zones.indexOf(z)+1);$('stageTitle').textContent=z.title;$('tagline').textContent=z.tagline;$('scenario').textContent=z.scenario;$('ariaSays').textContent=z.aria;$('zoneTip').textContent='Leadership tip: '+z.tip;$('feedback').hidden=true;$('choices').replaceChildren();
  z.answers.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.className='choice'+(state.answers[id]?.choice===a[0]?' selected':'');const l=document.createElement('span');l.className='letter';l.textContent=a[0];const t=document.createElement('span');t.textContent=a[1];b.append(l,t);b.onclick=()=>selectAnswer(z,i);$('choices').append(b)});
- if(state.answers[id])showFeedback(z,state.answers[id].choice);$('challenge').scrollIntoView({behavior:'smooth',block:'start'})}
+ if(state.answers[id])showFeedback(z,state.answers[id].choice);
+ if(autoNarration)void playAria('prompt',true);
+ $('challenge').scrollIntoView({behavior:'smooth',block:'start'})}
 function selectAnswer(z,i){stopAria();const a=z.answers[i];state.answers[z.id]={choice:a[0],text:a[1],xp:a[2],answered_at:new Date().toISOString()};queueSave();render();openZoneNoScroll(z);createArtworkTargets(z);showFeedback(z,a[0]);openAnswerDialog(z,a)}
 function openZoneNoScroll(z){$('choices').replaceChildren();z.answers.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.className='choice'+(state.answers[z.id]?.choice===a[0]?' selected':'');const l=document.createElement('span');l.className='letter';l.textContent=a[0];const t=document.createElement('span');t.textContent=a[1];b.append(l,t);b.onclick=()=>selectAnswer(z,i);$('choices').append(b)})}
 function showFeedback(z,letter){const a=z.answers.find(v=>v[0]===letter);if(!a)return;$('earnedXP').textContent='+'+a[2]+' Leadership XP';$('feedbackText').textContent=a[3];$('feedback').hidden=false}
@@ -313,7 +353,7 @@ $('closeArt').onclick=()=>$('artDialog').close();
 $('artDialog').addEventListener('click',e=>{if(e.target===$('artDialog'))$('artDialog').close()});
 $('answerDialog').addEventListener('close',()=>{if(currentKind==='feedback')stopAria()});
 $('reflection').oninput=e=>{state.reflection=e.target.value;queueSave()};
-$('completePeak').onclick=async()=>{state.reflection=$('reflection').value.trim();if(!isComplete()){setStatus('Complete all six zones and write at least one sentence in your reflection.');return}state.completed_at=state.completed_at||new Date().toISOString();stopAria();render();audioStatus('complete',"Ready to hear Aria's closing message.");const ok=await saveCloud(true);setStatus(ok?'Leadership Peak complete and saved to Level Up ✓':'Leadership Peak complete locally. Reconnect and save again to sync to Level Up.');$('summary').scrollIntoView({behavior:'smooth',block:'start'})};
+$('completePeak').onclick=async()=>{state.reflection=$('reflection').value.trim();if(!isComplete()){setStatus('Complete all six zones and write at least one sentence in your reflection.');return}state.completed_at=state.completed_at||new Date().toISOString();stopAria();render();audioStatus('complete',"Ready to hear Aria's closing message.");if(autoNarration)void playAria('complete',true);const ok=await saveCloud(true);setStatus(ok?'Leadership Peak complete and saved to Level Up ✓':'Leadership Peak complete locally. Reconnect and save again to sync to Level Up.');$('summary').scrollIntoView({behavior:'smooth',block:'start'})};
 // MP3 narration is optional and does not change XP, progression, or saving.
 (async()=>{try{const {data}=await supabase.auth.getSession();session=data.session;let raw=localStorage.getItem(key());if(raw){const v=JSON.parse(raw);if(v&&typeof v==='object')state={...clean(),...v,answers:v.answers||{}}}if(session){const {data:row,error}=await supabase.from('module_progress').select('journey_state,is_complete,completed_at').eq('user_id',session.user.id).eq('module_id','leadership-peak').maybeSingle();if(error)throw error;if(row?.journey_state){const v=row.journey_state;state={...clean(),...v,answers:{...(v.answers||{}),...(state.answers||{})}};if(row.is_complete&&row.completed_at)state.completed_at=row.completed_at}}
 $('reflection').value=state.reflection||'';render();setStatus(session?'Signed in to Level Up. Your progress can sync.':'Sign in to Level Up to sync your progress across devices.')}catch(e){render();setStatus('Progress is available on this device. Cloud restore unavailable: '+(e?.message||''))}})();
