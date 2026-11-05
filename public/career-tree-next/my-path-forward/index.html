@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#070d24">
+  <title>Level Up • My Path Forward</title>
+  <link rel="stylesheet" href="./styles.css?v=20261105-1">
+  <script src="../../career-tree-auth-gate.js?v=20261013-auth1"></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span>LEVEL UP · CAREER TREE</span><strong>MY PATH FORWARD</strong></div>
+    <nav aria-label="Back navigation"><a href="../discover-me/">← Discover Me</a><a href="../">Career Tree Map</a></nav>
+  </header>
+  <main class="page">
+    <section class="hero">
+      <span class="eyebrow">OPTIONAL · PINAL · AFTER O*NET</span>
+      <h1>My <em>Path Forward</em></h1>
+      <p>Your interests are clues. Your story, strengths, and goals help you decide where to go next. Explore at your own pace—there are no right or wrong answers.</p>
+      <div class="hero-pills"><span><span aria-hidden="true">✦</span> Self-paced</span><span>Save and return</span><span>Not an eligibility assessment</span></div>
+    </section>
+    <section class="panel gate" id="gate" role="status" aria-live="polite">
+      <h2 id="gateTitle">Checking your Level Up journey…</h2>
+      <p id="gateDetail">This optional activity is shown after Discover Me when Pinal is your selected career geography or program region.</p>
+      <div class="actions"><a href="../discover-me/" class="btn secondary">Discover Me</a><a href="../explore-careers/" class="btn secondary">Explore Careers</a></div>
+    </section>
+    <div id="activity" hidden>
+      <div class="notice privacy"><strong><span aria-hidden="true">🔒</span> Your privacy matters.</strong>
+        <p>Use this activity for your strengths, career interests, education, and next steps. <strong>Please do not enter personal housing, health, legal, financial hardship, or other sensitive details.</strong> If you want to discuss a personal circumstance, use the private-conversation checkbox below instead. Nothing here is a requirement for eligibility or services.</p>
+      </div>
+      <div class="progress panel" aria-label="Activity progress">
+        <div><strong id="progressLabel">Your draft</strong><span id="saveState" role="status" aria-live="polite">Not yet saved</span></div>
+        <div class="progressTrack" aria-hidden="true"><span id="progressFill"></span></div>
+      </div>
+      <form id="pathForm" novalidate>
+        <section class="panel" aria-labelledby="reflectHead">
+          <div class="sectionIntro"><span class="step">01 · DISCOVER</span><h2 id="reflectHead">What I know about myself</h2><p>Focus on experiences, skills and possibilities—not private circumstances.</p></div>
+          <div id="reflectionFields" class="fields"></div>
+        </section>
+        <section class="panel" aria-labelledby="possibilitiesHead">
+          <div class="sectionIntro"><span class="step">02 · EXPLORE</span><h2 id="possibilitiesHead">Opportunities I want to explore</h2><p>Choose as many as interest you. These are possibilities, not commitments.</p></div>
+          <fieldset class="optionField">
+            <legend>My options</legend>
+            <details class="example"><summary>Show me an example</summary><p>Jordan's example: GED/diploma, job or work experience, training, and apprenticeship.</p></details>
+            <div id="optionChoices" class="choiceGrid"></div>
+          </fieldset>
+          <div id="visionFields" class="fields"></div>
+        </section>
+        <section class="panel" aria-labelledby="stepsHead">
+          <div class="sectionIntro"><span class="step">03 · PLAN</span><h2 id="stepsHead">One step I can take next</h2><p>A realistic first step is more useful than a perfect plan.</p></div>
+          <div id="planFields" class="fields"></div>
+          <fieldset class="readiness">
+            <legend>How ready do I feel to begin my next step?</legend>
+            <p class="muted">0 means not ready now; 10 means ready to begin. There is no passing number. You may leave this unanswered.</p>
+            <details class="example"><summary>Show me an example</summary><p>Jordan chooses 7 out of 10. His Career Coach can ask about what would help him take the next step—no explanation is needed in this form.</p></details>
+            <div class="rangeRow"><label for="readiness">Ready 0–10</label><input id="readiness" type="range" min="0" max="10" step="1" value="5"><output for="readiness" id="readinessValue">Not selected</output></div>
+            <button type="button" id="clearReadiness" class="textButton">Clear readiness score</button>
+          </fieldset>
+        </section>
+        <section class="panel privateCard" aria-labelledby="coachHead">
+          <span class="step">04 · CONNECT</span>
+          <h2 id="coachHead">Something I would rather discuss privately</h2>
+          <label class="coachCheck" for="coachConversation">
+            <input type="checkbox" id="coachConversation">
+            <span><strong>I'd like to talk with my Career Coach about something that may affect my goals or next steps.</strong><small>You don't need to share personal details here. Your Career Coach can discuss this privately with you.</small></span>
+          </label>
+          <details class="example"><summary>Show me an example</summary><p>If Jordan wants to discuss something privately, he checks the box. He does not type any explanation or select a category here.</p></details>
+          <p class="muted small"><strong>Only the checkbox status is saved.</strong> No details, categories, or explanations are collected in this section. Leaving it unchecked does not affect your progress.</p>
+        </section>
+        <section class="panel actionsPanel">
+          <h2>Save your path</h2>
+          <p>You can save a draft, finish for now, or come back later. This activity never blocks Explore Careers.</p>
+          <div class="actions">
+            <button class="btn secondary" id="saveDraft" type="button">Save draft</button>
+            <button class="btn primary" id="finishActivity" type="button">Finish for now & save</button>
+            <button class="btn secondary" id="printSummary" type="button">Print / Save as PDF</button>
+            <a href="../explore-careers/" class="btn outline">Continue to Explore Careers →</a>
+          </div>
+          <p id="lastSaved" class="small muted"></p>
+        </section>
+      </form>
+      <section class="panel report" id="report" aria-labelledby="reportTitle" hidden>
+        <span class="eyebrow">MY PATH FORWARD · PERSONAL SUMMARY</span>
+        <h2 id="reportTitle">My plan at a glance</h2>
+        <div id="reportContent"></div>
+      </section>
+    </div>
+  </main>
+  <script src="../../offline-progress.js?v=20261013-ctsync1"></script>
+  <script src="../../career-tree-sync.js?v=20261105-path1"></script>
+  <script src="./app.js?v=20261105-1"></script>
+</body>
+</html>
