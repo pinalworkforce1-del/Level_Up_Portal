@@ -379,7 +379,7 @@ function openZone(id){const z=zones.find(q=>q.id===id);if(!z)return;stopAria();a
 function selectAnswer(z,i){stopAria();const a=z.answers[i];state.answers[z.id]={choice:a[0],text:a[1],xp:a[2],answered_at:new Date().toISOString()};queueSave();render();openZoneNoScroll(z);createArtworkTargets(z);showFeedback(z,a[0]);openAnswerDialog(z,a)}
 function openZoneNoScroll(z){$('choices').replaceChildren();z.answers.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.className='choice'+(state.answers[z.id]?.choice===a[0]?' selected':'');const l=document.createElement('span');l.className='letter';l.textContent=a[0];const t=document.createElement('span');t.textContent=a[1];b.append(l,t);b.onclick=()=>selectAnswer(z,i);$('choices').append(b)})}
 function showFeedback(z,letter){const a=z.answers.find(v=>v[0]===letter);if(!a)return;$('earnedXP').textContent='+'+a[2]+' Leadership XP';$('feedbackText').textContent=a[3];$('feedback').hidden=false}
-function closeZone(){stopAria();$('challenge').hidden=true;active=null;render();$('zoneMap').scrollIntoView({behavior:'smooth',block:'start'})}
+function closeZone(){stopAria();$('challenge').hidden=true;active=null;render();const destination=window.matchMedia('(max-width:680px)').matches?$('zoneListFallback'):$('heroPageTitle').closest('.heroMap');destination.scrollIntoView({behavior:'smooth',block:'start'})}
 document.querySelectorAll('[data-map-zone]').forEach(button=>{button.addEventListener('click',()=>openZone(button.dataset.mapZone))});
 if(window.matchMedia('(max-width:680px)').matches)$('zoneListFallback').open=true;
 $('backMap').onclick=closeZone;$('nextZone').onclick=closeZone;$('saveNow').onclick=()=>{void saveCloud(true)};
