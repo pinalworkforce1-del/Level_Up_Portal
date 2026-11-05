@@ -1,0 +1,24 @@
+name: Verify Leadership Peak Audio
+
+on:
+  push:
+    branches: [feature/leadership-peak-aria-audio]
+    paths:
+      - 'public/leadership-peak/**'
+      - 'scripts/verify-leadership-peak-audio.py'
+  pull_request:
+    paths:
+      - 'public/leadership-peak/**'
+      - 'scripts/verify-leadership-peak-audio.py'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify-audio:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify 26 Leadership Peak MP3 recordings
+        run: python3 scripts/verify-leadership-peak-audio.py
