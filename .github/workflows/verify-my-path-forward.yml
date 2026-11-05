@@ -1,0 +1,36 @@
+name: Verify My Path Forward
+
+on:
+  push:
+    branches: [feature/pinal-my-path-forward]
+    paths:
+      - 'public/career-tree-next/my-path-forward/**'
+      - 'public/career-tree-next/discover-me/**'
+      - 'public/career-tree-sync.js'
+      - 'scripts/test-my-path-forward.mjs'
+  pull_request:
+    paths:
+      - 'public/career-tree-next/my-path-forward/**'
+      - 'public/career-tree-next/discover-me/**'
+      - 'public/career-tree-sync.js'
+      - 'scripts/test-my-path-forward.mjs'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Check My Path Forward JS syntax
+        run: |
+          node --check public/career-tree-next/my-path-forward/app.js
+          node --check public/career-tree-next/discover-me/app.js
+          node --check public/career-tree-sync.js
+      - name: Verify privacy, examples, optionality, persistence
+        run: node scripts/test-my-path-forward.mjs
