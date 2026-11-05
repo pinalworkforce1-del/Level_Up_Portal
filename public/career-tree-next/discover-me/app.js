@@ -45,8 +45,16 @@
     const top=Object.keys(scores).sort((a,b)=>scores[b]-scores[a]||a.localeCompare(b)).slice(0,3);
     state.interest.scores=scores;state.interest.top=top;state.interest.complete=true;state.interest.completedAt=new Date().toISOString();save();renderResults();window.scrollTo({top:0,behavior:'smooth'});
   }
+  function showOptionalPinalPath(){
+    const legacy=read();
+    const next=(()=>{try{return JSON.parse(localStorage.getItem('level-up-career-tree-next-v1')||'{}')}catch{return {}}})();
+    const laborGeo=String(localStorage.getItem('level-up-career-tree-geography-v1')||'').toLowerCase();
+    const selectedGeo=String(next.exploreCareers?.geography||legacy.alignment?.geography||'').toLowerCase();
+    const region=String(localStorage.getItem('level-up-pending-county')||legacy.profile?.county||'').toLowerCase();
+    $('myPathInvitation').hidden=!(laborGeo==='pinal'||selectedGeo==='pinal'||region.includes('pinal'));
+  }
   function renderResults(){
-    $('questionPanel').hidden=true;$('resultsPanel').hidden=false;$('progressText').textContent='30 of 30 answered';$('pageText').textContent='Complete';$('progressBar').style.width='100%';
+    $('questionPanel').hidden=true;showOptionalPinalPath();$('resultsPanel').hidden=false;$('progressText').textContent='30 of 30 answered';$('pageText').textContent='Complete';$('progressBar').style.width='100%';
     const scores=state.interest.scores||{R:0,I:0,A:0,S:0,E:0,C:0};const top=Array.isArray(state.interest.top)?state.interest.top:[];
     $('resultTitle').textContent=`${top.join('')} • ${top.map(k=>RIASEC[k]).join(' + ')}`;
     $('resultBars').innerHTML=Object.keys(RIASEC).map(k=>`<div class="result-row"><strong>${k} • ${RIASEC[k]}</strong><div class="bar"><i style="width:${Math.max(0,Math.min(20,Number(scores[k]||0)))/20*100}%"></i></div><span>${Number(scores[k]||0)}/20</span></div>`).join('');
