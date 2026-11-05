@@ -5,7 +5,7 @@
   const SUPABASE_KEY = 'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc';
   const AUTH_KEY = 'sb-dnijrzotfyvmmnmueknk-auth-token';
   const CONTRACT = 'career-tree/v1';
-  const MODULE_IDS = new Set(['discover-me', 'explore-careers', 'work-life-plan', 'career-quest:electrician']);
+  const MODULE_IDS = new Set(['discover-me', 'explore-careers', 'work-life-plan', 'my-path-forward', 'career-quest:electrician']);
 
   function session() {
     try {
