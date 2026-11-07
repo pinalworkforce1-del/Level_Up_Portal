@@ -25,7 +25,25 @@ async function showResumeShare(card,position,interestId){
  const consent=document.createElement('label');consent.style.display='block';const check=document.createElement('input');check.type='checkbox';consent.append(check,document.createTextNode(' I authorize this resume to be shared with this employer for this opportunity.'));
  const submit=document.createElement('button');submit.textContent='Share selected resume';submit.disabled=true;
  let versionSelect=null,fileInput=null;
- const update=async()=>{detail.replaceChildren();preview.replaceChildren();versionSelect=null;fileInput=null;if(select.value==='levelup'){const {data,error}=await sb.from('resume_versions').select('id,version_name,target_role').eq('user_id',activeUser).order('updated_at',{ascending:false}).limit(30);versionSelect=document.createElement('select');if(error||!data?.length){const p=document.createElement('p');p.textContent='No saved Level Up resume versions found. You can upload a resume instead.';detail.append(p)}else{for(const v of data){const o=document.createElement('option');o.value=v.id;o.textContent=v.version_name||v.target_role||'Level Up resume';versionSelect.append(o)}detail.append(versionSelect);const btn=document.createElement('button');btn.className='secondary';btn.textContent='Preview selected resume';btn.onclick=()=>loadResumePreview(preview,versionSelect.value);versionSelect.onchange=()=>preview.replaceChildren();detail.append(btn)}}if(select.value==='upload'){fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';detail.append(fileInput)}submit.disabled=select.value==='none'||!check.checked};
+ const update=async()=>{detail.replaceChildren();preview.replaceChildren();versionSelect=null;fileInput=null;if(select.value==='levelup'){
+ const {data:ready,error:readyError}=await sb.from('expo_resume_ready').select('resume_version_id').eq('user_id',activeUser);
+ if(readyError){const p=document.createElement('p');p.textContent='Unable to load ready-to-share resumes: '+readyError.message;detail.append(p)}
+ else {
+ const ids=(ready||[]).map(x=>x.resume_version_id);
+ if(!ids.length){const p=document.createElement('p');p.textContent='No resumes marked Ready to Share yet. You can upload a completed resume, or review and mark one of your saved drafts below.';detail.append(p)}
+ else {
+ const {data,error}=await sb.from('resume_versions').select('id,version_name,target_role').eq('user_id',activeUser).in('id',ids).order('updated_at',{ascending:false});
+ if(error){const p=document.createElement('p');p.textContent='Unable to load saved resumes.';detail.append(p)}
+ else {versionSelect=document.createElement('select');for(const v of data||[]){const o=document.createElement('option');o.value=v.id;o.textContent=v.version_name||v.target_role||'Ready resume';versionSelect.append(o)}detail.append(versionSelect);const btn=document.createElement('button');btn.className='secondary';btn.textContent='Preview selected resume';btn.onclick=()=>loadResumePreview(preview,versionSelect.value);versionSelect.onchange=()=>preview.replaceChildren();detail.append(btn)}
+ }
+ const drafts=document.createElement('details');const summary=document.createElement('summary');summary.textContent='Review saved drafts and mark a completed resume ready';drafts.append(summary);
+ const {data:versions,error:versionError}=await sb.from('resume_versions').select('id,version_name,target_role').eq('user_id',activeUser).order('updated_at',{ascending:false}).limit(50);
+ if(versionError){const p=document.createElement('p');p.textContent='Saved drafts unavailable.';drafts.append(p)}
+ else {for(const v of versions||[]){if(ids.includes(v.id))continue;const line=document.createElement('div');line.style.cssText='padding:8px 0;border-bottom:1px solid #52728b';const label=document.createElement('span');label.textContent=v.version_name||v.target_role||'Saved draft';const view=document.createElement('button');view.className='secondary';view.textContent='Preview';view.onclick=()=>loadResumePreview(preview,v.id);const mark=document.createElement('button');mark.textContent='Mark Ready to Share';mark.onclick=async()=>{mark.disabled=true;const {error}=await sb.from('expo_resume_ready').insert({user_id:activeUser,resume_version_id:v.id});if(error){note('Could not mark resume ready: '+error.message);mark.disabled=false;return}note('Resume marked Ready to Share. Review it before sending.');await update()};line.append(label,document.createTextNode(' '),view,document.createTextNode(' '),mark);drafts.append(line)}}
+ detail.append(drafts)
+ }
+}
+if(select.value==='upload'){fileInput=document.createElement('input');fileInput.type='file';fileInput.accept='.pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document';detail.append(fileInput)}submit.disabled=select.value==='none'||!check.checked};
  select.onchange=update;check.onchange=()=>submit.disabled=select.value==='none'||!check.checked;
  submit.onclick=async()=>{submit.disabled=true;submit.textContent='Sharing…';try{
   let payload={interest_id:interestId,user_id:activeUser};
