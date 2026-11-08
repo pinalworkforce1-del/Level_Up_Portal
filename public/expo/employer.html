@@ -47,26 +47,43 @@
 <p style="color:#b5d5e7;font-size:12px;margin:10px 0 0">When the updated sign-in email includes a code, enter it here to sign in without leaving this page. Secure email links remain available.</p></div><p id="identity"></p></section><p id="message" role="status"></p>
 <div id="dashboard" class="hidden"><section class="card hero"><div class="eyebrow">Authorized employer workspace</div><h2 id="boothTitle">Assigned booth</h2><p id="eventInfo"></p><div class="row controls"><a href="studio.html" style="display:inline-block;padding:12px 18px;background:#eab342;color:#10273a;border-radius:10px;text-decoration:none;font-weight:900">Customize My Booth →</a><button id="refresh">Refresh candidate interests</button><span class="sub">Only information explicitly shared with your booth is shown.</span></div></section>
 
+
+<section id="boothExperience" class="card">
+ <div class="eyebrow">Booth Control · Visitor experience</div><h2>Booth action buttons</h2>
+ <p class="sub">Choose what attendees can open from your immersive booth. Only actions with a working destination will appear. These settings do not change approved branding.</p>
+ <div class="ctrlChecks" id="experienceOptions">
+  <label><input type="checkbox" id="expPositions" checked><span><strong>Explore positions</strong>Show published opportunities</span></label>
+  <label><input type="checkbox" id="expRecruiter" checked><span><strong>Meet a recruiter</strong>Show current recruiter status</span></label>
+  <label><input type="checkbox" id="expResume" checked><span><strong>Share your résumé</strong>Use the participant-consent workflow</span></label>
+  <label><input type="checkbox" id="expConversation" checked><span><strong>Request a conversation</strong>Let interested visitors request recruiter follow-up</span></label>
+ </div>
+ <label class="ctrlField">Company video link (optional)
+ <input type="url" id="expVideo" maxlength="1800" placeholder="https://www.youtube.com/watch?v=...">
+ <span class="ctrlHelp">YouTube and Vimeo can play inside the booth. Other secure video links open the employer's website. Leave blank to hide the video button.</span>
+ </label>
+ <div class="row"><button type="button" id="saveExperience">Save booth actions</button><span class="sub">Changes appear in the visitor booth when it is reopened.</span></div>
+ <p id="experienceMessage" class="ctrlMsg" role="status"></p>
+</section>
 <section id="boothStaff" class="card">
-<div class="eyebrow">Event-day operations</div><h2>Recruiter presence</h2>
+<div class="eyebrow">Event-day operations</div><h2>Recruiter availability</h2>
 <p class="sub">Tell visitors whether someone is staffing your booth. Your live availability automatically expires if Booth Control is left unattended.</p>
 <div class="staffBar">
 <label class="staffField" for="staffLabel">Recruiter display name (optional)
 <input id="staffLabel" maxlength="80" placeholder="e.g., Recruiting Team"></label>
 <label class="staffField" for="staffAvailability">Recruiter availability
-<select id="staffAvailability"><option value="offline">Offline / not staffed</option><option value="available">Available — accepting interview requests</option><option value="busy">Busy — requests will queue</option><option value="away">Away — not accepting requests</option></select></label>
+<select id="staffAvailability"><option value="offline">Offline / not staffed</option><option value="available">Available — open to connections</option><option value="busy">Busy — requests will queue</option><option value="away">Away — not accepting requests</option></select></label>
 </div>
 <div class="staffActions"><button type="button" id="staffSet">Update booth status</button><span class="staffIndicator" id="staffIndicator">Not currently staffed</span></div>
 <p class="staffNote">Status refreshes while Booth Control is open and visible. Available and Busy expire after about 12 minutes without a refresh. No video meeting or call is started.</p>
 <p id="staffResult" class="staffResult" role="status"></p>
 </section>
 <section id="boothInterviews" class="card">
-<div class="ctrlHead"><div><div class="eyebrow">Recruiter engagement</div><h2>Interview requests</h2><p class="sub">Requests from participants who have already expressed interest in an eligible position.</p></div><button id="reloadInterviews" class="secondary" type="button">Refresh requests</button></div>
+<div class="ctrlHead"><div><div class="eyebrow">Recruiter engagement</div><h2>Conversation requests</h2><p class="sub">Requests from participants who have already expressed interest in an eligible position.</p></div><button id="reloadInterviews" class="secondary" type="button">Refresh requests</button></div>
 <p class="staffNote">Acknowledge a request when a recruiter is ready to follow up. These controls record request status; they do not schedule or start interviews or email participants.</p>
 <div id="staffRequests" class="staffRequests"></div>
 <p id="interviewResult" class="staffResult" role="status"></p>
 </section>
-<nav class="ctrlNav" aria-label="Booth Control"><a href="#boothStaff">🟢 Recruiter status</a><a href="#boothInterviews">🎙️ Interview requests</a><a href="#boothOpportunities">💼 Opportunities</a><a href="#boothCandidates">👥 Candidate interests</a><a href="studio.html">🎨 Branding Studio</a></nav>
+<nav class="ctrlNav" aria-label="Booth Control"><a href="#boothExperience">✨ Booth actions</a><a href="#boothStaff">🟢 Recruiter status</a><a href="#boothInterviews">🎙️ Conversation requests</a><a href="#boothOpportunities">💼 Opportunities</a><a href="#boothCandidates">👥 Candidate interests</a><a href="studio.html">🎨 Branding Studio</a></nav>
 <section class="card" id="boothOpportunities"><div class="ctrlHead"><div><div class="eyebrow">Booth Control</div><h2>Opportunities &amp; application instructions</h2><p class="sub">Create positions, add application links, and tell visitors how to apply.</p></div><button id="newPosition">+ Add opportunity</button></div>
 <p class="sub" id="positionSummary">Loading opportunities…</p><div class="ctrlList" id="positionList"></div>
 <div class="ctrlEdit" id="positionEditor" hidden><h3 id="editHeading">New opportunity</h3><p class="ctrlHelp">Saving publishes the changes immediately. Staff retains control of WEX approvals.</p>
@@ -100,7 +117,35 @@ const done=new Set();for(const key of [...(Array.isArray(d.sectionOrder)?d.secti
 const edu=d.education||{};if(edu.type||edu.school){section('Education');if(edu.type)node('div',edu.type,wrap);if(edu.school)node('div',edu.school,wrap)}return wrap}
 
 
-const STAFF_LABELS={available:'Available for interview requests',busy:'Busy · requests will queue',away:'Away · requests paused',offline:'Offline · booth not staffed'};
+
+async function loadBoothExperience(){
+ if(!assignedBooth)return;
+ const {data,error}=await sb.from('expo_employers').select('features').eq('id',assignedBooth.id).single();
+ if(error){$('experienceMessage').textContent='Unable to load booth actions: '+error.message;return}
+ const opts=data?.features?.experience||{};
+ $('expPositions').checked=opts.show_positions!==false;
+ $('expRecruiter').checked=opts.show_recruiter!==false;
+ $('expResume').checked=opts.show_resume!==false;
+ $('expConversation').checked=opts.show_conversations!==false;
+ $('expVideo').value=opts.video_url||'';
+}
+async function saveBoothExperience(){
+ if(!assignedBooth)return;
+ const btn=$('saveExperience');btn.disabled=true;$('experienceMessage').textContent='Saving visitor experience…';
+ try{
+  const {error}=await sb.rpc('expo_save_booth_experience',{
+   p_employer_id:assignedBooth.id,p_show_positions:$('expPositions').checked,
+   p_show_recruiter:$('expRecruiter').checked,p_show_resume:$('expResume').checked,
+   p_show_conversations:$('expConversation').checked,p_video_url:$('expVideo').value.trim()
+  });
+  if(error)throw error;
+  $('experienceMessage').textContent='Saved. These actions will appear when attendees reopen your booth.';
+ }catch(err){$('experienceMessage').textContent='Could not save booth actions: '+err.message}
+ finally{btn.disabled=false}
+}
+$('saveExperience').onclick=saveBoothExperience;
+
+const STAFF_LABELS={available:'Available to connect',busy:'Busy · requests will queue',away:'Away · requests paused',offline:'Offline · booth not staffed'};
 let staffActiveStatus='offline',staffHeartbeat=null,staffUpdateBusy=false,interviewQueueBusy=false;
 function staffMarkStatus(status){
  const badge=$('staffIndicator');badge.className='staffIndicator'+(status==='available'?' available':status==='busy'?' busy':'');badge.textContent=STAFF_LABELS[status]||STAFF_LABELS.offline;
@@ -141,7 +186,7 @@ async function loadInterviewQueue(){
   if(error)throw error;
   const target=$('staffRequests');target.replaceChildren();
   if(!Array.isArray(data)||!data.length){
-    posText(target,'p','No interview requests yet. Participants can request an interview when a recruiter is available and a position offers live interviews.');
+    posText(target,'p','No connection requests yet. Participants can request a conversation after expressing interest in an eligible position.');
     $('interviewResult').textContent='Queue is up to date.';return;
   }
   for(const item of data){
@@ -161,14 +206,14 @@ async function loadInterviewQueue(){
             p_employer_id:assignedBooth.id,p_interest_id:item.interest_id,p_status:next
           });
           if(result.error){$('interviewResult').textContent=result.error.message;button.disabled=false;return}
-          $('interviewResult').textContent='Interview request marked '+next+'.';interviewQueueBusy=false;await loadInterviewQueue();
+          $('interviewResult').textContent='Conversation request marked '+next+'.';interviewQueueBusy=false;await loadInterviewQueue();
         };
         actions.append(button);
       }card.append(actions);
     }
     target.append(card);
   }
-  $('interviewResult').textContent=data.length+' interview request(s) in the queue.';
+  $('interviewResult').textContent=data.length+' conversation request(s) in the queue.';
  }catch(err){$('interviewResult').textContent='Unable to load requests: '+err.message}
  finally{interviewQueueBusy=false}
 }
@@ -237,7 +282,7 @@ for(const check of document.querySelectorAll('#positionMethods input'))check.add
 async function renderCandidates(booth){const out=$('candidates');out.replaceChildren();say('Loading employer inbox…');const {data,error}=await sb.rpc('expo_employer_inbox',{p_employer_id:booth.id});if(error){say('Unable to load employer inbox: '+error.message);return}const items=Array.isArray(data)?data:[];$('countInterests').textContent=items.length;$('countResumes').textContent=items.filter(x=>x.has_active_share).length;$('countWex').textContent=items.filter(x=>x.wex_approved).length;if(!items.length){node('p','No participant interests have been received for this booth yet.',out);say('Employer inbox is ready.');return}
 for(const item of items){const card=node('article',undefined,out);card.className='candidate';node('div','OPPORTUNITY · '+item.position_title,card).className='eyebrow';node('h3',item.participant_name||'Interested participant',card);const tags=node('div',undefined,card);node('span',item.has_active_share?'Résumé shared':'No résumé shared',tags).className='tag'+(item.has_active_share?' ok':'');if(item.wex_approved)node('span','✓ WEX approved · verified',tags).className='tag ok';else node('span','WEX not verified',tags).className='tag';node('p','Interest submitted: '+new Date(item.created_at).toLocaleString(),card).className='sub';if(item.has_active_share&&item.resume_source==='levelup'&&item.resume_data){const btn=node('button','View shared résumé',card);btn.className='secondary controls';const holder=node('div',undefined,card);btn.onclick=()=>{if(holder.childNodes.length){holder.replaceChildren();btn.textContent='View shared résumé'}else{holder.append(resumeView(item.resume_data));btn.textContent='Hide résumé'}}}else if(item.has_active_share&&item.resume_source==='upload'){node('p','Uploaded résumé: '+(item.upload_file_name||'Document')+'. Secure employer file access is not yet enabled.',card).className='sub'}}
 say('Employer inbox updated. Refresh to check for newly shared or revoked résumés.')}
-async function load(){const {data:{user},error}=await sb.auth.getUser();if(error||!user){currentUser=null;$('identity').textContent='Not signed in';$('dashboard').classList.add('hidden');say('Sign in with your authorized employer account.');return}currentUser=user;$('identity').textContent='Signed in as '+user.email;const {data:members,error:me}=await sb.from('expo_employer_members').select('employer_id').eq('user_id',user.id);if(me){say('Employer authorization lookup failed: '+me.message);return}if(!members?.length){$('dashboard').classList.add('hidden');say('This account is not assigned to an employer booth. Contact the event facilitator.');return}const ids=members.map(x=>x.employer_id);const {data:booths,error:be}=await sb.from('expo_employers').select('id,name,booth_number,event_id,description').in('id',ids);if(be||!booths?.length){say('Could not load assigned booth: '+(be?.message||'No booths found'));return}const booth=booths[0];assignedBooth=booth;$('boothTitle').textContent='Booth '+booth.booth_number+' · '+booth.name;$('eventInfo').textContent=booth.description||'Virtual Career Expo';$('dashboard').classList.remove('hidden');$('refresh').onclick=()=>renderCandidates(booth);await Promise.all([renderCandidates(booth),loadPositions(),loadStaffStatus(),loadInterviewQueue()]);startStaffHeartbeat()}
+async function load(){const {data:{user},error}=await sb.auth.getUser();if(error||!user){currentUser=null;$('identity').textContent='Not signed in';$('dashboard').classList.add('hidden');say('Sign in with your authorized employer account.');return}currentUser=user;$('identity').textContent='Signed in as '+user.email;const {data:members,error:me}=await sb.from('expo_employer_members').select('employer_id').eq('user_id',user.id);if(me){say('Employer authorization lookup failed: '+me.message);return}if(!members?.length){$('dashboard').classList.add('hidden');say('This account is not assigned to an employer booth. Contact the event facilitator.');return}const ids=members.map(x=>x.employer_id);const {data:booths,error:be}=await sb.from('expo_employers').select('id,name,booth_number,event_id,description').in('id',ids);if(be||!booths?.length){say('Could not load assigned booth: '+(be?.message||'No booths found'));return}const booth=booths[0];assignedBooth=booth;$('boothTitle').textContent='Booth '+booth.booth_number+' · '+booth.name;$('eventInfo').textContent=booth.description||'Virtual Career Expo';$('dashboard').classList.remove('hidden');$('refresh').onclick=()=>renderCandidates(booth);await Promise.all([renderCandidates(booth),loadPositions(),loadStaffStatus(),loadInterviewQueue(),loadBoothExperience()]);startStaffHeartbeat()}
 $('signin').onclick=async()=>{const email=$('email').value.trim();if(!email){say('Enter your assigned employer email.');return}say('Sending sign-in link…');const redirectTo=new URL('employer.html',location.href).href;const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTo}});if(!error)saveExpoReturn(email);say(error?'Unable to send sign-in link: '+error.message:'Check your inbox for your employer sign-in link. It should return to this Employer Expo page. If the shared email opens Level Up instead, sign in there and the Expo will attempt to restore this destination.')};
 async function verifyExpoCode(){
  const email=$('email').value.trim().toLowerCase(),token=$('expoCode').value.trim(),btn=$('expoVerifyCode');
