@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Level Up Secure Sign-In</title></head>
+<body style="margin:0;padding:30px 14px;background:#e9eff5;color:#18344b;font:16px/1.55 Arial,Helvetica,sans-serif">
+<table role="presentation" border="0" cellpadding="0" cellspacing="0" style="margin:0 auto;width:100%;max-width:600px;background:#fff;border-radius:14px;overflow:hidden">
+<tr><td style="background:#173b64;color:white;text-align:center;padding:33px 25px">
+<div style="font-size:28px;font-weight:800;letter-spacing:1px">LEVEL UP</div><div style="color:#b9e7ff;letter-spacing:1.4px;font-size:12px">SECURE ACCOUNT ACCESS</div>
+</td></tr><tr><td style="padding:32px;text-align:center">
+{{ if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/studio.html" }}
+<h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Career Expo · Employer Booth Studio</h1>
+<p>Sign in to customize your booth and submit branding for approval.</p>
+{{ else if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/employer.html" }}
+<h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Career Expo · Employer Dashboard</h1>
+<p>Sign in to manage your booth and review participant interests.</p>
+{{ else if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/review.html" }}
+<h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Career Expo · Booth Branding Review</h1>
+<p>Sign in with your authorized Level Up staff account to review submitted designs.</p>
+{{ else }}
+<h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Opportunity City is Ready</h1>
+<p>Sign in to continue your Level Up journey or Career Expo registration.</p>
+{{ end }}
+<p style="margin:26px 0"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 24px;border-radius:9px;background:#ecae2e;color:#142d46;text-decoration:none;font-size:16px;font-weight:bold">Sign in securely</a></p>
+<div style="background:#eef5f9;border:1px solid #c9dfeb;padding:18px 12px;border-radius:10px">
+<p style="font-size:13px;color:#456177;margin:0 0 8px">Prefer to stay on your sign-in page? Enter this one-time code there:</p>
+<strong style="font-size:28px;letter-spacing:5px;color:#173b64">{{ .Token }}</strong>
+<p style="font-size:12px;color:#62798b;margin:8px 0 0">Temporary code. Do not share it with anyone.</p>
+</div>
+<p style="font-size:12px;color:#66798a;margin-top:25px">If you didn't request this email, you can safely ignore it.</p>
+</td></tr><tr><td style="background:#14283b;padding:17px;text-align:center;color:#c5d8e5;font-size:12px">Level Up · Career Expo &amp; Opportunity City</td></tr>
+</table></body></html>
