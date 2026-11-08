@@ -93,13 +93,17 @@
 <section id="boothChatControl" class="card">
 <div class="eyebrow">Event-day operations</div><h2>Live Recruiter Chat</h2>
 <p class="sub">Have a private text conversation with each participant who opens chat from your booth. Chat is optional and disabled until you switch it on.</p>
-<label class="expoChatSwitch"><input id="expoChatEnabled" type="checkbox"><span>Enable private recruiter chat for this booth</span></label>
-<p class="expoChatNote">Messages are visible only to that participant and the authorized employer team. Chat is text-only; it does not launch video, share a résumé, or promise an immediate reply. Disable chat to pause new messages.</p>
+<label class="expoChatSwitch"><input id="expoChatEnabled" type="checkbox"><span>Enable managed recruiter chat for this booth</span></label>
+<label class="ctrlField" for="expoChatCapacity">Maximum active chats assigned to each recruiter
+<select id="expoChatCapacity" style="margin:8px 0 0;display:block;width:220px;padding:10px;background:#f7fbff;color:#0a283d;border-radius:8px"><option value="1">1 active chat</option><option value="2" selected>2 active chats (recommended)</option><option value="3">3 active chats</option></select></label>
+<p class="expoChatNote">Participants join a first-in, first-out queue; the recruiter accepts the next person. Only accepted participants can send live messages. New requests require Available or Busy recruiter status.</p>
+<div class="row"><button type="button" id="expoChatAccept">Accept next in queue</button><span id="expoChatQueueCounts" class="sub">0 waiting · 0 active</span></div>
+<p class="expoChatNote">Chat is text-only and private. Finish an active session to free capacity. Away/offline visitors can leave an inquiry. Existing conversation history remains available.</p>
 <div class="row"><button type="button" id="expoChatSave">Save chat availability</button><button type="button" class="secondary" id="expoChatRefresh">Refresh conversations</button></div>
 <p id="expoChatStatus" role="status" class="ctrlMsg"></p>
 <div class="expoChatGrid">
- <div><h3>Participant conversations</h3><div id="expoChatThreads" class="expoChatThreads" aria-label="Private participant chats"></div></div>
- <div class="expoChatView"><h3 id="expoChatTitle">Select a conversation</h3><div class="expoChatLog" id="expoChatMessages" role="log" aria-live="polite"></div>
+ <div><h3>Participant conversations</h3><div id="expoChatThreads" class="expoChatThreads" aria-label="Queued and active participant chats"></div><h3>Offline inquiries</h3><div id="expoChatNotes" class="expoChatThreads"></div></div>
+ <div class="expoChatView"><h3 id="expoChatTitle">Select a conversation</h3><div class="row"><button type="button" id="expoChatEnd" class="secondary" hidden>Finish active conversation</button></div><div class="expoChatLog" id="expoChatMessages" role="log" aria-live="polite"></div>
  <form id="expoChatForm" class="expoChatComposer"><textarea id="expoChatBody" maxlength="1500" rows="2" placeholder="Write a private reply…" aria-label="Recruiter reply" required disabled></textarea><button id="expoChatSend" type="submit" disabled>Send reply</button></form>
  <p class="expoChatNote">Only text messages are supported. Avoid asking participants to send sensitive personal information.</p></div>
 </div></section>
@@ -186,52 +190,94 @@ $('saveExperience').onclick=saveBoothExperience;
 
 
 /* Employer-only Expo chat. Auth, approval and candidate inbox functions unchanged. */
-let expoChatEmployer=null,expoChatThread=null,expoChatChannel=null,expoChatListChannel=null;
+
+/* Employer-managed queue: accept-next enforces FIFO/capacity on the server. */
+let expoChatEmployer=null,expoChatThread=null,expoChatThreadState=null,expoChatChannel=null,expoChatListChannel=null;
 let expoChatTimer=null,expoChatEnabled=false,expoChatLoading=false,expoChatSending=false;
+let expoChatInFlight=false,expoChatRecruiterMax=2,expoChatCurrentParticipant=null;
 function clearEmployerChat(){
  if(expoChatChannel){sb.removeChannel(expoChatChannel);expoChatChannel=null}
  if(expoChatListChannel){sb.removeChannel(expoChatListChannel);expoChatListChannel=null}
  if(expoChatTimer){clearInterval(expoChatTimer);expoChatTimer=null}
- expoChatThread=null;expoChatEmployer=null;expoChatEnabled=false;
- $('expoChatThreads').replaceChildren();$('expoChatMessages').replaceChildren();
- $('expoChatBody').disabled=true;$('expoChatSend').disabled=true;
+ expoChatThread=null;expoChatThreadState=null;expoChatCurrentParticipant=null;expoChatEmployer=null;expoChatEnabled=false;
+ $('expoChatThreads').replaceChildren();$('expoChatNotes').replaceChildren();$('expoChatMessages').replaceChildren();
+ $('expoChatBody').disabled=true;$('expoChatSend').disabled=true;$('expoChatEnd').hidden=true;
  $('expoChatTitle').textContent='Select a conversation';
+ $('expoChatQueueCounts').textContent='0 waiting · 0 active';
 }
 function chatText(parent,tag,text,className){
- const n=document.createElement(tag);n.textContent=text;
- if(className)n.className=className;parent.append(n);return n
+ const n=document.createElement(tag);n.textContent=String(text);
+ if(className)n.className=className;parent.append(n);return n;
 }
 async function refreshEmployerChatSettings(){
  if(!expoChatEmployer)return;
  const employer=expoChatEmployer;
  const {data,error}=await sb.rpc('expo_chat_get_status',{p_employer_id:employer});
  if(employer!==expoChatEmployer)return;
- if(error){$('expoChatStatus').textContent='Could not load chat status: '+error.message;return}
- expoChatEnabled=!!data?.enabled;$('expoChatEnabled').checked=expoChatEnabled;
- $('expoChatBody').disabled=!expoChatEnabled||!expoChatThread;
- $('expoChatSend').disabled=!expoChatEnabled||!expoChatThread;
+ if(error){$('expoChatStatus').textContent='Could not load chat settings: '+error.message;return}
+ expoChatEnabled=!!data?.enabled;expoChatRecruiterMax=data?.max_active||2;
+ $('expoChatEnabled').checked=expoChatEnabled;$('expoChatCapacity').value=String(expoChatRecruiterMax);
+ applyEmployerChatInputState();
+}
+function applyEmployerChatInputState(){
+ const canReply=expoChatEnabled&&expoChatThreadState==='active';
+ $('expoChatBody').disabled=!canReply;$('expoChatSend').disabled=!canReply;
+ $('expoChatEnd').hidden=expoChatThreadState!=='active';
 }
 async function listEmployerChatThreads(){
  if(!expoChatEmployer||expoChatLoading)return;
  const employer=expoChatEmployer;expoChatLoading=true;
  try{
   const {data,error}=await sb.from('expo_chat_threads')
-   .select('id,participant_id,last_message_at')
-   .eq('employer_id',employer).order('last_message_at',{ascending:false}).limit(100);
+   .select('id,participant_id,last_message_at,requested_at,accepted_by,state')
+   .eq('employer_id',employer).order('requested_at',{ascending:true}).limit(150);
   if(error)throw error;
   if(employer!==expoChatEmployer)return;
   const list=$('expoChatThreads');list.replaceChildren();
-  if(!data?.length){chatText(list,'p','No conversations yet. Participants can start a private chat from your booth when enabled.');return}
-  for(const t of data){
+  const waiting=(data||[]).filter(x=>x.state==='waiting');
+  const active=(data||[]).filter(x=>x.state==='active');
+  const mine=active.filter(x=>x.accepted_by===currentUser?.id);
+  $('expoChatQueueCounts').textContent=waiting.length+' waiting · '+active.length+' active · '+mine.length+'/'+expoChatRecruiterMax+' assigned to you';
+  $('expoChatAccept').disabled=!expoChatEnabled||!waiting.length||mine.length>=expoChatRecruiterMax;
+  if(expoChatThread){
+   const selected=(data||[]).find(t=>t.id===expoChatThread);
+   if(selected){
+    expoChatThreadState=selected.state;applyEmployerChatInputState();
+    if(selected.state==='ended'||selected.state==='cancelled')$('expoChatTitle').textContent='Conversation finished · Participant '+selected.participant_id.slice(0,8).toUpperCase();
+   }
+  }
+  if(!data?.length){chatText(list,'p','No chat requests yet. Visitors can join your queue when you are Available or Busy.');return}
+  const renderThread=(t,label)=>{
    const button=document.createElement('button');button.type='button';
    button.setAttribute('aria-current',String(expoChatThread===t.id));
-   chatText(button,'strong','Participant '+t.participant_id.slice(0,8).toUpperCase());
-   chatText(button,'small','Latest activity: '+new Date(t.last_message_at).toLocaleString());
-   button.onclick=()=>openEmployerChat(t.id,t.participant_id);
+   chatText(button,'strong',label+' · Participant '+t.participant_id.slice(0,8).toUpperCase());
+   chatText(button,'small',new Date(t.state==='waiting'?t.requested_at:t.last_message_at).toLocaleString());
+   button.onclick=()=>openEmployerChat(t.id,t.participant_id,t.state);
    list.append(button);
-  }
- }catch(err){$('expoChatStatus').textContent='Could not load conversations: '+err.message}
+  };
+  waiting.forEach((t,i)=>renderThread(t,'Waiting #'+(i+1)));
+  active.forEach(t=>renderThread(t,t.accepted_by===currentUser?.id?'Your active chat':'Active with another recruiter'));
+  (data||[]).filter(x=>!['waiting','active'].includes(x.state)).slice(-12).reverse()
+   .forEach(t=>renderThread(t,t.state==='ended'?'Finished':'Cancelled'));
+ }catch(err){$('expoChatStatus').textContent='Could not load queue: '+err.message}
  finally{expoChatLoading=false}
+}
+async function loadEmployerChatNotes(){
+ if(!expoChatEmployer)return;
+ const employer=expoChatEmployer;
+ const {data,error}=await sb.from('expo_chat_notes')
+   .select('id,participant_id,body,created_at').eq('employer_id',employer)
+   .order('created_at',{ascending:false}).limit(30);
+ if(employer!==expoChatEmployer)return;
+ const holder=$('expoChatNotes');holder.replaceChildren();
+ if(error){chatText(holder,'p','Could not load inquiries: '+error.message);return}
+ if(!data?.length){chatText(holder,'p','No offline inquiries.');return}
+ for(const note of data){
+  const card=document.createElement('div');card.className='staffRequest';
+  chatText(card,'strong','Participant '+note.participant_id.slice(0,8).toUpperCase());
+  chatText(card,'small',' · '+new Date(note.created_at).toLocaleString());
+  chatText(card,'p',note.body);holder.append(card);
+ }
 }
 async function loadEmployerChatMessages(){
  if(!expoChatThread||!expoChatEmployer)return;
@@ -240,9 +286,10 @@ async function loadEmployerChatMessages(){
    .select('id,sender_id,body,created_at').eq('thread_id',thread)
    .order('created_at',{ascending:true}).limit(150);
  if(thread!==expoChatThread)return;
- if(error){$('expoChatStatus').textContent='Could not load chat messages: '+error.message;return}
+ if(error){$('expoChatStatus').textContent='Could not load messages: '+error.message;return}
  const log=$('expoChatMessages');const nearBottom=log.scrollHeight-log.scrollTop-log.clientHeight<110;
  log.replaceChildren();
+ if(!data?.length)chatText(log,'p','No messages in this session yet.');
  for(const m of data||[]){
   const mine=m.sender_id===currentUser?.id;
   const bubble=chatText(log,'div',m.body,'expoChatBubble'+(mine?' mine':''));
@@ -251,11 +298,12 @@ async function loadEmployerChatMessages(){
  if(nearBottom||!log.dataset.loaded)log.scrollTop=log.scrollHeight;
  log.dataset.loaded='yes';
 }
-async function openEmployerChat(id,participant){
+async function openEmployerChat(id,participant,state){
  if(!expoChatEmployer)return;
  if(expoChatChannel){sb.removeChannel(expoChatChannel);expoChatChannel=null}
- expoChatThread=id;$('expoChatTitle').textContent='Participant '+participant.slice(0,8).toUpperCase();
- $('expoChatBody').disabled=!expoChatEnabled;$('expoChatSend').disabled=!expoChatEnabled;
+ expoChatThread=id;expoChatThreadState=state;expoChatCurrentParticipant=participant;
+ $('expoChatTitle').textContent=(state==='active'?'Live chat':state==='waiting'?'In waiting queue':'Chat history')+' · Participant '+participant.slice(0,8).toUpperCase();
+ applyEmployerChatInputState();
  $('expoChatMessages').replaceChildren();delete $('expoChatMessages').dataset.loaded;
  await Promise.all([loadEmployerChatMessages(),listEmployerChatThreads()]);
  if(expoChatThread!==id)return;
@@ -267,42 +315,65 @@ function startEmployerChat(){
  if(!assignedBooth)return;
  clearEmployerChat();
  expoChatEmployer=assignedBooth.id;
- refreshEmployerChatSettings();listEmployerChatThreads();
+ refreshEmployerChatSettings();listEmployerChatThreads();loadEmployerChatNotes();
  expoChatListChannel=sb.channel('expo-chat-inbox-'+expoChatEmployer)
-  .on('postgres_changes',{event:'INSERT',schema:'public',table:'expo_chat_threads',filter:'employer_id=eq.'+expoChatEmployer},()=>listEmployerChatThreads())
-  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'expo_chat_threads',filter:'employer_id=eq.'+expoChatEmployer},()=>listEmployerChatThreads())
+  .on('postgres_changes',{event:'*',schema:'public',table:'expo_chat_threads',filter:'employer_id=eq.'+expoChatEmployer},()=>listEmployerChatThreads())
   .subscribe();
  expoChatTimer=setInterval(()=>{
   if(document.visibilityState==='visible'&&expoChatEmployer){
-   listEmployerChatThreads();
-   if(expoChatThread)loadEmployerChatMessages()
+   listEmployerChatThreads();loadEmployerChatNotes();refreshEmployerChatSettings();
+   if(expoChatThread)loadEmployerChatMessages();
   }
  },12000);
 }
 $('expoChatSave').onclick=async()=>{
  if(!expoChatEmployer)return;
- const btn=$('expoChatSave');btn.disabled=true;$('expoChatStatus').textContent='Saving chat availability…';
- const {data,error}=await sb.rpc('expo_chat_set_enabled',
-  {p_employer_id:expoChatEmployer,p_enabled:$('expoChatEnabled').checked});
+ const btn=$('expoChatSave');btn.disabled=true;$('expoChatStatus').textContent='Saving managed chat settings…';
+ const {data,error}=await sb.rpc('expo_chat_set_options',
+  {p_employer_id:expoChatEmployer,p_enabled:$('expoChatEnabled').checked,p_max_active:Number($('expoChatCapacity').value)});
  if(error)$('expoChatStatus').textContent='Unable to update chat: '+error.message;
  else{
-  expoChatEnabled=!!data?.enabled;
-  $('expoChatStatus').textContent=expoChatEnabled?'Live recruiter chat enabled. Participants can now start a private conversation.':'Chat paused. Existing messages remain available for review.';
-  $('expoChatBody').disabled=!expoChatEnabled||!expoChatThread;
-  $('expoChatSend').disabled=!expoChatEnabled||!expoChatThread;
+  expoChatEnabled=!!data?.enabled;expoChatRecruiterMax=data?.max_active||2;
+  $('expoChatStatus').textContent=expoChatEnabled?'Managed chat is enabled. Participants can queue while your booth is staffed.':'Chat paused; saved conversations remain available.';
+  applyEmployerChatInputState();await listEmployerChatThreads();
  }
  btn.disabled=false;
 };
-$('expoChatRefresh').onclick=async()=>{await listEmployerChatThreads();if(expoChatThread)await loadEmployerChatMessages()};
+$('expoChatAccept').onclick=async()=>{
+ if(!expoChatEmployer||expoChatInFlight)return;
+ expoChatInFlight=true;$('expoChatAccept').disabled=true;$('expoChatStatus').textContent='Accepting next waiting participant…';
+ try{
+  const {data,error}=await sb.rpc('expo_chat_accept_next',{p_employer_id:expoChatEmployer});
+  if(error)throw error;
+  $('expoChatStatus').textContent='Participant accepted. The chat session is now live.';
+  await openEmployerChat(data.thread_id,data.participant_id,'active');
+ }catch(err){$('expoChatStatus').textContent='Unable to accept next: '+err.message}
+ finally{expoChatInFlight=false;await listEmployerChatThreads()}
+};
+$('expoChatEnd').onclick=async()=>{
+ if(!expoChatThread||expoChatThreadState!=='active'||expoChatInFlight)return;
+ expoChatInFlight=true;$('expoChatEnd').disabled=true;
+ try{
+  const {error}=await sb.rpc('expo_chat_end',{p_thread_id:expoChatThread});
+  if(error)throw error;
+  $('expoChatStatus').textContent='Session finished. You can accept another participant.';
+  expoChatThreadState='ended';applyEmployerChatInputState();await listEmployerChatThreads();
+ }catch(err){$('expoChatStatus').textContent='Unable to finish chat: '+err.message}
+ finally{expoChatInFlight=false;$('expoChatEnd').disabled=false}
+};
+$('expoChatRefresh').onclick=async()=>{
+ await Promise.all([listEmployerChatThreads(),loadEmployerChatNotes()]);
+ if(expoChatThread)await loadEmployerChatMessages();
+};
 $('expoChatForm').addEventListener('submit',async event=>{
  event.preventDefault();
- if(expoChatSending||!expoChatThread||!expoChatEnabled)return;
+ if(expoChatSending||!expoChatThread||expoChatThreadState!=='active'||!expoChatEnabled)return;
  const body=$('expoChatBody').value.trim();if(!body)return;
  expoChatSending=true;$('expoChatSend').disabled=true;
  const {error}=await sb.rpc('expo_chat_send',{p_thread_id:expoChatThread,p_body:body});
  if(error)$('expoChatStatus').textContent='Reply not sent: '+error.message;
  else{$('expoChatBody').value='';$('expoChatStatus').textContent='Reply sent.';await loadEmployerChatMessages();await listEmployerChatThreads()}
- expoChatSending=false;$('expoChatSend').disabled=!expoChatEnabled||!expoChatThread;
+ expoChatSending=false;applyEmployerChatInputState();
 });
 
 const STAFF_LABELS={available:'Available to connect',busy:'Busy · requests will queue',away:'Away · requests paused',offline:'Offline · booth not staffed'};
