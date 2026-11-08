@@ -6,11 +6,13 @@
 <div style="font-size:28px;font-weight:800;letter-spacing:1px">LEVEL UP</div><div style="color:#b9e7ff;letter-spacing:1.4px;font-size:12px">SECURE ACCOUNT ACCESS</div>
 </td></tr><tr><td style="padding:32px;text-align:center">
 {{ if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/studio.html" }}
-<h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Career Expo · Employer Booth Studio</h1>
-<p>Sign in to customize your booth and submit branding for approval.</p>
+<h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Career Expo · Employer Booth Portal</h1>
+<p style="color:#263e51;font-size:16px;line-height:25px">Use this secure sign-in to enter your employer booth portal. Set up and customize your exhibit, update your recruiting message and recruiter contact, and prepare your team for event-day booth staffing.</p>
+<p style="color:#263e51;font-size:14px;line-height:22px">When your design is ready, submit your branding for staff approval. Saving a draft does not publish it.</p>
 {{ else if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/employer.html" }}
-<h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Career Expo · Employer Dashboard</h1>
-<p>Sign in to manage your booth and review participant interests.</p>
+<h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Career Expo · Employer Booth Portal</h1>
+<p style="color:#263e51;font-size:16px;line-height:25px">Use this secure sign-in to enter your employer booth portal. Manage your assigned booth, access the setup studio, review participant interests and shared résumés, and prepare your team for event-day booth staffing.</p>
+<p style="color:#263e51;font-size:14px;line-height:22px">Your portal is for your authorized employer team. Booth changes are published only after staff approval.</p>
 {{ else if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/review.html" }}
 <h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Career Expo · Booth Branding Review</h1>
 <p>Sign in with your authorized Level Up staff account to review submitted designs.</p>
@@ -18,7 +20,7 @@
 <h1 style="font-size:24px;color:#173b64;margin:0 0 10px">Opportunity City is Ready</h1>
 <p>Sign in to continue your Level Up journey and pick up where you left off.</p>
 {{ end }}
-<p style="margin:26px 0"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 24px;border-radius:9px;background:#ecae2e;color:#142d46;text-decoration:none;font-size:16px;font-weight:bold">Sign in securely</a></p>
+<p style="margin:26px 0"><a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:15px 24px;border-radius:9px;background:#ecae2e;color:#142d46;text-decoration:none;font-size:16px;font-weight:bold">{{ if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/studio.html" }}Enter Your Employer Booth Portal{{ else if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/employer.html" }}Enter Your Employer Booth Portal{{ else if eq .RedirectTo "https://level-up-portal-eight.vercel.app/expo/review.html" }}Open Booth Branding Review{{ else }}Continue to Level Up{{ end }}</a></p>
 <div style="background:#eef5f9;border:1px solid #c9dfeb;padding:18px 12px;border-radius:10px">
 <p style="font-size:13px;color:#456177;margin:0 0 8px">Prefer to stay on your sign-in page? Enter this one-time code there:</p>
 <strong style="font-size:28px;letter-spacing:5px;color:#173b64">{{ .Token }}</strong>
