@@ -161,7 +161,7 @@ async function loadInterviewQueue(){
             p_employer_id:assignedBooth.id,p_interest_id:item.interest_id,p_status:next
           });
           if(result.error){$('interviewResult').textContent=result.error.message;button.disabled=false;return}
-          $('interviewResult').textContent='Interview request marked '+next+'.';await loadInterviewQueue();
+          $('interviewResult').textContent='Interview request marked '+next+'.';interviewQueueBusy=false;await loadInterviewQueue();
         };
         actions.append(button);
       }card.append(actions);
