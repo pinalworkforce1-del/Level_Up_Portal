@@ -198,6 +198,24 @@ function profileNameKey(userId: string) {
 export function App() {
   const [session, setSession] = useState<Session | null>(null);
   const [authReady, setAuthReady] = useState(false);
+  // Recover a pending employer/staff Expo destination when a shared magic-link
+  // email lands on the main Level Up app. Restrict navigation to trusted local paths.
+  useEffect(() => {
+    if (!authReady || !session?.user?.email) return;
+    const key = "level-up-expo-auth-return-v1";
+    try {
+      const raw = window.localStorage.getItem(key);
+      if (!raw) return;
+      const intent = JSON.parse(raw) as { path?: string; email?: string; at?: number };
+      const safePath = typeof intent.path === "string" && /^\/(?:Level_Up_Portal\/)?expo\/(?:employer|studio|review)\.html$/.test(intent.path);
+      const fresh = typeof intent.at === "number" && intent.at <= Date.now() && Date.now() - intent.at < 30 * 60 * 1000;
+      const sameUser = typeof intent.email === "string" && intent.email.toLowerCase() === session.user.email.toLowerCase();
+      window.localStorage.removeItem(key);
+      if (safePath && fresh && sameUser) window.location.assign(window.location.origin + intent.path);
+    } catch {
+      try { window.localStorage.removeItem(key); } catch { /* storage disabled */ }
+    }
+  }, [authReady, session?.user?.email]);
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<ProgressRow[]>([]);
   const [name, setName] = useState("");
