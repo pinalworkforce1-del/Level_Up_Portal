@@ -399,7 +399,61 @@ const hallSlots=[
 const hallAsset='assets/level-up-five-booth-hall.webp';
 let hallReady=false;
 const hallImage=$('hallBackground');
-hallImage.onload=()=>{hallReady=true;$('floor').classList.add('hallReady')};
+
+// Remove the original artwork's five unused upper-left white tab boxes.
+// This runs only on the Expo hall image. Preserve its native dimensions so booth
+// hotspots and dynamic employer signage stay aligned with the existing artwork.
+function cleanExpoHallTabs(image){
+  const canvas=document.createElement('canvas');
+  const w=image.naturalWidth,h=image.naturalHeight;
+  if(w!==1672||h!==941)throw Error('Hall artwork dimensions changed; no cleanup applied.');
+  canvas.width=w;canvas.height=h;
+  const ctx=canvas.getContext('2d',{willReadFrequently:true});
+  if(!ctx)throw Error('Canvas unavailable.');
+  ctx.drawImage(image,0,0);
+  const picture=ctx.getImageData(0,0,w,h);
+  const dest=picture.data, source=new Uint8ClampedArray(dest);
+  const boxes=[
+    [100,418,179,492],[449,447,512,511],[734,453,799,515],
+    [1025,449,1086,517],[1310,434,1380,501]
+  ];
+  const medianAt=(y,a,b,channel)=>{
+    const samples=[];
+    for(let sy=y-2;sy<=y+2;sy++){
+      for(let sx=a;sx<b;sx++){
+        samples.push(source[(sy*w+sx)*4+channel]);
+      }
+    }
+    samples.sort((x,y)=>x-y);
+    return samples[Math.floor(samples.length/2)];
+  };
+  for(const [x0,y0,x1,y1] of boxes){
+    const width=x1-x0;
+    for(let y=y0;y<y1;y++){
+      const left=[0,1,2].map(ch=>medianAt(y,x0-6,x0-2,ch));
+      const right=[0,1,2].map(ch=>medianAt(y,x1+3,x1+8,ch));
+      for(let x=x0;x<x1;x++){
+        const t=(x-x0+0.5)/width,idx=(y*w+x)*4;
+        for(let ch=0;ch<3;ch++){
+          dest[idx+ch]=Math.round(left[ch]*(1-t)+right[ch]*t);
+        }
+      }
+    }
+  }
+  ctx.putImageData(picture,0,0);
+  return canvas.toDataURL('image/webp',0.94);
+}
+hallImage.onload=()=>{
+  if(!hallImage.dataset.tabsCleaned){
+    try{
+      const cleaned=cleanExpoHallTabs(hallImage);
+      hallImage.dataset.tabsCleaned='yes';
+      hallImage.src=cleaned;
+      return;
+    }catch(err){console.warn('Hall artwork cleanup skipped:',err)}
+  }
+  hallReady=true;$('floor').classList.add('hallReady');
+};
 hallImage.onerror=()=>{hallReady=false;$('floor').classList.remove('hallReady')};
 hallImage.src=hallAsset;
 const hallLabelFor=(b,isLive)=>{
