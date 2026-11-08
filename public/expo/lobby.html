@@ -224,6 +224,46 @@ body.boothOpen{overflow:hidden}
  .detail.open #closeDetail{padding:10px 12px;font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){.stage.hallReady .hallEntryHint{transition:none}}
+
+/* Expo hall signage polish: one logo, readable fascia and tagline. Hall only. */
+.stage.hallReady .hallBrandName{
+  height:16%;padding:0 4px;
+  font-size:clamp(10px,1.15vw,16px)!important;
+  line-height:1.08;letter-spacing:-.015em;
+  font-weight:900;text-wrap:balance;overflow-wrap:anywhere;
+  text-shadow:0 2px 4px #001225,0 0 10px #001225,0 0 5px #001225;
+}
+.stage.hallReady .hallTabLogo{display:none!important}
+.stage.hallReady .hallScreenBrand{
+  padding:3px 3px 2px;gap:2px;
+  background:linear-gradient(180deg,#fff,#eef8fc);
+  border:1px solid #bbdeed;
+  border-radius:3px;
+  box-shadow:inset 0 0 5px #63a7c91c;
+}
+.stage.hallReady .hallScreenBrand img{
+  display:block;flex:1 1 auto;min-height:0;
+  width:96%;height:90%;max-width:96%;max-height:90%;
+  object-fit:contain;
+}
+.stage.hallReady .hallScreenBrand.hasTagline img{
+  height:calc(100% - 15px);max-height:calc(100% - 15px);
+}
+.stage.hallReady .hallScreenBrand .hallScreenTag{
+  flex:0 0 auto;display:block;max-width:100%;
+  margin:0;padding:1px 2px;border-radius:2px;
+  color:#875b09;font-size:clamp(9px,.85vw,12px)!important;
+  line-height:1.05;font-weight:900;letter-spacing:-.015em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.stage.hallReady .hallScreenBrand .hallScreenName{
+  font-size:clamp(9px,.9vw,13px)!important;
+  color:#16425c;
+  font-weight:900;line-height:1.1;overflow-wrap:anywhere;
+}
+@media(max-width:650px){
+  .stage.hallReady .hallTabLogo{display:none!important}
+}
 </style></head><body><header class="top"><div class="brand">▲ LEVEL UP <span style="color:#9de4fa">· VIRTUAL CAREER EXPO</span></div><a href="./">← Event registration</a></header><main class="wrap"><section class="hero"><div><div class="eyebrow">WELCOME TO THE EXPO</div><h1 id="eventTitle">Preparing your event…</h1><p id="eventIntro">We're checking your registration and event access.</p><div class="actions"><button id="enterFloor" disabled>Explore Expo Floor</button><a class="btn" style="background:#234967;color:white" href="./">Event details</a></div></div><div class="ticket"><span class="pill" id="status">Checking access</span><h2 style="margin-top:16px">Your event pass</h2><p id="eventDate">Loading event details…</p><p id="passStatus">Verifying your registration…</p></div></section><div id="notice" class="notice" role="status"></div><section class="stage" id="floor" aria-label="Virtual expo floor"><div class="expoCeiling" aria-hidden="true"></div><div class="arch"><div class="eyebrow">LEVEL UP</div><strong>CAREER EXPO</strong><p style="margin:8px 0 0">Explore · Connect · Discover</p></div><div class="floorHeader"><h2>Exhibition Hall · Employer Booths</h2><span class="floorLegend" id="floorLegend">Approved employer exhibits</span></div><img class="hallBackground" id="hallBackground" alt="Level Up Career Expo exhibition hall with five employer booths"><div class="booths" id="booths"></div><div class="expoAisle" aria-hidden="true"></div><div class="floorEnd">LEVEL UP EXPO · DISCOVER YOUR NEXT OPPORTUNITY</div><div class="empty hidden" id="empty"><h2>Employer booths are being prepared</h2><p>Approved employers will appear here as the event team completes setup. Check back closer to the event.</p></div></section><section class="detail" id="detail" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Employer booth" tabindex="-1"><div class="pavilionTopbar"><button class="secondary" id="closeDetail">← Back to Expo Hall</button><div class="pavilionKicker">LEVEL UP · CAREER EXPO <span id="pavilionBoothNumber"></span></div></div><div class="pavilionScene" aria-label="Branded employer booth interior"><img src="assets/immersive-blank-booth.svg" alt="Immersive career expo booth with digital employer signage"><div class="pavilionSceneLayer pavilionSceneName" id="pavilionSceneName"></div><div class="pavilionSceneLayer pavilionSceneLogo" id="pavilionSceneLogo"></div><div class="pavilionSceneLayer pavilionSceneDisplay" id="pavilionSceneDisplay"></div><div class="pavilionSceneLayer pavilionSceneDesk" id="pavilionSceneDesk"></div></div><div class="pavilionWelcome"><div class="pavilionBrand" id="pavilionBrand"><img id="pavilionLogo" alt="Employer logo" style="display:none"><h2 id="employerName"></h2><p id="pavilionTagline"></p><p id="employerDescription"></p></div><nav class="pavilionQuickActions" aria-label="Employer booth activities"><button id="boothPositionsAction">💼 Explore opportunities</button><button id="boothAboutAction">ℹ️ Meet this employer</button><button id="boothResumeAction">📄 Résumé exchange</button></nav></div><section class="pavilionOpportunities" id="pavilionOpportunities"><h3>Explore opportunities</h3><p class="pavilionGuide" id="pavilionGuidance" role="status">Select a position to express interest. If you choose to share your résumé, you'll be asked for consent after saving your interest.</p><div class="positions" id="positions"></div></section></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js"></script><script>
 const sb=window.supabase.createClient('https://dnijrzotfyvmmnmueknk.supabase.co','sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc'),$=id=>document.getElementById(id);let booths=[],activeRegistration=null,activeEvent=null,activeUser=null,lastBoothTrigger=null;
 const expoAccent=c=>/^#[0-9a-f]{6}$/i.test(c||'')?c:'#62caff';
@@ -368,9 +408,9 @@ const hallLabelFor=(b,isLive)=>{
  const screen=document.createElement('span');screen.className='hallScreenBrand';
  if(logo){const img=document.createElement('img');img.src=logo;img.alt='Published employer logo';img.onerror=()=>{img.remove();const fallback=document.createElement('strong');fallback.className='hallScreenName';fallback.textContent=b.name;screen.prepend(fallback)};screen.append(img)}
  else{const fallback=document.createElement('strong');fallback.className='hallScreenName';fallback.textContent=b.name;screen.append(fallback)}
- if(branding.tagline){const tag=document.createElement('small');tag.className='hallScreenTag';tag.textContent=branding.tagline;screen.append(tag)}
+ if(branding.tagline){screen.classList.add('hasTagline');const tag=document.createElement('small');tag.className='hallScreenTag';tag.textContent=branding.tagline;screen.append(tag)}
  wrap.append(screen);
- if(logo){const tab=document.createElement('span');tab.className='hallTabLogo';const img=document.createElement('img');img.src=logo;img.alt='';img.onerror=()=>tab.remove();tab.append(img);wrap.append(tab)}
+ 
  if(isLive){const hint=document.createElement('span');hint.className='hallEntryHint';hint.textContent='Enter booth ↗';wrap.append(hint)}
  const mobile=document.createElement('span');mobile.className='hallMobileCard';
  const tile=document.createElement('span');tile.className='hallMobileIcon';
