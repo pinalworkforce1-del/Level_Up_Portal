@@ -252,7 +252,7 @@ body.boothOpen{overflow:hidden}
 .stage.hallReady .hallScreenBrand .hallScreenTag{
   flex:0 0 auto;display:block;max-width:100%;
   margin:0;padding:1px 2px;border-radius:2px;
-  color:#875b09;font-size:clamp(9px,.85vw,12px)!important;
+  color:#123b59;font-size:clamp(9px,.85vw,12px)!important;
   line-height:1.05;font-weight:900;letter-spacing:-.015em;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
@@ -390,11 +390,11 @@ async function openBooth(b){
 async function init(){try{const slug=new URLSearchParams(location.search).get('event');if(!slug)throw Error('No event was selected. Return to the event registration page.');const {data:{user}}=await sb.auth.getUser();if(!user)throw Error('Please sign in and register for this event before entering the lobby.');const {data:e,error:ee}=await sb.from('expo_events').select('id,title,status,starts_at,ends_at,timezone').eq('slug',slug).single();if(ee||!e)throw Error('This event is not available.');$('eventTitle').textContent=e.title;$('eventDate').textContent=new Date(e.starts_at).toLocaleString('en-US',{dateStyle:'full',timeStyle:'short',timeZone:e.timezone||'America/Phoenix'})+' · '+(e.timezone||'America/Phoenix');status(e.status);const {data:r,error:re}=await sb.from('expo_registrations').select('id').eq('event_id',e.id).eq('user_id',user.id).maybeSingle();if(re)throw re;if(!r)throw Error('You are not registered for this event. Return to event registration to reserve your place.');activeRegistration=r.id;activeEvent=e.id;activeUser=user.id;$('passStatus').textContent='✓ Registration confirmed';const {data:wex}=await sb.from('expo_participant_wex').select('status,expires_at').eq('user_id',user.id).maybeSingle();if(wex?.status==='approved'&&(!wex.expires_at||new Date(wex.expires_at)>new Date())){const badge=document.createElement('span');badge.className='pill';badge.style.marginTop='10px';badge.textContent='✓ WEX Approved · Verified';$('passStatus').after(badge)}if(e.status==='registration'){$('eventIntro').textContent='Your registration is confirmed. The lobby will open when the event team changes its status to Lobby.';note('Lobby not yet open. Your event pass is ready.');$('empty').classList.remove('hidden');$('empty').querySelector('h2').textContent='The lobby is not open yet';return}if(!['lobby','live'].includes(e.status))throw Error('The event lobby is currently unavailable.');$('enterFloor').disabled=false;$('eventIntro').textContent=e.status==='live'?'The event is live! Visit employer booths and explore available opportunities.':'The lobby is open. Explore the event space while employers prepare for the live event.';const {data:bs,error:be}=await sb.from('expo_employers') .select('id,booth_number,name,description,accent_color,features').eq('event_id',e.id).eq('setup_status','approved').order('booth_number');if(be)throw be;booths=bs||[];const legend=$('floorLegend');legend.textContent=booths.length+' approved employer booth'+(booths.length===1?'':'s')+' · '+(e.status==='live'?'Open for visits':'Preview only');
 // Activate the hall only when the real artwork has been published; never leave a broken-image floor.
 const hallSlots=[
- {x:2.3,y:41,w:21,h:31,hx:30,hy:14,hw:68,sx:30,sy:43,sw:60,sh:26,tx:18,ty:19,tw:18,th:18},
- {x:25,y:45,w:15,h:27,hx:24,hy:11,hw:73,sx:29,sy:38,sw:62,sh:29,tx:11,ty:14,tw:17,th:19},
- {x:41.5,y:47,w:17,h:25,hx:25,hy:9,hw:73,sx:31,sy:35,sw:61,sh:32,tx:10,ty:13,tw:18,th:20},
- {x:61,y:45,w:15,h:27,hx:24,hy:11,hw:73,sx:29,sy:38,sw:63,sh:29,tx:11,ty:14,tw:17,th:19},
- {x:77,y:41,w:21,h:31,hx:27,hy:14,hw:71,sx:29,sy:43,sw:63,sh:27,tx:16,ty:19,tw:18,th:18}
+ {x:2.3,y:41,w:21,h:31,hx:18,hy:14,hw:80,sx:30,sy:43,sw:60,sh:26,tx:18,ty:19,tw:18,th:18},
+ {x:25,y:45,w:15,h:27,hx:18,hy:11,hw:79,sx:29,sy:38,sw:62,sh:29,tx:11,ty:14,tw:17,th:19},
+ {x:41.5,y:47,w:17,h:25,hx:19,hy:9,hw:79,sx:31,sy:35,sw:61,sh:32,tx:10,ty:13,tw:18,th:20},
+ {x:61,y:45,w:15,h:27,hx:18,hy:11,hw:79,sx:29,sy:38,sw:63,sh:29,tx:11,ty:14,tw:17,th:19},
+ {x:77,y:41,w:21,h:31,hx:19,hy:14,hw:79,sx:29,sy:43,sw:63,sh:27,tx:16,ty:19,tw:18,th:18}
 ];
 const hallAsset='assets/level-up-five-booth-hall.webp';
 let hallReady=false;
