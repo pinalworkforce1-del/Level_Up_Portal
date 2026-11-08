@@ -467,7 +467,7 @@ async function openBooth(b){
     if(checkError||latest?.status!=='live'){btn.textContent='Express interest';note('This event is no longer Live.');return}
     const {data:created,error:saveError}=await sb.from('expo_interests').insert({registration_id:activeRegistration,position_id:p.id}).select('id').single();
     if(saveError&&saveError.code!=='23505'){btn.disabled=false;btn.textContent='Express interest';note('Unable to save interest: '+saveError.message);return}
-    saved.set(p.id,created?.id||null);btn.textContent='Interest saved ✓';note('Your interest in '+p.title+' has been saved to this Expo registration.');await showResumeShare(card,p,saved.get(p.id));await addInterviewRequestControl(card,p,saved.get(p.id));
+    saved.set(p.id,created?.id||null);btn.textContent='Interest saved ✓';note('Your interest in '+p.title+' has been saved to this Expo registration.');await showResumeShare(card,p,saved.get(p.id));const oldInterview=card.querySelector('.interviewAction');if(oldInterview)oldInterview.remove();await addInterviewRequestControl(card,p,saved.get(p.id));
    };card.append(btn);if(saved.has(p.id)&&saved.get(p.id))await showResumeShare(card,p,saved.get(p.id))
   }
   $('positions').append(card);
