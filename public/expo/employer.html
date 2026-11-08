@@ -40,6 +40,26 @@
 .staffResult{color:#b7f2d5;min-height:24px}
 #boothStaff,#boothInterviews{scroll-margin-top:24px}
 @media(max-width:700px){.staffBar{grid-template-columns:1fr}}
+
+/* Expo recruiter chat inbox: separate from existing employer forms */
+.expoChatSwitch{display:flex;align-items:center;gap:11px;padding:13px 15px;border:1px solid #5593ac;border-radius:12px;background:#0c344d;font-weight:800}
+.expoChatSwitch input{width:21px;height:21px;accent-color:#38d4b6;flex:none}
+.expoChatGrid{display:grid;grid-template-columns:minmax(200px,260px) minmax(0,1fr);gap:15px;margin:18px 0}
+.expoChatThreads{display:flex;flex-direction:column;gap:8px;max-height:440px;overflow-y:auto}
+.expoChatThreads button{display:block;text-align:left;background:#113b55;border:1px solid #54859f;color:#eafaff;border-radius:10px;padding:12px;white-space:normal}
+.expoChatThreads button[aria-current="true"]{border-color:#85f5ff;background:#175b7a;box-shadow:0 0 9px #36d1fa65}
+.expoChatThreads button strong,.expoChatThreads button small{display:block}
+.expoChatThreads button small{font-weight:500;font-size:12px;color:#bfdfe9;margin-top:6px}
+.expoChatView{background:#0b2b42;border:1px solid #5382a0;border-radius:13px;padding:14px;min-width:0}
+.expoChatLog{height:290px;overflow-y:auto;overscroll-behavior:contain;background:#082136;border-radius:9px;padding:13px;display:flex;flex-direction:column;gap:10px}
+.expoChatBubble{max-width:85%;padding:9px 12px;border-radius:12px;background:#234e68;overflow-wrap:anywhere;white-space:pre-wrap;font-size:14px}
+.expoChatBubble.mine{align-self:flex-end;background:#136a77}
+.expoChatBubble small{display:block;color:#c3e4ed;font-size:11px;margin-top:4px}
+.expoChatComposer{display:flex;gap:9px;margin-top:13px}
+.expoChatComposer textarea{min-height:65px;flex:1;min-width:0;resize:vertical;color:#11334b;background:white;padding:10px;border-radius:9px;font:inherit}
+.expoChatComposer button{align-self:end}
+.expoChatNote{color:#c5e4ee;font-size:13px;line-height:1.5}
+@media(max-width:720px){.expoChatGrid{grid-template-columns:1fr}.expoChatThreads{max-height:175px}.expoChatLog{height:260px}.expoChatComposer{flex-direction:column}.expoChatComposer button{align-self:stretch}}
 </style></head><body><header><div class="brand">LEVEL UP <span style="color:#78dbf1">· EMPLOYER EXPO</span></div><span>Employer access · Assigned booths only</span></header><main><div class="eyebrow">Virtual Career Expo · Employer Workspace</div><h1>Your employer dashboard</h1><p class="sub">Review candidate interest, view résumés shared with your booth, and see verified Work Experience eligibility.</p>
 <section id="auth" class="card"><h2>Secure employer sign-in</h2><p class="sub">Use the email address assigned to your Expo booth. Your access link uses Level Up's shared authentication service.</p><label for="email">Employer email</label><div class="row"><input id="email" type="email" placeholder="name@company.com"><button id="signin">Send secure sign-in link</button><button id="signout" class="secondary">Sign out</button></div><div class="expoOtp" style="background:#0b2d45;border:1px solid #3b819d;padding:14px;border-radius:10px;margin-top:14px">
 <label for="expoCode" style="display:block;font-weight:800;margin-bottom:8px">Have a Career Expo email code?</label>
@@ -69,6 +89,20 @@
  <div class="row"><button type="button" id="saveExperience">Save booth actions</button><span class="sub">Changes appear in the visitor booth when it is reopened.</span></div>
  <p id="experienceMessage" class="ctrlMsg" role="status"></p>
 </section>
+
+<section id="boothChatControl" class="card">
+<div class="eyebrow">Event-day operations</div><h2>Live Recruiter Chat</h2>
+<p class="sub">Have a private text conversation with each participant who opens chat from your booth. Chat is optional and disabled until you switch it on.</p>
+<label class="expoChatSwitch"><input id="expoChatEnabled" type="checkbox"><span>Enable private recruiter chat for this booth</span></label>
+<p class="expoChatNote">Messages are visible only to that participant and the authorized employer team. Chat is text-only; it does not launch video, share a résumé, or promise an immediate reply. Disable chat to pause new messages.</p>
+<div class="row"><button type="button" id="expoChatSave">Save chat availability</button><button type="button" class="secondary" id="expoChatRefresh">Refresh conversations</button></div>
+<p id="expoChatStatus" role="status" class="ctrlMsg"></p>
+<div class="expoChatGrid">
+ <div><h3>Participant conversations</h3><div id="expoChatThreads" class="expoChatThreads" aria-label="Private participant chats"></div></div>
+ <div class="expoChatView"><h3 id="expoChatTitle">Select a conversation</h3><div class="expoChatLog" id="expoChatMessages" role="log" aria-live="polite"></div>
+ <form id="expoChatForm" class="expoChatComposer"><textarea id="expoChatBody" maxlength="1500" rows="2" placeholder="Write a private reply…" aria-label="Recruiter reply" required disabled></textarea><button id="expoChatSend" type="submit" disabled>Send reply</button></form>
+ <p class="expoChatNote">Only text messages are supported. Avoid asking participants to send sensitive personal information.</p></div>
+</div></section>
 <section id="boothStaff" class="card">
 <div class="eyebrow">Event-day operations</div><h2>Recruiter availability</h2>
 <p class="sub">Tell visitors whether someone is staffing your booth. Your live availability automatically expires if Booth Control is left unattended.</p>
@@ -88,7 +122,7 @@
 <div id="staffRequests" class="staffRequests"></div>
 <p id="interviewResult" class="staffResult" role="status"></p>
 </section>
-<nav class="ctrlNav" aria-label="Booth Control"><a href="#boothExperience">✨ Booth actions</a><a href="#boothStaff">🟢 Recruiter status</a><a href="#boothInterviews">🎙️ Conversation requests</a><a href="#boothOpportunities">💼 Opportunities</a><a href="#boothCandidates">👥 Candidate interests</a><a href="studio.html">🎨 Branding Studio</a></nav>
+<nav class="ctrlNav" aria-label="Booth Control"><a href="#boothExperience">✨ Booth actions</a><a href="#boothChatControl">💬 Live chat</a><a href="#boothStaff">🟢 Recruiter status</a><a href="#boothInterviews">🎙️ Conversation requests</a><a href="#boothOpportunities">💼 Opportunities</a><a href="#boothCandidates">👥 Candidate interests</a><a href="studio.html">🎨 Branding Studio</a></nav>
 <section class="card" id="boothOpportunities"><div class="ctrlHead"><div><div class="eyebrow">Booth Control</div><h2>Opportunities &amp; application instructions</h2><p class="sub">Create positions, add application links, and tell visitors how to apply.</p></div><button id="newPosition">+ Add opportunity</button></div>
 <p class="sub" id="positionSummary">Loading opportunities…</p><div class="ctrlList" id="positionList"></div>
 <div class="ctrlEdit" id="positionEditor" hidden><h3 id="editHeading">New opportunity</h3><p class="ctrlHelp">Saving publishes the changes immediately. Staff retains control of WEX approvals.</p>
@@ -149,6 +183,127 @@ async function saveBoothExperience(){
  finally{btn.disabled=false}
 }
 $('saveExperience').onclick=saveBoothExperience;
+
+
+/* Employer-only Expo chat. Auth, approval and candidate inbox functions unchanged. */
+let expoChatEmployer=null,expoChatThread=null,expoChatChannel=null,expoChatListChannel=null;
+let expoChatTimer=null,expoChatEnabled=false,expoChatLoading=false,expoChatSending=false;
+function clearEmployerChat(){
+ if(expoChatChannel){sb.removeChannel(expoChatChannel);expoChatChannel=null}
+ if(expoChatListChannel){sb.removeChannel(expoChatListChannel);expoChatListChannel=null}
+ if(expoChatTimer){clearInterval(expoChatTimer);expoChatTimer=null}
+ expoChatThread=null;expoChatEmployer=null;expoChatEnabled=false;
+ $('expoChatThreads').replaceChildren();$('expoChatMessages').replaceChildren();
+ $('expoChatBody').disabled=true;$('expoChatSend').disabled=true;
+ $('expoChatTitle').textContent='Select a conversation';
+}
+function chatText(parent,tag,text,className){
+ const n=document.createElement(tag);n.textContent=text;
+ if(className)n.className=className;parent.append(n);return n
+}
+async function refreshEmployerChatSettings(){
+ if(!expoChatEmployer)return;
+ const employer=expoChatEmployer;
+ const {data,error}=await sb.rpc('expo_chat_get_status',{p_employer_id:employer});
+ if(employer!==expoChatEmployer)return;
+ if(error){$('expoChatStatus').textContent='Could not load chat status: '+error.message;return}
+ expoChatEnabled=!!data?.enabled;$('expoChatEnabled').checked=expoChatEnabled;
+ $('expoChatBody').disabled=!expoChatEnabled||!expoChatThread;
+ $('expoChatSend').disabled=!expoChatEnabled||!expoChatThread;
+}
+async function listEmployerChatThreads(){
+ if(!expoChatEmployer||expoChatLoading)return;
+ const employer=expoChatEmployer;expoChatLoading=true;
+ try{
+  const {data,error}=await sb.from('expo_chat_threads')
+   .select('id,participant_id,last_message_at')
+   .eq('employer_id',employer).order('last_message_at',{ascending:false}).limit(100);
+  if(error)throw error;
+  if(employer!==expoChatEmployer)return;
+  const list=$('expoChatThreads');list.replaceChildren();
+  if(!data?.length){chatText(list,'p','No conversations yet. Participants can start a private chat from your booth when enabled.');return}
+  for(const t of data){
+   const button=document.createElement('button');button.type='button';
+   button.setAttribute('aria-current',String(expoChatThread===t.id));
+   chatText(button,'strong','Participant '+t.participant_id.slice(0,8).toUpperCase());
+   chatText(button,'small','Latest activity: '+new Date(t.last_message_at).toLocaleString());
+   button.onclick=()=>openEmployerChat(t.id,t.participant_id);
+   list.append(button);
+  }
+ }catch(err){$('expoChatStatus').textContent='Could not load conversations: '+err.message}
+ finally{expoChatLoading=false}
+}
+async function loadEmployerChatMessages(){
+ if(!expoChatThread||!expoChatEmployer)return;
+ const thread=expoChatThread;
+ const {data,error}=await sb.from('expo_chat_messages')
+   .select('id,sender_id,body,created_at').eq('thread_id',thread)
+   .order('created_at',{ascending:true}).limit(150);
+ if(thread!==expoChatThread)return;
+ if(error){$('expoChatStatus').textContent='Could not load chat messages: '+error.message;return}
+ const log=$('expoChatMessages');const nearBottom=log.scrollHeight-log.scrollTop-log.clientHeight<110;
+ log.replaceChildren();
+ for(const m of data||[]){
+  const mine=m.sender_id===currentUser?.id;
+  const bubble=chatText(log,'div',m.body,'expoChatBubble'+(mine?' mine':''));
+  chatText(bubble,'small',(mine?'You':'Participant')+' · '+new Date(m.created_at).toLocaleTimeString());
+ }
+ if(nearBottom||!log.dataset.loaded)log.scrollTop=log.scrollHeight;
+ log.dataset.loaded='yes';
+}
+async function openEmployerChat(id,participant){
+ if(!expoChatEmployer)return;
+ if(expoChatChannel){sb.removeChannel(expoChatChannel);expoChatChannel=null}
+ expoChatThread=id;$('expoChatTitle').textContent='Participant '+participant.slice(0,8).toUpperCase();
+ $('expoChatBody').disabled=!expoChatEnabled;$('expoChatSend').disabled=!expoChatEnabled;
+ $('expoChatMessages').replaceChildren();delete $('expoChatMessages').dataset.loaded;
+ await Promise.all([loadEmployerChatMessages(),listEmployerChatThreads()]);
+ if(expoChatThread!==id)return;
+ expoChatChannel=sb.channel('expo-chat-recruiter-'+id)
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'expo_chat_messages',filter:'thread_id=eq.'+id},()=>loadEmployerChatMessages())
+  .subscribe();
+}
+function startEmployerChat(){
+ if(!assignedBooth)return;
+ clearEmployerChat();
+ expoChatEmployer=assignedBooth.id;
+ refreshEmployerChatSettings();listEmployerChatThreads();
+ expoChatListChannel=sb.channel('expo-chat-inbox-'+expoChatEmployer)
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'expo_chat_threads',filter:'employer_id=eq.'+expoChatEmployer},()=>listEmployerChatThreads())
+  .on('postgres_changes',{event:'UPDATE',schema:'public',table:'expo_chat_threads',filter:'employer_id=eq.'+expoChatEmployer},()=>listEmployerChatThreads())
+  .subscribe();
+ expoChatTimer=setInterval(()=>{
+  if(document.visibilityState==='visible'&&expoChatEmployer){
+   listEmployerChatThreads();
+   if(expoChatThread)loadEmployerChatMessages()
+  }
+ },12000);
+}
+$('expoChatSave').onclick=async()=>{
+ if(!expoChatEmployer)return;
+ const btn=$('expoChatSave');btn.disabled=true;$('expoChatStatus').textContent='Saving chat availability…';
+ const {data,error}=await sb.rpc('expo_chat_set_enabled',
+  {p_employer_id:expoChatEmployer,p_enabled:$('expoChatEnabled').checked});
+ if(error)$('expoChatStatus').textContent='Unable to update chat: '+error.message;
+ else{
+  expoChatEnabled=!!data?.enabled;
+  $('expoChatStatus').textContent=expoChatEnabled?'Live recruiter chat enabled. Participants can now start a private conversation.':'Chat paused. Existing messages remain available for review.';
+  $('expoChatBody').disabled=!expoChatEnabled||!expoChatThread;
+  $('expoChatSend').disabled=!expoChatEnabled||!expoChatThread;
+ }
+ btn.disabled=false;
+};
+$('expoChatRefresh').onclick=async()=>{await listEmployerChatThreads();if(expoChatThread)await loadEmployerChatMessages()};
+$('expoChatForm').addEventListener('submit',async event=>{
+ event.preventDefault();
+ if(expoChatSending||!expoChatThread||!expoChatEnabled)return;
+ const body=$('expoChatBody').value.trim();if(!body)return;
+ expoChatSending=true;$('expoChatSend').disabled=true;
+ const {error}=await sb.rpc('expo_chat_send',{p_thread_id:expoChatThread,p_body:body});
+ if(error)$('expoChatStatus').textContent='Reply not sent: '+error.message;
+ else{$('expoChatBody').value='';$('expoChatStatus').textContent='Reply sent.';await loadEmployerChatMessages();await listEmployerChatThreads()}
+ expoChatSending=false;$('expoChatSend').disabled=!expoChatEnabled||!expoChatThread;
+});
 
 const STAFF_LABELS={available:'Available to connect',busy:'Busy · requests will queue',away:'Away · requests paused',offline:'Offline · booth not staffed'};
 let staffActiveStatus='offline',staffHeartbeat=null,staffUpdateBusy=false,interviewQueueBusy=false;
@@ -290,6 +445,7 @@ say('Employer inbox updated. Refresh to check for newly shared or revoked résum
 async function activateAssignedBooth(booth){
  if(!booth)return;
  assignedBooth=booth;
+ startEmployerChat();
  editingPosition=null;$('positionEditor').hidden=true;
  staffActiveStatus='offline';staffMarkStatus('offline');
  $('boothTitle').textContent='Booth '+String(booth.booth_number).padStart(2,'0')+' · '+booth.name;
