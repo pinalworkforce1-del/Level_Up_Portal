@@ -282,12 +282,51 @@ body.boothOpen{overflow:hidden}
 @media(max-width:650px){
   .stage.hallReady .hallTabLogo{display:none!important}
 }
-</style></head><body><header class="top"><div class="brand">▲ LEVEL UP <span style="color:#9de4fa">· VIRTUAL CAREER EXPO</span></div><a href="./">← Event registration</a></header><main class="wrap"><section class="hero"><div><div class="eyebrow">WELCOME TO THE EXPO</div><h1 id="eventTitle">Preparing your event…</h1><p id="eventIntro">We're checking your registration and event access.</p><div class="actions"><button id="enterFloor" disabled>Explore Expo Floor</button><a class="btn" style="background:#234967;color:white" href="./">Event details</a></div></div><div class="ticket"><span class="pill" id="status">Checking access</span><h2 style="margin-top:16px">Your event pass</h2><p id="eventDate">Loading event details…</p><p id="passStatus">Verifying your registration…</p></div></section><div id="notice" class="notice" role="status"></div><section class="stage" id="floor" aria-label="Virtual expo floor"><div class="expoCeiling" aria-hidden="true"></div><div class="arch"><div class="eyebrow">LEVEL UP</div><strong>CAREER EXPO</strong><p style="margin:8px 0 0">Explore · Connect · Discover</p></div><div class="floorHeader"><h2>Exhibition Hall · Employer Booths</h2><span class="floorLegend" id="floorLegend">Approved employer exhibits</span></div><img class="hallBackground" id="hallBackground" alt="Level Up Career Expo exhibition hall with five employer booths"><div class="booths" id="booths"></div><div class="expoAisle" aria-hidden="true"></div><div class="floorEnd">LEVEL UP EXPO · DISCOVER YOUR NEXT OPPORTUNITY</div><div class="empty hidden" id="empty"><h2>Employer booths are being prepared</h2><p>Approved employers will appear here as the event team completes setup. Check back closer to the event.</p></div></section><section class="detail" id="detail" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Employer booth" tabindex="-1"><div class="pavilionTopbar"><button class="secondary" id="closeDetail">← Back to Expo Hall</button><div class="pavilionKicker">LEVEL UP · CAREER EXPO <span id="pavilionBoothNumber"></span></div></div><div class="pavilionScene" aria-label="Branded employer booth interior"><img src="assets/immersive-blank-booth.svg" alt="Immersive career expo booth with digital employer signage"><div class="pavilionSceneLayer pavilionSceneName" id="pavilionSceneName"></div><div class="pavilionSceneLayer pavilionSceneLogo" id="pavilionSceneLogo"></div><div class="pavilionSceneLayer pavilionSceneDisplay" id="pavilionSceneDisplay"></div><div class="pavilionSceneLayer pavilionSceneDesk" id="pavilionSceneDesk"></div></div><div class="pavilionWelcome"><div class="pavilionBrand" id="pavilionBrand"><img id="pavilionLogo" alt="Employer logo" style="display:none"><h2 id="employerName"></h2><p id="pavilionTagline"></p><p id="employerDescription"></p></div><nav class="pavilionQuickActions" aria-label="Employer booth activities"><button id="boothPositionsAction">💼 Explore opportunities</button><button id="boothAboutAction">ℹ️ Meet this employer</button><button id="boothResumeAction">📄 Résumé exchange</button></nav></div><section class="pavilionOpportunities" id="pavilionOpportunities"><h3>Explore opportunities</h3><div id="pavilionPresence" class="pavilionPresence" role="status">Checking recruiter availability…</div><p class="pavilionGuide" id="pavilionGuidance" role="status">Select a position to express interest. If you choose to share your résumé, you'll be asked for consent after saving your interest.</p><div class="positions" id="positions"></div></section></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js"></script><script>
+
+/* Expo immersive booth action rail: responsive, no artwork changes. */
+.detail.open .pavilionQuickActions{display:none!important}
+.detail.open .pavilionScenePresence{position:absolute;z-index:5;top:4%;right:2.5%;max-width:32%;display:flex;gap:8px;align-items:center;padding:9px 12px;border:1px solid #73c9ed;border-radius:12px;background:#06253cdd;color:#f2fbff;box-shadow:0 5px 20px #001b35a8;backdrop-filter:blur(7px);font-size:clamp(10px,1vw,14px);line-height:1.25;font-weight:800;text-shadow:0 1px 2px #012;}
+.detail.open .pavilionScenePresence[hidden]{display:none!important}
+.detail.open .pavilionPresenceDot{width:10px;height:10px;min-width:10px;border-radius:50%;background:#7e99a7;box-shadow:0 0 0 3px #fff2}
+.detail.open .pavilionScenePresence.available .pavilionPresenceDot{background:#4ef1b5;box-shadow:0 0 12px #4ef1b5}
+.detail.open .pavilionScenePresence.busy .pavilionPresenceDot{background:#ffd273;box-shadow:0 0 12px #ffd273}
+.detail.open .boothActionRail{position:absolute;z-index:7;left:2%;right:2%;bottom:1.8%;display:flex;justify-content:center;align-items:stretch;gap:clamp(5px,.7vw,11px);pointer-events:auto}
+.detail.open .boothActionRail button{flex:1 1 0;min-width:0;max-width:210px;min-height:64px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;padding:8px 6px;background:linear-gradient(150deg,#093855ef,#07537dea);border:1.5px solid #7eeaff;border-radius:14px;color:#fff;font-size:clamp(10px,.95vw,14px);line-height:1.12;font-weight:900;text-align:center;text-shadow:0 1px 3px #001d33;box-shadow:0 3px 0 #0b263e,0 0 12px #42d9ff9e;cursor:pointer;transition:transform .15s,background .15s}
+.detail.open .boothActionRail button:hover,.detail.open .boothActionRail button:focus-visible{background:#166d9e;transform:translateY(-3px);outline:2px solid #fff;outline-offset:2px}
+.detail.open .boothActionRail button[hidden]{display:none!important}
+.detail.open .boothActionRail .actionIcon{font-size:clamp(18px,2.15vw,31px);line-height:1}
+.detail.open .boothActionRail .actionLabel{display:block}
+.detail.open .boothActionPanel{max-width:1180px;margin:13px auto 16px;padding:18px;border:1px solid #4ca8d1;border-radius:13px;background:#0c3049;color:#e6f4fc}
+.detail.open .boothActionPanel[hidden]{display:none}
+.detail.open .boothActionPanel h3{margin:0 0 9px;font-size:19px}
+.detail.open .boothActionPanel p{margin:8px 0;color:#c8dfec}
+.detail.open .boothActionPanel iframe{width:100%;max-width:820px;aspect-ratio:16/9;border:0;border-radius:9px;background:#071727;display:block;margin:12px auto}
+.detail.open .boothActionPanel a{color:#b5eeff}
+.detail.open .boothActionPanel button{margin:7px 0;padding:9px 15px}
+@media(max-width:700px){
+ .detail.open .pavilionScenePresence{max-width:49%;font-size:10px;padding:6px 8px;top:3%;right:2%}
+ .detail.open .boothActionRail{position:relative;left:auto;right:auto;bottom:auto;margin:0;display:flex;justify-content:flex-start;gap:8px;overflow-x:auto;padding:12px 6px 15px;background:#082b45;border-radius:0 0 13px 13px;scroll-snap-type:x mandatory}
+ .detail.open .boothActionRail button{flex:0 0 134px;max-width:none;min-height:62px;scroll-snap-align:start;font-size:12px}
+ .detail.open .boothActionRail .actionIcon{font-size:23px}
+ .detail.open .pavilionScene{overflow:visible}
+ .detail.open .pavilionScene>img{border-radius:15px}
+}
+</style></head><body><header class="top"><div class="brand">▲ LEVEL UP <span style="color:#9de4fa">· VIRTUAL CAREER EXPO</span></div><a href="./">← Event registration</a></header><main class="wrap"><section class="hero"><div><div class="eyebrow">WELCOME TO THE EXPO</div><h1 id="eventTitle">Preparing your event…</h1><p id="eventIntro">We're checking your registration and event access.</p><div class="actions"><button id="enterFloor" disabled>Explore Expo Floor</button><a class="btn" style="background:#234967;color:white" href="./">Event details</a></div></div><div class="ticket"><span class="pill" id="status">Checking access</span><h2 style="margin-top:16px">Your event pass</h2><p id="eventDate">Loading event details…</p><p id="passStatus">Verifying your registration…</p></div></section><div id="notice" class="notice" role="status"></div><section class="stage" id="floor" aria-label="Virtual expo floor"><div class="expoCeiling" aria-hidden="true"></div><div class="arch"><div class="eyebrow">LEVEL UP</div><strong>CAREER EXPO</strong><p style="margin:8px 0 0">Explore · Connect · Discover</p></div><div class="floorHeader"><h2>Exhibition Hall · Employer Booths</h2><span class="floorLegend" id="floorLegend">Approved employer exhibits</span></div><img class="hallBackground" id="hallBackground" alt="Level Up Career Expo exhibition hall with five employer booths"><div class="booths" id="booths"></div><div class="expoAisle" aria-hidden="true"></div><div class="floorEnd">LEVEL UP EXPO · DISCOVER YOUR NEXT OPPORTUNITY</div><div class="empty hidden" id="empty"><h2>Employer booths are being prepared</h2><p>Approved employers will appear here as the event team completes setup. Check back closer to the event.</p></div></section><section class="detail" id="detail" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Employer booth" tabindex="-1"><div class="pavilionTopbar"><button class="secondary" id="closeDetail">← Back to Expo Hall</button><div class="pavilionKicker">LEVEL UP · CAREER EXPO <span id="pavilionBoothNumber"></span></div></div><div class="pavilionScene" aria-label="Branded employer booth interior"><img src="assets/immersive-blank-booth.svg" alt="Immersive career expo booth with digital employer signage"><div class="pavilionSceneLayer pavilionSceneName" id="pavilionSceneName"></div><div class="pavilionSceneLayer pavilionSceneLogo" id="pavilionSceneLogo"></div><div class="pavilionSceneLayer pavilionSceneDisplay" id="pavilionSceneDisplay"></div><div class="pavilionSceneLayer pavilionSceneDesk" id="pavilionSceneDesk"></div>
+<div class="pavilionScenePresence" id="pavilionScenePresence" role="status" hidden><span class="pavilionPresenceDot" aria-hidden="true"></span><span id="scenePresenceLabel"></span></div>
+<nav id="boothActionRail" class="boothActionRail" aria-label="Explore this employer booth">
+<button id="sceneExplore" type="button"><span class="actionIcon" aria-hidden="true">💼</span><span class="actionLabel">Explore Positions</span></button>
+<button id="sceneRecruiter" type="button"><span class="actionIcon" aria-hidden="true">👥</span><span class="actionLabel">Meet a Recruiter</span></button>
+<button id="sceneVideo" type="button" hidden><span class="actionIcon" aria-hidden="true">▶️</span><span class="actionLabel">Company Video</span></button>
+<button id="sceneResume" type="button"><span class="actionIcon" aria-hidden="true">📄</span><span class="actionLabel">Share Résumé</span></button>
+<button id="sceneConversation" type="button"><span class="actionIcon" aria-hidden="true">📅</span><span class="actionLabel">Request a Conversation</span></button>
+</nav></div>
+<section id="boothActionPanel" class="boothActionPanel" aria-live="polite" hidden><h3 id="boothPanelTitle"></h3><div id="boothPanelBody"></div><button class="secondary" id="closeBoothPanel" type="button">Close panel</button></section>
+<div class="pavilionWelcome"><div class="pavilionBrand" id="pavilionBrand"><img id="pavilionLogo" alt="Employer logo" style="display:none"><h2 id="employerName"></h2><p id="pavilionTagline"></p><p id="employerDescription"></p></div><nav class="pavilionQuickActions" aria-label="Employer booth activities"><button id="boothPositionsAction">💼 Explore opportunities</button><button id="boothAboutAction">ℹ️ Meet this employer</button><button id="boothResumeAction">📄 Résumé exchange</button></nav></div><section class="pavilionOpportunities" id="pavilionOpportunities"><h3>Explore opportunities</h3><div id="pavilionPresence" class="pavilionPresence" role="status">Checking recruiter availability…</div><p class="pavilionGuide" id="pavilionGuidance" role="status">Select a position to express interest. If you choose to share your résumé, you'll be asked for consent after saving your interest.</p><div class="positions" id="positions"></div></section></section></main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js"></script><script>
 const sb=window.supabase.createClient('https://dnijrzotfyvmmnmueknk.supabase.co','sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc'),$=id=>document.getElementById(id);let booths=[],activeRegistration=null,activeEvent=null,activeUser=null,lastBoothTrigger=null;
 const expoAccent=c=>/^#[0-9a-f]{6}$/i.test(c||'')?c:'#62caff';
 const safeExpoLogo=s=>{try{const u=new URL(s);return u.protocol==='https:'?u.href:''}catch{return ''}};
 function note(s){$('notice').textContent=s}function status(s){$('status').textContent=s}
-function closeExpoBooth(){const d=$('detail');d.classList.remove('open');d.setAttribute('aria-hidden','true');document.body.classList.remove('boothOpen');if(lastBoothTrigger?.isConnected)lastBoothTrigger.focus();else $('enterFloor').focus()}
+function closeExpoBooth(){clearBoothActionPanel();const d=$('detail');d.classList.remove('open');d.setAttribute('aria-hidden','true');document.body.classList.remove('boothOpen');if(lastBoothTrigger?.isConnected)lastBoothTrigger.focus();else $('enterFloor').focus()}
 $('enterFloor').onclick=()=>$('floor').scrollIntoView({behavior:'smooth'});$('closeDetail').onclick=closeExpoBooth;
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('detail').classList.contains('open')){e.preventDefault();closeExpoBooth()}});
 $('boothPositionsAction').onclick=()=>$('pavilionOpportunities').scrollIntoView({behavior:'smooth',block:'start'});
@@ -364,7 +403,86 @@ if(select.value==='upload'){fileInput=document.createElement('input');fileInput.
  area.append(heading,status,select,detail,preview,consent,submit);card.append(area);await update()
 }
 
-const PRESENCE_LABELS={available:'Recruiter available · interview requests open',busy:'Recruiter busy · requests will queue',away:'Recruiter away · interview requests paused',offline:'Booth not currently staffed · interview requests paused'};
+
+const expoBoothActionConfig=b=>b.features?.experience||{};
+let activeBoothConfig={},activeBoothVideo='',activeBoothPositions=[];
+const setActionVisible=(id,visible)=>{$(id).hidden=!visible};
+const sectionScroll=id=>$(id).scrollIntoView({behavior:'smooth',block:'start'});
+function clearBoothActionPanel(){
+ $('boothActionPanel').hidden=true;
+ $('boothPanelBody').replaceChildren();
+}
+function boothActionPanel(title,message){
+ $('boothPanelTitle').textContent=title;
+ $('boothPanelBody').replaceChildren();
+ const p=document.createElement('p');p.textContent=message;$('boothPanelBody').append(p);
+ $('boothActionPanel').hidden=false;sectionScroll('boothActionPanel');
+ return $('boothPanelBody');
+}
+function safeVideoInfo(raw){
+ try{
+  const url=new URL(raw);
+  if(url.protocol!=='https:'||url.username||url.password)return null;
+  const host=url.hostname.toLowerCase();
+  let embed=null;
+  if(['youtube.com','www.youtube.com','m.youtube.com','youtu.be'].includes(host)){
+   const id=host==='youtu.be'?url.pathname.split('/')[1]:(url.pathname.startsWith('/shorts/')||url.pathname.startsWith('/embed/'))?url.pathname.split('/')[2]:url.searchParams.get('v');
+   if(/^[A-Za-z0-9_-]{11}$/.test(id||''))embed='https://www.youtube-nocookie.com/embed/'+id;
+  } else if(['vimeo.com','www.vimeo.com','player.vimeo.com'].includes(host)){
+   const id=url.pathname.match(/(?:^\/|\/video\/)(\d{6,12})(?:\/|$)/)?.[1];
+   if(id)embed='https://player.vimeo.com/video/'+id;
+  }
+  return {url:url.href,embed};
+ }catch{return null}
+}
+function showCompanyVideo(){
+ const info=safeVideoInfo(activeBoothVideo);if(!info)return;
+ const container=boothActionPanel('Company video','Learn about this employer. Video playback is optional and may open a third-party provider.');
+ if(info.embed){
+  const frame=document.createElement('iframe');
+  frame.src=info.embed;frame.title='Employer company video';
+  frame.allow='accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share';
+  frame.referrerPolicy='strict-origin-when-cross-origin';
+  frame.allowFullscreen=true;frame.loading='lazy';container.append(frame);
+ }else{
+  const link=document.createElement('a');link.href=info.url;link.target='_blank';link.rel='noopener noreferrer';
+  link.textContent='Watch company video on employer website ↗';container.append(link);
+ }
+}
+function showConnectionGuidance(){
+ boothActionPanel('Meet a recruiter', 'Recruiter presence appears on the booth artwork. Use Request a Conversation to send a request after expressing interest in a position. This does not open live chat or guarantee an immediate response.');
+}
+function showConversationGuidance(){
+ const eligible=activeBoothPositions.filter(p=>p.application_methods?.includes('live_interview')&&
+   (p.opportunity_type!=='wex'||p.wex_status==='approved'));
+ if(!eligible.length){boothActionPanel('Request a conversation','This employer has not enabled connection requests for a published opportunity. Explore positions for other ways to connect.');return}
+ const selected=eligible.filter(p=>p._interestSaved);
+ const msg=selected.length?'Select a position below to request a recruiter conversation. Requests are accepted only while a recruiter is staffed; they are not scheduled interviews.':'First express interest in one of the eligible positions below. You can then request a conversation with the recruiter if requests are open.';
+ boothActionPanel('Request a conversation',msg);
+ sectionScroll('pavilionOpportunities');
+ const first=eligible[0];if(first?._card){first._card.style.outline='2px solid #69cfe9';setTimeout(()=>{if(first._card)first._card.style.outline=''},1600)}
+}
+function applyBoothActionRail(positions){
+ activeBoothPositions=positions||[];
+ const opts=activeBoothConfig;
+ const hasPositions=activeBoothPositions.length>0;
+ const canResume=activeBoothPositions.some(p=>p.application_methods?.includes('resume_dropoff'));
+ const canConnect=activeBoothPositions.some(p=>p.application_methods?.includes('live_interview') &&
+  (p.opportunity_type!=='wex'||p.wex_status==='approved'));
+ setActionVisible('sceneExplore',opts.show_positions!==false&&hasPositions);
+ setActionVisible('sceneRecruiter',opts.show_recruiter!==false);
+ setActionVisible('sceneVideo',!!activeBoothVideo);
+ setActionVisible('sceneResume',opts.show_resume!==false&&canResume);
+ setActionVisible('sceneConversation',opts.show_conversations!==false&&canConnect);
+}
+$('sceneExplore').onclick=()=>{clearBoothActionPanel();sectionScroll('pavilionOpportunities')};
+$('sceneRecruiter').onclick=showConnectionGuidance;
+$('sceneVideo').onclick=showCompanyVideo;
+$('sceneResume').onclick=()=>{clearBoothActionPanel();$('pavilionGuidance').textContent='Choose a position and express interest first. You can then choose whether to share or revoke a résumé; no résumé is shared automatically.';sectionScroll('pavilionOpportunities')};
+$('sceneConversation').onclick=showConversationGuidance;
+$('closeBoothPanel').onclick=clearBoothActionPanel;
+
+const PRESENCE_LABELS={available:'Recruiter available · connection requests open',busy:'Recruiter busy · requests queued',away:'Recruiter away · connections paused',offline:'Booth not currently staffed · connections paused'};
 let activeBoothPresence='offline';
 async function refreshBoothPresence(boothId){
  const container=$('pavilionPresence');container.replaceChildren();
@@ -375,9 +493,16 @@ async function refreshBoothPresence(boothId){
   const label=document.createElement('span');
   label.textContent=(data?.staff_label?data.staff_label+' · ':'')+(PRESENCE_LABELS[activeBoothPresence]||PRESENCE_LABELS.offline);
   container.append(label);
+  const overlay=$('pavilionScenePresence');overlay.hidden=activeBoothConfig.show_recruiter===false;
+  overlay.className='pavilionScenePresence '+activeBoothPresence;
+  $('scenePresenceLabel').textContent=(data?.staff_label?data.staff_label+' · ':'')+(
+    activeBoothPresence==='available'?'Available to connect':
+    activeBoothPresence==='busy'?'Busy · receiving requests':
+    activeBoothPresence==='away'?'Away':'Not currently staffed');
  }catch{
   activeBoothPresence='offline';
   container.textContent='Recruiter availability is currently unavailable.';
+  $('pavilionScenePresence').hidden=true;
  }
  const refresh=document.createElement('button');refresh.type='button';refresh.className='presenceRefresh';
  refresh.textContent='Refresh status';refresh.onclick=()=>refreshBoothPresence(boothId);container.append(refresh);
@@ -385,32 +510,33 @@ async function refreshBoothPresence(boothId){
 async function addInterviewRequestControl(card,position,interestId){
  if(!position.application_methods?.includes('live_interview'))return;
  const control=document.createElement('section');control.className='interviewAction';
- const heading=document.createElement('strong');heading.textContent='Live interview request';control.append(heading);
+ const heading=document.createElement('strong');heading.textContent='Recruiter conversation request';control.append(heading);
  const feedback=document.createElement('p');feedback.setAttribute('role','status');control.append(feedback);
- const button=document.createElement('button');button.type='button';button.textContent='Request an interview';
+ const button=document.createElement('button');button.type='button';button.textContent='Request a conversation';
  control.append(button);card.append(control);
- if(!interestId){feedback.textContent='Express interest in this position first. Then request an interview if the recruiter is staffed.';button.disabled=true;return}
+ if(!interestId){feedback.textContent='Express interest first, then request a recruiter conversation while requests are open.';button.disabled=true;return}
  let already=false;
  try{
   const {data,error}=await sb.rpc('expo_get_interview_request',{p_interest_id:interestId});
   if(error)throw error;
   already=!!data?.exists;
-  if(already){button.style.display='none';feedback.textContent='Interview request status: '+data.status+'. Status updates appear here when you revisit the booth.';return}
+  if(already){button.style.display='none';feedback.textContent='Conversation request status: '+data.status+'. Status updates appear here when you revisit the booth.';return}
  }catch{feedback.textContent='Could not check your interview request. Refresh the booth to try again.';button.disabled=true;return}
  const isActive=['available','busy'].includes(activeBoothPresence);
  button.disabled=!isActive;
- feedback.textContent=isActive?'Recruiter is accepting requests. This does not schedule or launch a video interview.':'Interview requests are paused until a recruiter is available. Use Refresh status above to check again.';
+ feedback.textContent=isActive?'Recruiter is receiving conversation requests. This does not schedule an interview or start live chat.':'Conversation requests are paused until a recruiter is staffed. Use Refresh status above to check again.';
  button.onclick=async()=>{
   button.disabled=true;feedback.textContent='Sending interview request…';
   const result=await sb.rpc('expo_request_interview',{p_interest_id:interestId});
   if(result.error){feedback.textContent='Request not sent: '+result.error.message;button.disabled=false;return}
-  button.style.display='none';feedback.textContent='Interview request received · '+(result.data?.status||'requested')+'. A recruiter can update its status during the event.';
+  button.style.display='none';feedback.textContent='Conversation request received · '+(result.data?.status||'requested')+'. A recruiter can update its status during the event.';
  };
 }
 
 async function openBooth(b){
  const {data:current,error:stateError}=await sb.from('expo_events').select('status').eq('id',activeEvent).single();
  if(stateError||current?.status!=='live'){note('This event is not currently Live. Employer interactions are unavailable.');return}
+ activeBoothConfig=expoBoothActionConfig(b);activeBoothVideo=activeBoothConfig.video_url||'';clearBoothActionPanel();
  const branding=b.features?.branding||{},pavilionLogo=safeExpoLogo(branding.logo_url);
  $('employerName').textContent=b.name;$('employerDescription').textContent=b.description||'Meet this employer and explore available opportunities.';$('pavilionTagline').textContent=branding.tagline||'';
  $('pavilionBoothNumber').textContent='· BOOTH '+String(b.booth_number).padStart(2,'0');
@@ -428,9 +554,10 @@ async function openBooth(b){
  const {data:interests,error:interestError}=await sb.from('expo_interests').select('id,position_id').eq('registration_id',activeRegistration);
  if(interestError){note('Unable to load saved interests: '+interestError.message);return}
  const saved=new Map((interests||[]).map(x=>[x.position_id,x.id]));
+ applyBoothActionRail(data||[]);
  if(!data.length)$('positions').textContent='No positions have been published for this booth yet.';
  for(const p of data){
-  const card=document.createElement('div');card.className='position';
+  const card=document.createElement('div');card.className='position';p._card=card;p._interestSaved=saved.has(p.id);
   const title=document.createElement('strong');title.textContent=p.title;
   const desc=document.createElement('p');desc.textContent=p.description||'Ask the employer for details.';
   const kind=document.createElement('p');kind.textContent=p.opportunity_type==='direct'?'Direct employment':p.opportunity_type==='wex'?'Work experience (WEX)':'Employment and work experience';
@@ -467,7 +594,7 @@ async function openBooth(b){
     if(checkError||latest?.status!=='live'){btn.textContent='Express interest';note('This event is no longer Live.');return}
     const {data:created,error:saveError}=await sb.from('expo_interests').insert({registration_id:activeRegistration,position_id:p.id}).select('id').single();
     if(saveError&&saveError.code!=='23505'){btn.disabled=false;btn.textContent='Express interest';note('Unable to save interest: '+saveError.message);return}
-    saved.set(p.id,created?.id||null);btn.textContent='Interest saved ✓';note('Your interest in '+p.title+' has been saved to this Expo registration.');await showResumeShare(card,p,saved.get(p.id));const oldInterview=card.querySelector('.interviewAction');if(oldInterview)oldInterview.remove();await addInterviewRequestControl(card,p,saved.get(p.id));
+    saved.set(p.id,created?.id||null);p._interestSaved=true;btn.textContent='Interest saved ✓';note('Your interest in '+p.title+' has been saved to this Expo registration.');await showResumeShare(card,p,saved.get(p.id));const oldInterview=card.querySelector('.interviewAction');if(oldInterview)oldInterview.remove();await addInterviewRequestControl(card,p,saved.get(p.id));
    };card.append(btn);if(saved.has(p.id)&&saved.get(p.id))await showResumeShare(card,p,saved.get(p.id))
   }
   $('positions').append(card);
