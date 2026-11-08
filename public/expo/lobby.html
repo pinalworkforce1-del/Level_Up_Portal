@@ -503,12 +503,12 @@ if(select.value==='upload'){fileInput=document.createElement('input');fileInput.
 /* Managed private recruiter queue. The database, not the browser, enforces sequence. */
 let visitorChatThread=null,visitorChatChannel=null,visitorChatTimer=null,visitorChatMessagesEl=null;
 let visitorChatEnabled=false,visitorChatSending=false,visitorChatScreen=null,visitorChatCurrentState='none';
-let visitorChatBooth=null,visitorChatBusy=false;
+let visitorChatBooth=null,visitorChatBusy=false,visitorChatLastControls=null;
 function cleanupVisitorChat(){
  if(visitorChatChannel){sb.removeChannel(visitorChatChannel);visitorChatChannel=null}
  if(visitorChatTimer){clearInterval(visitorChatTimer);visitorChatTimer=null}
  visitorChatThread=null;visitorChatMessagesEl=null;visitorChatScreen=null;
- visitorChatSending=false;visitorChatCurrentState='none';visitorChatBooth=null;
+ visitorChatSending=false;visitorChatCurrentState='none';visitorChatBooth=null;visitorChatLastControls=null;
 }
 function visitorChatText(parent,tag,text,cls){
  const el=document.createElement(tag);el.textContent=String(text);
@@ -586,10 +586,12 @@ async function refreshVisitorQueue(){
  visitorChatCurrentState=data?.state||'none';visitorChatEnabled=!!data?.enabled;
  const available=['available','busy'].includes(data?.presence);
  const controls=root.querySelector('.expoChatControls'),chatArea=root.querySelector('.expoVisitorChatArea');
- controls.replaceChildren();
+ const controlsKey=visitorChatCurrentState+':'+String(visitorChatEnabled)+':'+String(available);
+ const controlsChanged=controlsKey!==visitorChatLastControls;
+ if(controlsChanged){controls.replaceChildren();visitorChatLastControls=controlsKey;}
  if(visitorChatCurrentState==='waiting'){
   status.textContent='You are #'+data.position+' in line · '+data.ahead+' participant(s) ahead of you. A recruiter will invite you when it is your turn.';
-  visitorActionButton(controls,'Leave waiting queue',cancelVisitorChat,true);
+  if(controlsChanged)visitorActionButton(controls,'Leave waiting queue',cancelVisitorChat,true);
  }else if(visitorChatCurrentState==='active'){
   status.textContent='Your recruiter accepted the conversation. You can now exchange private messages.';
   if(!visitorChatThread||visitorChatThread!==data.thread_id){
@@ -613,8 +615,8 @@ async function refreshVisitorQueue(){
    status.textContent='The recruiter is away or offline. You can leave a message for the employer.';
   }else status.textContent='Request a private chat. The recruiter will accept requests in the order they arrive.';
   if(visitorChatEnabled&&available){
-   visitorActionButton(controls,'Join chat waiting queue',requestVisitorChat);
-  }else if(visitorChatEnabled){
+   if(controlsChanged)visitorActionButton(controls,'Join chat waiting queue',requestVisitorChat);
+  }else if(visitorChatEnabled&&controlsChanged){
    const form=document.createElement('form');form.className='expoVisitorChatForm';
    const textarea=document.createElement('textarea');textarea.maxLength=1500;textarea.required=true;textarea.rows=3;
    textarea.placeholder='Leave a question or note for the recruiting team…';
