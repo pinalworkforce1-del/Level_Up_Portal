@@ -389,6 +389,18 @@ body.boothOpen{overflow:hidden}
  .detail.open .boothModalBody .positions{grid-template-columns:1fr}
 }
 @media(prefers-reduced-motion:reduce){.detail.open .boothModal *{scroll-behavior:auto!important}}
+
+/* Private Expo participant live chat, rendered inside the existing booth modal */
+.detail.open .expoVisitorChat{border:1px solid #5594ac;border-radius:12px;background:#0b2c45;padding:15px;margin:12px 0}
+.detail.open .expoVisitorChatLog{height:min(42vh,340px);overflow-y:auto;overscroll-behavior:contain;display:flex;flex-direction:column;gap:9px;background:#082138;border-radius:9px;padding:13px}
+.detail.open .expoVisitorBubble{max-width:84%;background:#234a67;border-radius:12px;padding:10px 13px;white-space:pre-wrap;overflow-wrap:anywhere;font-size:14px;color:#f3fcff}
+.detail.open .expoVisitorBubble.mine{align-self:flex-end;background:#126b7d}
+.detail.open .expoVisitorBubble small{display:block;font-size:11px;margin-top:4px;color:#c8e7f1}
+.detail.open .expoVisitorChatForm{display:flex;gap:9px;margin-top:12px}
+.detail.open .expoVisitorChatForm textarea{flex:1;min-width:0;min-height:62px;padding:11px;color:#0c293b;background:white;border:1px solid #b1c6d4;border-radius:9px;font:inherit;resize:vertical}
+.detail.open .expoVisitorChatForm button{align-self:end;white-space:nowrap}
+.detail.open .expoChatStatus{font-size:13px;color:#d1e9f4;margin:9px 0;line-height:1.45}
+@media(max-width:650px){.detail.open .expoVisitorChat{padding:10px}.detail.open .expoVisitorChatForm{flex-direction:column}.detail.open .expoVisitorChatForm button{align-self:stretch}}
 </style></head><body><header class="top"><div class="brand">▲ LEVEL UP <span style="color:#9de4fa">· VIRTUAL CAREER EXPO</span></div><a href="./">← Event registration</a></header><main class="wrap"><section class="hero"><div><div class="eyebrow">WELCOME TO THE EXPO</div><h1 id="eventTitle">Preparing your event…</h1><p id="eventIntro">We're checking your registration and event access.</p><div class="actions"><button id="enterFloor" disabled>Explore Expo Floor</button><a class="btn" style="background:#234967;color:white" href="./">Event details</a></div></div><div class="ticket"><span class="pill" id="status">Checking access</span><h2 style="margin-top:16px">Your event pass</h2><p id="eventDate">Loading event details…</p><p id="passStatus">Verifying your registration…</p></div></section><div id="notice" class="notice" role="status"></div><section class="stage" id="floor" aria-label="Virtual expo floor"><div class="expoCeiling" aria-hidden="true"></div><div class="arch"><div class="eyebrow">LEVEL UP</div><strong>CAREER EXPO</strong><p style="margin:8px 0 0">Explore · Connect · Discover</p></div><div class="floorHeader"><h2>Exhibition Hall · Employer Booths</h2><span class="floorLegend" id="floorLegend">Approved employer exhibits</span></div><img class="hallBackground" id="hallBackground" alt="Level Up Career Expo exhibition hall with five employer booths"><div class="booths" id="booths"></div><div class="expoAisle" aria-hidden="true"></div><div class="floorEnd">LEVEL UP EXPO · DISCOVER YOUR NEXT OPPORTUNITY</div><div class="empty hidden" id="empty"><h2>Employer booths are being prepared</h2><p>Approved employers will appear here as the event team completes setup. Check back closer to the event.</p></div></section><section class="detail" id="detail" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Employer booth" tabindex="-1"><div class="pavilionTopbar"><button class="secondary" id="closeDetail">← Back to Expo Hall</button><div class="pavilionKicker">LEVEL UP · CAREER EXPO <span id="pavilionBoothNumber"></span></div></div><div class="pavilionScene" aria-label="Branded employer booth interior"><img src="assets/immersive-blank-booth.svg" alt="Immersive career expo booth with digital employer signage"><div class="pavilionSceneLayer pavilionSceneName" id="pavilionSceneName"></div><div class="pavilionSceneLayer pavilionSceneLogo" id="pavilionSceneLogo"></div><div class="pavilionSceneLayer pavilionSceneDisplay" id="pavilionSceneDisplay"></div><div class="pavilionSceneLayer pavilionSceneDesk" id="pavilionSceneDesk"></div>
 <div class="pavilionScenePresence" id="pavilionScenePresence" role="status" hidden><span class="pavilionPresenceDot" aria-hidden="true"></span><span id="scenePresenceLabel"></span></div>
 <nav id="boothActionRail" class="boothActionRail" aria-label="Explore this employer booth">
@@ -486,6 +498,90 @@ if(select.value==='upload'){fileInput=document.createElement('input');fileInput.
 }
 
 
+
+let visitorChatThread=null,visitorChatChannel=null,visitorChatTimer=null,visitorChatMessagesEl=null;
+let visitorChatEnabled=false,visitorChatSending=false;
+function cleanupVisitorChat(){
+ if(visitorChatChannel){sb.removeChannel(visitorChatChannel);visitorChatChannel=null}
+ if(visitorChatTimer){clearInterval(visitorChatTimer);visitorChatTimer=null}
+ visitorChatThread=null;visitorChatMessagesEl=null;visitorChatSending=false;
+}
+function visitorChatText(parent,tag,text,cls){
+ const el=document.createElement(tag);el.textContent=String(text);
+ if(cls)el.className=cls;parent.append(el);return el;
+}
+async function loadVisitorMessages(){
+ const thread=visitorChatThread,log=visitorChatMessagesEl;
+ if(!thread||!log||!log.isConnected)return;
+ const {data,error}=await sb.from('expo_chat_messages')
+  .select('id,sender_id,body,created_at').eq('thread_id',thread)
+  .order('created_at',{ascending:true}).limit(150);
+ if(thread!==visitorChatThread||log!==visitorChatMessagesEl||!log.isConnected)return;
+ if(error){visitorChatText(log,'p','Unable to load messages: '+error.message);return}
+ const stick=log.scrollHeight-log.scrollTop-log.clientHeight<110;
+ log.replaceChildren();
+ if(!data?.length)visitorChatText(log,'p','No messages yet. Start by asking a question about the employer or available positions.');
+ for(const message of data||[]){
+  const mine=message.sender_id===activeUser;
+  const box=visitorChatText(log,'div',message.body,'expoVisitorBubble'+(mine?' mine':''));
+  visitorChatText(box,'small',(mine?'You':'Recruiter')+' · '+new Date(message.created_at).toLocaleTimeString());
+ }
+ if(stick||!log.dataset.loaded)log.scrollTop=log.scrollHeight;
+ log.dataset.loaded='true';
+}
+async function refreshVisitorChatStatus(boothId){
+ if(!boothId)return false;
+ const {data,error}=await sb.rpc('expo_chat_get_status',{p_employer_id:boothId});
+ if(error){visitorChatEnabled=false;return false}
+ if(activeBoothId!==boothId)return false;
+ visitorChatEnabled=!!data?.enabled;
+ return visitorChatEnabled;
+}
+async function showVisitorChat(){
+ const employer=activeBoothId;
+ cleanupVisitorChat();
+ const host=boothActionPanel('Live recruiter chat',
+  'Private text messages between you and this employer team. Recruiters may not respond immediately. Do not share passwords, Social Security numbers, or other sensitive information.');
+ if(!visitorChatEnabled){
+  visitorChatText(host,'p','Live chat is not currently enabled for this booth. You can still explore positions or request a conversation.');
+  return;
+ }
+ const wrapper=document.createElement('div');wrapper.className='expoVisitorChat';
+ const log=document.createElement('div');log.className='expoVisitorChatLog';log.setAttribute('role','log');log.setAttribute('aria-label','Private recruiter chat');
+ const form=document.createElement('form');form.className='expoVisitorChatForm';
+ const textarea=document.createElement('textarea');textarea.maxLength=1500;textarea.required=true;textarea.rows=2;textarea.placeholder='Ask the recruiter a question…';textarea.setAttribute('aria-label','Your message');
+ const send=document.createElement('button');send.type='submit';send.textContent='Send message';send.disabled=true;
+ const state=visitorChatText(wrapper,'p','Connecting to this booth…','expoChatStatus');
+ form.append(textarea,send);wrapper.append(log,form,state);host.append(wrapper);
+ const {data,error}=await sb.rpc('expo_chat_open',{p_employer_id:employer});
+ if(error||activeBoothId!==employer||!wrapper.isConnected){
+  state.textContent='Unable to open chat: '+(error?.message||'The booth changed.');
+  return;
+ }
+ visitorChatThread=data?.thread_id;visitorChatMessagesEl=log;
+ send.disabled=false;state.textContent='Connected to the private chat. This is messaging, not a live video call.';
+ await loadVisitorMessages();
+ const thread=visitorChatThread;
+ visitorChatChannel=sb.channel('expo-chat-participant-'+thread)
+  .on('postgres_changes',{event:'INSERT',schema:'public',table:'expo_chat_messages',filter:'thread_id=eq.'+thread},()=>loadVisitorMessages())
+  .subscribe();
+ visitorChatTimer=setInterval(()=>{
+  if(document.visibilityState==='visible'&&visitorChatThread===thread)loadVisitorMessages();
+ },10000);
+ form.onsubmit=async ev=>{
+  ev.preventDefault();if(visitorChatSending||visitorChatThread!==thread)return;
+  const body=textarea.value.trim();if(!body)return;
+  visitorChatSending=true;send.disabled=true;state.textContent='Sending…';
+  try{
+   const {error:sendError}=await sb.rpc('expo_chat_send',{p_thread_id:thread,p_body:body});
+   if(sendError)throw sendError;
+   textarea.value='';state.textContent='Message sent. The recruiter can reply here.';
+   await loadVisitorMessages();
+  }catch(e){state.textContent='Unable to send: '+e.message}
+  finally{visitorChatSending=false;send.disabled=false}
+ };
+}
+
 const expoBoothActionConfig=b=>b.features?.experience||{};
 let activeBoothConfig={},activeBoothVideo='',activeBoothPositions=[],activeBoothId=null;
 const setActionVisible=(id,visible)=>{$(id).hidden=!visible};
@@ -505,14 +601,15 @@ function resetBoothModalBody(){
  $('boothPanelBody').replaceChildren();
 }
 function clearBoothActionPanel(){
+ cleanupVisitorChat();
  const modal=$('boothActionPanel');
  if(modal.open)modal.close();
  resetBoothModalBody();
 }
-$('boothActionPanel').addEventListener('close',resetBoothModalBody);
+$('boothActionPanel').addEventListener('close',()=>{cleanupVisitorChat();resetBoothModalBody()});
 $('closeBoothPanel').onclick=clearBoothActionPanel;
 function boothActionPanel(title,message){
- resetBoothModalBody();
+ cleanupVisitorChat();resetBoothModalBody();
  $('boothPanelTitle').textContent=title;
  const host=$('boothPanelBody');
  if(message){
@@ -574,6 +671,10 @@ function showConnectionGuidance(){
    'The recruiting team is receiving conversation requests during this event.':
    'The recruiter is not accepting new requests right now. You can still explore positions and share your résumé.';
   status.append(p);
+  if(visitorChatEnabled){
+   const liveChat=document.createElement('button');liveChat.textContent='💬 Start private chat';
+   liveChat.onclick=showVisitorChat;status.append(liveChat);
+  }
   const refresh=document.createElement('button');refresh.className='secondary';refresh.textContent='Refresh recruiter status';
   refresh.onclick=async()=>{refresh.disabled=true;await refreshBoothPresence(activeBoothId);render()};
   status.append(refresh);
@@ -697,6 +798,7 @@ async function openBooth(b){
  $('pavilionGuidance').textContent="Select a position to express interest. If you choose to share your résumé, you'll be asked for consent after saving your interest.";
  $('positions').replaceChildren();
  await refreshBoothPresence(b.id);
+ await refreshVisitorChatStatus(b.id);
  const {data,error}=await sb.from('expo_positions').select('id,title,description,opportunity_type,wex_status,application_url,application_methods,application_notes').eq('employer_id',b.id);
  if(error){note('Unable to load opportunities: '+error.message);return}
  const {data:interests,error:interestError}=await sb.from('expo_interests').select('id,position_id').eq('registration_id',activeRegistration);
