@@ -9,6 +9,13 @@ Level Up | Your Secure Sign-In Link
 
 The shared Supabase email should remain generally branded Level Up. The included HTML template may display an Expo-specific heading *only when* the sign-in request originates from an Expo URL, using the `.RedirectTo` condition; ordinary Level Up users see the regular Opportunity City messaging.
 
+## Recurring employer portal sign-in (not an invitation)
+The **same secure authentication email** may be requested repeatedly whenever an employer needs to access its booth. When the redirect is the Employer Dashboard or Employer Booth Studio, the shared email body will identify the **Career Expo · Employer Booth Portal**, describe booth setup, management, recruiter contact details and event-day staffing preparation, and display **Enter Your Employer Booth Portal** on the secure link. This reflects preparation and coordination; the product does **not** yet offer dedicated staff scheduling or staffing assignments.
+
+The link must remain `{{ .ConfirmationURL }}`. The employer's actual allowed destination is set by `.RedirectTo` and its Supabase redirect allowlist. The ordinary Level Up email subject stays **Level Up | Your Secure Sign-In Link**. Staff Booth Review gets separate sign-in wording. These are draft source changes until the hosted Supabase Magic Link/OTP email template is updated in its dashboard.
+
+The one-off event-specific Resend template remains separate and should be used for **initial invitations**, not repeated authentication.
+
 ## One-off Expo invitation and reminder messages
 Use a separate, event-triggered invitation (for example through the event's communications workflow) with an event-specific subject such as `Level Up Career Expo | [Event name] — Your Invitation`. Send these only to people associated with that particular Expo. The event invitation should link to the relevant Expo registration, Employer Dashboard, or Booth Studio page and **must not reuse or construct authentication tokens**.
 
