@@ -197,6 +197,15 @@ body.boothOpen{overflow:hidden}
 .detail.open #positions{max-width:none;margin:18px 0}
 .detail.open .position{background:#143b54;border:1px solid #376c84}
 .detail.open .position button{margin-top:8px}
+/* Expo opportunity application instructions — only visible inside a booth. */
+.detail.open .position .applyOptions{margin:15px 0;padding:13px 14px;background:#0c3049;border:1px solid #4282a0;border-radius:10px}
+.detail.open .position .applyOptions strong{display:block;color:#e7f8ff;margin-bottom:8px}
+.detail.open .position .applyOptions ul{margin:4px 0 0;padding-left:19px;color:#d9edf8}
+.detail.open .position .applyOptions li{margin:6px 0;line-height:1.4}
+.detail.open .position .applyOptions a{display:inline-block;padding:10px 14px;margin:10px 0 4px;border-radius:8px;background:#e6b54a;color:#09283a;font-weight:900;text-decoration:none;overflow-wrap:anywhere}
+.detail.open .position .applyOptions a:hover,.detail.open .position .applyOptions a:focus-visible{outline:2px solid #fff}
+.detail.open .position .applyOptions p{margin:10px 0 0;color:#e0f2fb;font-size:14px}
+
 @media(max-width:760px){
  .detail.open .pavilionWelcome{grid-template-columns:1fr}
  .detail.open .pavilionKicker{font-size:10px;letter-spacing:0}
@@ -359,7 +368,7 @@ async function openBooth(b){
  $('detail').style.setProperty('--pavilion-accent',expoAccent(b.accent_color));
  $('pavilionGuidance').textContent="Select a position to express interest. If you choose to share your résumé, you'll be asked for consent after saving your interest.";
  $('positions').replaceChildren();
- const {data,error}=await sb.from('expo_positions').select('id,title,description,opportunity_type,wex_status').eq('employer_id',b.id);
+ const {data,error}=await sb.from('expo_positions').select('id,title,description,opportunity_type,wex_status,application_url,application_methods,application_notes').eq('employer_id',b.id);
  if(error){note('Unable to load opportunities: '+error.message);return}
  const {data:interests,error:interestError}=await sb.from('expo_interests').select('id,position_id').eq('registration_id',activeRegistration);
  if(interestError){note('Unable to load saved interests: '+interestError.message);return}
@@ -371,6 +380,29 @@ async function openBooth(b){
   const desc=document.createElement('p');desc.textContent=p.description||'Ask the employer for details.';
   const kind=document.createElement('p');kind.textContent=p.opportunity_type==='direct'?'Direct employment':p.opportunity_type==='wex'?'Work experience (WEX)':'Employment and work experience';
   card.append(title,desc,kind);
+  const methods=Array.isArray(p.application_methods)?p.application_methods:[];
+  const labels={apply_online:'Apply online',discuss_event:'Discuss with the recruiter during the event',resume_dropoff:'Share a résumé through the Expo after expressing interest',live_interview:'Ask about live interviews during this event'};
+  const hasInstructions=methods.length||p.application_notes||p.application_url;
+  if(hasInstructions){
+    const panel=document.createElement('section');panel.className='applyOptions';
+    const heading=document.createElement('strong');heading.textContent='How to apply or connect';panel.append(heading);
+    if(methods.length){
+      const list=document.createElement('ul');
+      for(const method of methods){if(!labels[method])continue;const li=document.createElement('li');li.textContent=labels[method];list.append(li)}
+      panel.append(list);
+    }
+    if(p.application_url){
+      try{
+        const url=new URL(p.application_url);
+        if(url.protocol==='https:'&&!url.username&&!url.password){
+          const link=document.createElement('a');link.href=url.href;link.target='_blank';link.rel='noopener noreferrer';
+          link.textContent=methods.includes('apply_online')?'Apply on employer website ↗':'View the employer job posting ↗';panel.append(link);
+        }
+      }catch{}
+    }
+    if(p.application_notes){const notes=document.createElement('p');notes.textContent=p.application_notes;panel.append(notes)}
+    card.append(panel);
+  }
   if(p.opportunity_type==='wex'&&p.wex_status!=='approved'){const msg=document.createElement('small');msg.textContent='Work experience opportunity pending staff approval';card.append(msg)}
   else{
    const btn=document.createElement('button');btn.textContent=saved.has(p.id)?'Interest saved ✓':'Express interest';btn.disabled=saved.has(p.id);
