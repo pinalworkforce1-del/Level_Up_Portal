@@ -537,6 +537,12 @@ async function openBooth(b){
  const {data:current,error:stateError}=await sb.from('expo_events').select('status').eq('id',activeEvent).single();
  if(stateError||current?.status!=='live'){note('This event is not currently Live. Employer interactions are unavailable.');return}
  activeBoothConfig=expoBoothActionConfig(b);activeBoothVideo=activeBoothConfig.video_url||'';clearBoothActionPanel();
+ const {data:latestBooth,error:latestBoothError}=await sb.from('expo_employers').select('features').eq('id',b.id).single();
+ if(!latestBoothError&&latestBooth?.features){
+   b={...b,features:latestBooth.features};
+   activeBoothConfig=expoBoothActionConfig(b);
+   activeBoothVideo=activeBoothConfig.video_url||'';
+ }
  const branding=b.features?.branding||{},pavilionLogo=safeExpoLogo(branding.logo_url);
  $('employerName').textContent=b.name;$('employerDescription').textContent=b.description||'Meet this employer and explore available opportunities.';$('pavilionTagline').textContent=branding.tagline||'';
  $('pavilionBoothNumber').textContent='· BOOTH '+String(b.booth_number).padStart(2,'0');
