@@ -290,12 +290,48 @@ body.boothOpen{overflow:hidden}
 .detail.open .pavilionPresenceDot{width:10px;height:10px;min-width:10px;border-radius:50%;background:#7e99a7;box-shadow:0 0 0 3px #fff2}
 .detail.open .pavilionScenePresence.available .pavilionPresenceDot{background:#4ef1b5;box-shadow:0 0 12px #4ef1b5}
 .detail.open .pavilionScenePresence.busy .pavilionPresenceDot{background:#ffd273;box-shadow:0 0 12px #ffd273}
-.detail.open .boothActionRail{position:absolute;z-index:7;left:2%;right:2%;bottom:1.8%;display:flex;justify-content:center;align-items:stretch;gap:clamp(5px,.7vw,11px);pointer-events:auto}
-.detail.open .boothActionRail button{flex:1 1 0;min-width:0;max-width:210px;min-height:64px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:4px;padding:8px 6px;background:linear-gradient(150deg,#093855ef,#07537dea);border:1.5px solid #7eeaff;border-radius:14px;color:#fff;font-size:clamp(10px,.95vw,14px);line-height:1.12;font-weight:900;text-align:center;text-shadow:0 1px 3px #001d33;box-shadow:0 3px 0 #0b263e,0 0 12px #42d9ff9e;cursor:pointer;transition:transform .15s,background .15s}
-.detail.open .boothActionRail button:hover,.detail.open .boothActionRail button:focus-visible{background:#166d9e;transform:translateY(-3px);outline:2px solid #fff;outline-offset:2px}
+.detail.open .boothActionRail{
+  position:absolute;z-index:7;left:50%;bottom:1.15%;transform:translateX(-50%);
+  width:min(96%,1060px);display:flex;justify-content:center;align-items:stretch;
+  gap:clamp(7px,1vw,14px);pointer-events:auto;
+}
+.detail.open .boothActionRail button{
+  position:relative;isolation:isolate;overflow:hidden;
+  flex:1 1 0;min-width:0;max-width:208px;min-height:clamp(82px,8.7vw,113px);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;
+  gap:6px;padding:12px 8px 11px;
+  background:linear-gradient(165deg,#064268 0%,#073452 36%,#06213b 100%);
+  border:2px solid #7af4ff;border-radius:22px;color:#fff;
+  box-shadow:inset 0 2px 2px #c9ffff80,inset 0 -9px 17px #001a3288,
+    0 0 0 1px #23cde3aa,0 0 13px #19e3ffc9,0 0 28px #16c3f26e,0 8px 18px #0010228c;
+  font:900 clamp(12px,1.23vw,16px)/1.08 inherit;
+  text-align:center;text-shadow:0 2px 4px #00192e;
+  cursor:pointer;transition:transform .17s ease,background .17s ease,box-shadow .17s ease;
+}
+.detail.open .boothActionRail button::before{
+  content:'';position:absolute;left:8%;right:8%;top:0;height:32%;
+  border-radius:0 0 60% 60%;
+  background:linear-gradient(#d8ffff25,#a8edff00);
+  pointer-events:none;z-index:-1;
+}
+.detail.open .boothActionRail button:hover,.detail.open .boothActionRail button:focus-visible{
+  background:linear-gradient(155deg,#096694,#0b3958 78%);
+  transform:translateY(-4px);
+  box-shadow:inset 0 2px 3px #edffffc2,0 0 0 2px #9bfbff,
+    0 0 24px #23e9fff2,0 0 40px #20cbff9c,0 10px 23px #000b;
+  outline:2px solid #fff;outline-offset:3px;
+}
+.detail.open .boothActionRail button:active{transform:translateY(-1px)}
 .detail.open .boothActionRail button[hidden]{display:none!important}
-.detail.open .boothActionRail .actionIcon{font-size:clamp(18px,2.15vw,31px);line-height:1}
-.detail.open .boothActionRail .actionLabel{display:block}
+.detail.open .boothActionRail .actionIcon{
+  display:block;flex:none;width:clamp(29px,3.2vw,41px);height:clamp(29px,3.2vw,41px);
+  fill:none;stroke:#f5fcff;stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round;
+  filter:drop-shadow(0 0 3px #9fe9ff55);
+}
+.detail.open .boothActionRail .actionLabel{
+  display:block;max-width:100%;color:#fff;font-size:clamp(12px,1.22vw,16px);
+  font-weight:900;line-height:1.08;letter-spacing:-.015em;text-wrap:balance;
+}
 .detail.open .boothActionPanel{max-width:1180px;margin:13px auto 16px;padding:18px;border:1px solid #4ca8d1;border-radius:13px;background:#0c3049;color:#e6f4fc}
 .detail.open .boothActionPanel[hidden]{display:none}
 .detail.open .boothActionPanel h3{margin:0 0 9px;font-size:19px}
@@ -305,9 +341,10 @@ body.boothOpen{overflow:hidden}
 .detail.open .boothActionPanel button{margin:7px 0;padding:9px 15px}
 @media(max-width:700px){
  .detail.open .pavilionScenePresence{max-width:49%;font-size:10px;padding:6px 8px;top:3%;right:2%}
- .detail.open .boothActionRail{position:relative;left:auto;right:auto;bottom:auto;margin:0;display:flex;justify-content:flex-start;gap:8px;overflow-x:auto;padding:12px 6px 15px;background:#082b45;border-radius:0 0 13px 13px;scroll-snap-type:x mandatory}
- .detail.open .boothActionRail button{flex:0 0 134px;max-width:none;min-height:62px;scroll-snap-align:start;font-size:12px}
- .detail.open .boothActionRail .actionIcon{font-size:23px}
+ .detail.open .boothActionRail{position:relative;left:auto;right:auto;bottom:auto;transform:none;width:100%;margin:0;display:flex;justify-content:flex-start;gap:11px;overflow-x:auto;padding:14px 10px 19px;background:#082b45;border-radius:0 0 13px 13px;scroll-snap-type:x mandatory}
+ .detail.open .boothActionRail button{flex:0 0 clamp(140px,42vw,170px);max-width:none;min-height:94px;scroll-snap-align:start;padding:10px 7px;border-radius:17px}
+ .detail.open .boothActionRail .actionIcon{width:33px;height:33px}
+ .detail.open .boothActionRail .actionLabel{font-size:13px}
  .detail.open .pavilionScene{overflow:visible}
  .detail.open .pavilionScene>img{border-radius:15px}
 }
@@ -355,11 +392,11 @@ body.boothOpen{overflow:hidden}
 </style></head><body><header class="top"><div class="brand">▲ LEVEL UP <span style="color:#9de4fa">· VIRTUAL CAREER EXPO</span></div><a href="./">← Event registration</a></header><main class="wrap"><section class="hero"><div><div class="eyebrow">WELCOME TO THE EXPO</div><h1 id="eventTitle">Preparing your event…</h1><p id="eventIntro">We're checking your registration and event access.</p><div class="actions"><button id="enterFloor" disabled>Explore Expo Floor</button><a class="btn" style="background:#234967;color:white" href="./">Event details</a></div></div><div class="ticket"><span class="pill" id="status">Checking access</span><h2 style="margin-top:16px">Your event pass</h2><p id="eventDate">Loading event details…</p><p id="passStatus">Verifying your registration…</p></div></section><div id="notice" class="notice" role="status"></div><section class="stage" id="floor" aria-label="Virtual expo floor"><div class="expoCeiling" aria-hidden="true"></div><div class="arch"><div class="eyebrow">LEVEL UP</div><strong>CAREER EXPO</strong><p style="margin:8px 0 0">Explore · Connect · Discover</p></div><div class="floorHeader"><h2>Exhibition Hall · Employer Booths</h2><span class="floorLegend" id="floorLegend">Approved employer exhibits</span></div><img class="hallBackground" id="hallBackground" alt="Level Up Career Expo exhibition hall with five employer booths"><div class="booths" id="booths"></div><div class="expoAisle" aria-hidden="true"></div><div class="floorEnd">LEVEL UP EXPO · DISCOVER YOUR NEXT OPPORTUNITY</div><div class="empty hidden" id="empty"><h2>Employer booths are being prepared</h2><p>Approved employers will appear here as the event team completes setup. Check back closer to the event.</p></div></section><section class="detail" id="detail" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Employer booth" tabindex="-1"><div class="pavilionTopbar"><button class="secondary" id="closeDetail">← Back to Expo Hall</button><div class="pavilionKicker">LEVEL UP · CAREER EXPO <span id="pavilionBoothNumber"></span></div></div><div class="pavilionScene" aria-label="Branded employer booth interior"><img src="assets/immersive-blank-booth.svg" alt="Immersive career expo booth with digital employer signage"><div class="pavilionSceneLayer pavilionSceneName" id="pavilionSceneName"></div><div class="pavilionSceneLayer pavilionSceneLogo" id="pavilionSceneLogo"></div><div class="pavilionSceneLayer pavilionSceneDisplay" id="pavilionSceneDisplay"></div><div class="pavilionSceneLayer pavilionSceneDesk" id="pavilionSceneDesk"></div>
 <div class="pavilionScenePresence" id="pavilionScenePresence" role="status" hidden><span class="pavilionPresenceDot" aria-hidden="true"></span><span id="scenePresenceLabel"></span></div>
 <nav id="boothActionRail" class="boothActionRail" aria-label="Explore this employer booth">
-<button id="sceneExplore" type="button"><span class="actionIcon" aria-hidden="true">💼</span><span class="actionLabel">Explore Positions</span></button>
-<button id="sceneRecruiter" type="button"><span class="actionIcon" aria-hidden="true">👥</span><span class="actionLabel">Meet a Recruiter</span></button>
-<button id="sceneVideo" type="button" hidden><span class="actionIcon" aria-hidden="true">▶️</span><span class="actionLabel">Company Video</span></button>
-<button id="sceneResume" type="button"><span class="actionIcon" aria-hidden="true">📄</span><span class="actionLabel">Share Résumé</span></button>
-<button id="sceneConversation" type="button"><span class="actionIcon" aria-hidden="true">📅</span><span class="actionLabel">Request a Conversation</span></button>
+<button id="sceneExplore" type="button"><svg class="actionIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="7" width="18" height="14" rx="2"/><path d="M8 7V5a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2M3 13h18M10 12v3h4v-3"/></svg><span class="actionLabel">Explore<br>Positions</span></button>
+<button id="sceneRecruiter" type="button"><svg class="actionIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="7" r="3"/><path d="M7 20v-2a5 5 0 0 1 10 0v2H7ZM5 11a2.5 2.5 0 1 1 0-5M2 20v-3a4 4 0 0 1 3-3.9M19 11a2.5 2.5 0 1 0 0-5M22 20v-3a4 4 0 0 0-3-3.9"/></svg><span class="actionLabel">Meet a<br>Recruiter</span></button>
+<button id="sceneVideo" type="button" hidden><svg class="actionIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><circle cx="12" cy="12" r="10"/><path d="m10 7 7 5-7 5V7Z"/></svg><span class="actionLabel">Company<br>Video</span></button>
+<button id="sceneResume" type="button"><svg class="actionIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8L14 2Z"/><path d="M14 2v6h6M8 13h8M8 17h8"/></svg><span class="actionLabel">Share Your<br>Résumé</span></button>
+<button id="sceneConversation" type="button"><svg class="actionIcon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M7 3v4M17 3v4M3 10h18"/><path d="m9 15 2 2 4-4"/></svg><span class="actionLabel">Request a<br>Conversation</span></button>
 </nav></div>
 <dialog id="boothActionPanel" class="boothModal" aria-labelledby="boothPanelTitle">
  <div class="boothModalHead"><div><div class="eyebrow">Level Up · Interactive Employer Booth</div><h3 id="boothPanelTitle" tabindex="-1"></h3></div>
