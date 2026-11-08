@@ -499,12 +499,16 @@ if(select.value==='upload'){fileInput=document.createElement('input');fileInput.
 
 
 
+
+/* Managed private recruiter queue. The database, not the browser, enforces sequence. */
 let visitorChatThread=null,visitorChatChannel=null,visitorChatTimer=null,visitorChatMessagesEl=null;
-let visitorChatEnabled=false,visitorChatSending=false;
+let visitorChatEnabled=false,visitorChatSending=false,visitorChatScreen=null,visitorChatCurrentState='none';
+let visitorChatBooth=null,visitorChatBusy=false;
 function cleanupVisitorChat(){
  if(visitorChatChannel){sb.removeChannel(visitorChatChannel);visitorChatChannel=null}
  if(visitorChatTimer){clearInterval(visitorChatTimer);visitorChatTimer=null}
- visitorChatThread=null;visitorChatMessagesEl=null;visitorChatSending=false;
+ visitorChatThread=null;visitorChatMessagesEl=null;visitorChatScreen=null;
+ visitorChatSending=false;visitorChatCurrentState='none';visitorChatBooth=null;
 }
 function visitorChatText(parent,tag,text,cls){
  const el=document.createElement(tag);el.textContent=String(text);
@@ -520,11 +524,11 @@ async function loadVisitorMessages(){
  if(error){visitorChatText(log,'p','Unable to load messages: '+error.message);return}
  const stick=log.scrollHeight-log.scrollTop-log.clientHeight<110;
  log.replaceChildren();
- if(!data?.length)visitorChatText(log,'p','No messages yet. Start by asking a question about the employer or available positions.');
- for(const message of data||[]){
-  const mine=message.sender_id===activeUser;
-  const box=visitorChatText(log,'div',message.body,'expoVisitorBubble'+(mine?' mine':''));
-  visitorChatText(box,'small',(mine?'You':'Recruiter')+' · '+new Date(message.created_at).toLocaleTimeString());
+ if(!data?.length)visitorChatText(log,'p','Your recruiter has accepted you. You can send your first message.');
+ for(const m of data||[]){
+  const mine=m.sender_id===activeUser;
+  const bubble=visitorChatText(log,'div',m.body,'expoVisitorBubble'+(mine?' mine':''));
+  visitorChatText(bubble,'small',(mine?'You':'Recruiter')+' · '+new Date(m.created_at).toLocaleTimeString());
  }
  if(stick||!log.dataset.loaded)log.scrollTop=log.scrollHeight;
  log.dataset.loaded='true';
@@ -537,51 +541,126 @@ async function refreshVisitorChatStatus(boothId){
  visitorChatEnabled=!!data?.enabled;
  return visitorChatEnabled;
 }
+function visitorActionButton(host,label,callback,secondary=false){
+ const button=document.createElement('button');button.type='button';
+ if(secondary)button.className='secondary';
+ button.textContent=label;button.onclick=callback;host.append(button);return button;
+}
+async function requestVisitorChat(){
+ if(visitorChatBusy||!visitorChatBooth)return;
+ visitorChatBusy=true;
+ try{
+  const {error}=await sb.rpc('expo_chat_request',{p_employer_id:visitorChatBooth});
+  if(error)throw error;
+  await refreshVisitorQueue();
+ }catch(error){if(visitorChatScreen?.isConnected)visitorChatScreen.querySelector('.expoChatStatus').textContent='Could not join queue: '+error.message}
+ finally{visitorChatBusy=false}
+}
+async function cancelVisitorChat(){
+ if(visitorChatBusy||!visitorChatBooth)return;
+ visitorChatBusy=true;
+ try{
+  const {error}=await sb.rpc('expo_chat_cancel',{p_employer_id:visitorChatBooth});
+  if(error)throw error;
+  await refreshVisitorQueue();
+ }catch(error){if(visitorChatScreen?.isConnected)visitorChatScreen.querySelector('.expoChatStatus').textContent='Could not leave queue: '+error.message}
+ finally{visitorChatBusy=false}
+}
+async function sendVisitorNote(textarea,status){
+ if(visitorChatBusy||!visitorChatBooth)return;
+ const body=textarea.value.trim();if(!body)return;
+ visitorChatBusy=true;
+ const {error}=await sb.rpc('expo_chat_leave_note',{p_employer_id:visitorChatBooth,p_body:body});
+ if(error)status.textContent='Inquiry not delivered: '+error.message;
+ else{textarea.value='';status.textContent='Your message was sent to the employer inquiry inbox. A reply is not guaranteed.'}
+ visitorChatBusy=false;
+}
+async function refreshVisitorQueue(){
+ const booth=visitorChatBooth,root=visitorChatScreen;
+ if(!booth||!root||!root.isConnected)return;
+ const {data,error}=await sb.rpc('expo_chat_get_state',{p_employer_id:booth});
+ if(!root.isConnected||booth!==visitorChatBooth)return;
+ const status=root.querySelector('.expoChatStatus');
+ if(error){status.textContent='Unable to check your place in line: '+error.message;return}
+ const previous=visitorChatCurrentState;
+ visitorChatCurrentState=data?.state||'none';visitorChatEnabled=!!data?.enabled;
+ const available=['available','busy'].includes(data?.presence);
+ const controls=root.querySelector('.expoChatControls'),chatArea=root.querySelector('.expoVisitorChatArea');
+ controls.replaceChildren();
+ if(visitorChatCurrentState==='waiting'){
+  status.textContent='You are #'+data.position+' in line · '+data.ahead+' participant(s) ahead of you. A recruiter will invite you when it is your turn.';
+  visitorActionButton(controls,'Leave waiting queue',cancelVisitorChat,true);
+ }else if(visitorChatCurrentState==='active'){
+  status.textContent='Your recruiter accepted the conversation. You can now exchange private messages.';
+  if(!visitorChatThread||visitorChatThread!==data.thread_id){
+   if(visitorChatChannel){sb.removeChannel(visitorChatChannel);visitorChatChannel=null}
+   visitorChatThread=data.thread_id;visitorChatMessagesEl=chatArea.querySelector('.expoVisitorChatLog');
+   chatArea.hidden=false;
+   await loadVisitorMessages();
+   const thread=visitorChatThread;
+   visitorChatChannel=sb.channel('expo-chat-participant-'+thread)
+    .on('postgres_changes',{event:'INSERT',schema:'public',table:'expo_chat_messages',filter:'thread_id=eq.'+thread},()=>loadVisitorMessages())
+    .subscribe();
+  }
+ }else{
+  if(visitorChatChannel){sb.removeChannel(visitorChatChannel);visitorChatChannel=null}
+  visitorChatThread=null;visitorChatMessagesEl=null;
+  if(visitorChatCurrentState==='ended'||visitorChatCurrentState==='cancelled'){
+   status.textContent=visitorChatCurrentState==='ended'?'Your chat has finished. Your messages remain saved.':'You have left the waiting queue.';
+  }else if(!visitorChatEnabled){
+   status.textContent='Live chat is paused by this employer.';
+  }else if(!available){
+   status.textContent='The recruiter is away or offline. You can leave a message for the employer.';
+  }else status.textContent='Request a private chat. The recruiter will accept requests in the order they arrive.';
+  if(visitorChatEnabled&&available){
+   visitorActionButton(controls,'Join chat waiting queue',requestVisitorChat);
+  }else if(visitorChatEnabled){
+   const form=document.createElement('form');form.className='expoVisitorChatForm';
+   const textarea=document.createElement('textarea');textarea.maxLength=1500;textarea.required=true;textarea.rows=3;
+   textarea.placeholder='Leave a question or note for the recruiting team…';
+   textarea.setAttribute('aria-label','Offline employer inquiry');
+   const send=document.createElement('button');send.type='submit';send.textContent='Leave a message';
+   form.append(textarea,send);form.onsubmit=async ev=>{ev.preventDefault();send.disabled=true;await sendVisitorNote(textarea,status);send.disabled=false};
+   controls.append(form);
+  }
+ }
+ chatArea.hidden=visitorChatCurrentState!=='active';
+ if(previous==='waiting'&&visitorChatCurrentState==='active'){
+  $('boothPanelTitle').textContent='Recruiter accepted your chat';
+ }
+}
 async function showVisitorChat(){
  const employer=activeBoothId;
- cleanupVisitorChat();
- const host=boothActionPanel('Live recruiter chat',
-  'Private text messages between you and this employer team. Recruiters may not respond immediately. Do not share passwords, Social Security numbers, or other sensitive information.');
- if(!visitorChatEnabled){
-  visitorChatText(host,'p','Live chat is not currently enabled for this booth. You can still explore positions or request a conversation.');
-  return;
- }
- const wrapper=document.createElement('div');wrapper.className='expoVisitorChat';
- const log=document.createElement('div');log.className='expoVisitorChatLog';log.setAttribute('role','log');log.setAttribute('aria-label','Private recruiter chat');
+ const host=boothActionPanel('Meet a recruiter · Live chat queue',
+  'Recruiters accept chats in order. Your messages remain private to you and the assigned employer team. Never share passwords, government ID numbers or sensitive personal information.');
+ const root=document.createElement('div');root.className='expoVisitorChat';
+ visitorChatBooth=employer;visitorChatScreen=root;
+ visitorChatText(root,'p','Checking recruiter availability and your queue position…','expoChatStatus');
+ const actions=document.createElement('div');actions.className='expoChatControls';
+ root.append(actions);
+ const chatArea=document.createElement('div');chatArea.className='expoVisitorChatArea';chatArea.hidden=true;
+ const log=document.createElement('div');log.className='expoVisitorChatLog';log.setAttribute('role','log');log.setAttribute('aria-label','Your private recruiter messages');
  const form=document.createElement('form');form.className='expoVisitorChatForm';
- const textarea=document.createElement('textarea');textarea.maxLength=1500;textarea.required=true;textarea.rows=2;textarea.placeholder='Ask the recruiter a question…';textarea.setAttribute('aria-label','Your message');
- const send=document.createElement('button');send.type='submit';send.textContent='Send message';send.disabled=true;
- const state=visitorChatText(wrapper,'p','Connecting to this booth…','expoChatStatus');
- form.append(textarea,send);wrapper.append(log,form,state);host.append(wrapper);
- const {data,error}=await sb.rpc('expo_chat_open',{p_employer_id:employer});
- if(error||activeBoothId!==employer||!wrapper.isConnected){
-  state.textContent='Unable to open chat: '+(error?.message||'The booth changed.');
-  return;
- }
- visitorChatThread=data?.thread_id;visitorChatMessagesEl=log;
- send.disabled=false;state.textContent='Connected to the private chat. This is messaging, not a live video call.';
- await loadVisitorMessages();
- const thread=visitorChatThread;
- visitorChatChannel=sb.channel('expo-chat-participant-'+thread)
-  .on('postgres_changes',{event:'INSERT',schema:'public',table:'expo_chat_messages',filter:'thread_id=eq.'+thread},()=>loadVisitorMessages())
-  .subscribe();
- visitorChatTimer=setInterval(()=>{
-  if(document.visibilityState==='visible'&&visitorChatThread===thread)loadVisitorMessages();
- },10000);
+ const textarea=document.createElement('textarea');textarea.maxLength=1500;textarea.required=true;textarea.rows=2;
+ textarea.placeholder='Message your recruiter…';textarea.setAttribute('aria-label','Your chat message');
+ const send=document.createElement('button');send.type='submit';send.textContent='Send message';
+ form.append(textarea,send);chatArea.append(log,form);root.append(chatArea);host.append(root);
  form.onsubmit=async ev=>{
-  ev.preventDefault();if(visitorChatSending||visitorChatThread!==thread)return;
+  ev.preventDefault();
+  if(visitorChatSending||visitorChatCurrentState!=='active'||!visitorChatThread)return;
   const body=textarea.value.trim();if(!body)return;
-  visitorChatSending=true;send.disabled=true;state.textContent='Sending…';
-  try{
-   const {error:sendError}=await sb.rpc('expo_chat_send',{p_thread_id:thread,p_body:body});
-   if(sendError)throw sendError;
-   textarea.value='';state.textContent='Message sent. The recruiter can reply here.';
-   await loadVisitorMessages();
-  }catch(e){state.textContent='Unable to send: '+e.message}
-  finally{visitorChatSending=false;send.disabled=false}
+  visitorChatSending=true;send.disabled=true;
+  const {error}=await sb.rpc('expo_chat_send',{p_thread_id:visitorChatThread,p_body:body});
+  const state=root.querySelector('.expoChatStatus');
+  if(error)state.textContent='Message not sent: '+error.message;
+  else{textarea.value='';await loadVisitorMessages()}
+  visitorChatSending=false;send.disabled=false;
  };
+ await refreshVisitorQueue();
+ visitorChatTimer=setInterval(()=>{
+  if(document.visibilityState==='visible')refreshVisitorQueue();
+ },5000);
 }
-
 const expoBoothActionConfig=b=>b.features?.experience||{};
 let activeBoothConfig={},activeBoothVideo='',activeBoothPositions=[],activeBoothId=null;
 const setActionVisible=(id,visible)=>{$(id).hidden=!visible};
@@ -668,11 +747,11 @@ function showConnectionGuidance(){
   status.append(bold);
   const p=document.createElement('p');
   p.textContent=['available','busy'].includes(activeBoothPresence)?
-   'The recruiting team is receiving conversation requests during this event.':
-   'The recruiter is not accepting new requests right now. You can still explore positions and share your résumé.';
+   'The recruiting team is receiving managed chat requests. Join the queue and wait for the recruiter to accept you.':
+   'The recruiter is away or offline. You may leave an employer inquiry if chat is enabled.';
   status.append(p);
   if(visitorChatEnabled){
-   const liveChat=document.createElement('button');liveChat.textContent='💬 Start private chat';
+   const liveChat=document.createElement('button');liveChat.textContent='💬 Request live chat / leave a message';
    liveChat.onclick=showVisitorChat;status.append(liveChat);
   }
   const refresh=document.createElement('button');refresh.className='secondary';refresh.textContent='Refresh recruiter status';
