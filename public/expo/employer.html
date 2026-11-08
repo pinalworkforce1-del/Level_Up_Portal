@@ -1,11 +1,55 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Level Up | Employer Expo Portal</title><style>
 :root{font-family:system-ui,-apple-system,Segoe UI,sans-serif;color:#edf7ff;background:#071a2b}*{box-sizing:border-box}body{margin:0}header{background:#102f4d;border-bottom:1px solid #376081;padding:20px clamp(18px,4vw,50px);display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}.brand{font-weight:900;letter-spacing:.05em}a{color:#92e2ff}main{max-width:1180px;margin:auto;padding:32px 20px}.eyebrow{color:#77d9ee;font-size:12px;letter-spacing:.17em;font-weight:800;text-transform:uppercase}h1{font-size:clamp(30px,4vw,48px);margin:10px 0}h2{margin:0 0 15px}.sub{color:#b8d0e3}.card{background:#122f49;border:1px solid #456987;border-radius:17px;padding:24px;margin:18px 0}.hero{background:linear-gradient(115deg,#16466d,#0c263d)}button{background:#edb13d;color:#0c2336;border:0;border-radius:10px;padding:12px 18px;font-weight:800;cursor:pointer}button.secondary{background:#284e6d;color:white;border:1px solid #557b98}button:disabled{opacity:.55;cursor:default}input{padding:12px;border-radius:9px;border:1px solid #92a9bc;font:inherit;max-width:100%;width:330px}label{display:block;margin-bottom:8px}.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}.metric{background:#173b59;padding:18px;border-radius:12px}.metric strong{font-size:30px;display:block}.candidate{background:#1a3b57;border:1px solid #4d7694;border-radius:12px;padding:18px}.tag{display:inline-block;padding:6px 10px;border-radius:50px;background:#294d66;font-size:12px;font-weight:800;margin:4px 5px 4px 0}.tag.ok{background:#185c4a;color:#d2ffe9}.resume{background:white;color:#112b40;padding:clamp(22px,4vw,44px);border-radius:10px;margin-top:16px;font:13px/1.5 Arial,sans-serif}.resume *{color:#112b40}.resume h2{text-align:center;font-size:27px;margin:0}.resume .contact{text-align:center;border-bottom:2px solid #143b5b;padding-bottom:15px}.resume .contact span{display:block;font-size:12px}.resume h3{font-size:13px;text-transform:uppercase;letter-spacing:.04em;margin:20px 0 7px}.resume ul{padding-left:20px;margin:3px 0 10px}.resume strong{display:block}.hidden{display:none}#message{min-height:24px;color:#b8e5f5}footer{padding:30px;text-align:center;color:#9db9cf}@media print{header,.controls,footer,#auth,#message{display:none!important}.card{border:0;background:white;color:black}.resume{box-shadow:none}}
+
+/* Employer Booth Control: Expo-only opportunity editor */
+.ctrlNav{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
+.ctrlNav a{color:white;background:#1b506d;border:1px solid #5b95b0;border-radius:9px;padding:11px 14px;text-decoration:none;font-weight:800}
+.ctrlHead{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.ctrlList{display:grid;gap:10px;margin:15px 0}.ctrlRow{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;border:1px solid #507a92;padding:13px;border-radius:10px;background:#092a43}
+.ctrlRow small{display:block;color:#b9d8e9;margin-top:6px}
+.ctrlEdit{padding:18px;border:1px solid #5697ae;border-radius:12px;background:#0b2c44;margin:15px 0}
+.ctrlEdit[hidden]{display:none}
+.ctrlField{display:block;margin:13px 0;font-weight:800}
+.ctrlField input,.ctrlField textarea{display:block;color:#122d41;background:#f5faff;width:100%;max-width:none;padding:11px;font:inherit;border:1px solid #aac5d7;border-radius:8px;margin-top:7px}
+.ctrlField textarea{min-height:88px;resize:vertical}
+.ctrlHelp{color:#bbd8e7;font-weight:400;font-size:13px}
+.ctrlChecks{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.ctrlChecks label{display:flex;align-items:start;gap:9px;border:1px solid #55819a;background:#173f5a;padding:12px;border-radius:9px;cursor:pointer}
+.ctrlChecks input{width:18px;height:18px;flex:none;margin:2px 0;accent-color:#ecb442}
+.ctrlChecks strong{display:block}
+.ctrlPreview{background:#173d58;border:1px dashed #75bfd8;border-radius:10px;padding:15px;margin:15px 0}
+.ctrlPreview h3{margin:0}
+.ctrlPreview p{margin:8px 0}
+.ctrlMsg{color:#b6f1d6;min-height:23px}
+#boothOpportunities,#boothCandidates{scroll-margin-top:25px}
+@media(max-width:700px){.ctrlChecks{grid-template-columns:1fr}.ctrlNav a{flex:1 1 180px;text-align:center}}
 </style></head><body><header><div class="brand">LEVEL UP <span style="color:#78dbf1">· EMPLOYER EXPO</span></div><span>Employer access · Assigned booths only</span></header><main><div class="eyebrow">Virtual Career Expo · Employer Workspace</div><h1>Your employer dashboard</h1><p class="sub">Review candidate interest, view résumés shared with your booth, and see verified Work Experience eligibility.</p>
 <section id="auth" class="card"><h2>Secure employer sign-in</h2><p class="sub">Use the email address assigned to your Expo booth. Your access link uses Level Up's shared authentication service.</p><label for="email">Employer email</label><div class="row"><input id="email" type="email" placeholder="name@company.com"><button id="signin">Send secure sign-in link</button><button id="signout" class="secondary">Sign out</button></div><div class="expoOtp" style="background:#0b2d45;border:1px solid #3b819d;padding:14px;border-radius:10px;margin-top:14px">
 <label for="expoCode" style="display:block;font-weight:800;margin-bottom:8px">Have a Career Expo email code?</label>
 <div class="row"><input id="expoCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Enter sign-in code" aria-label="Email sign-in code" style="max-width:235px"><button id="expoVerifyCode" class="secondary" type="button">Verify code · Employer Dashboard</button></div>
 <p style="color:#b5d5e7;font-size:12px;margin:10px 0 0">When the updated sign-in email includes a code, enter it here to sign in without leaving this page. Secure email links remain available.</p></div><p id="identity"></p></section><p id="message" role="status"></p>
-<div id="dashboard" class="hidden"><section class="card hero"><div class="eyebrow">Authorized employer workspace</div><h2 id="boothTitle">Assigned booth</h2><p id="eventInfo"></p><div class="row controls"><a href="studio.html" style="display:inline-block;padding:12px 18px;background:#eab342;color:#10273a;border-radius:10px;text-decoration:none;font-weight:900">Customize My Booth →</a><button id="refresh">Refresh candidate interests</button><span class="sub">Only information explicitly shared with your booth is shown.</span></div></section><div class="grid"><div class="metric"><strong id="countInterests">0</strong>Interested candidates</div><div class="metric"><strong id="countResumes">0</strong>Résumés currently shared</div><div class="metric"><strong id="countWex">0</strong>Verified WEX approvals</div></div><section class="card"><h2>Candidate interest & résumé exchange</h2><div id="candidates"></div></section></div>
+<div id="dashboard" class="hidden"><section class="card hero"><div class="eyebrow">Authorized employer workspace</div><h2 id="boothTitle">Assigned booth</h2><p id="eventInfo"></p><div class="row controls"><a href="studio.html" style="display:inline-block;padding:12px 18px;background:#eab342;color:#10273a;border-radius:10px;text-decoration:none;font-weight:900">Customize My Booth →</a><button id="refresh">Refresh candidate interests</button><span class="sub">Only information explicitly shared with your booth is shown.</span></div></section>
+<nav class="ctrlNav" aria-label="Booth Control"><a href="#boothOpportunities">💼 Opportunities</a><a href="#boothCandidates">👥 Candidate interests</a><a href="studio.html">🎨 Branding Studio</a></nav>
+<section class="card" id="boothOpportunities"><div class="ctrlHead"><div><div class="eyebrow">Booth Control</div><h2>Opportunities &amp; application instructions</h2><p class="sub">Create positions, add application links, and tell visitors how to apply.</p></div><button id="newPosition">+ Add opportunity</button></div>
+<p class="sub" id="positionSummary">Loading opportunities…</p><div class="ctrlList" id="positionList"></div>
+<div class="ctrlEdit" id="positionEditor" hidden><h3 id="editHeading">New opportunity</h3><p class="ctrlHelp">Saving publishes the changes immediately. Staff retains control of WEX approvals.</p>
+<form id="positionForm">
+<label class="ctrlField">Position title *<input id="positionTitle" required maxlength="120" placeholder="e.g., Customer Service Representative"></label>
+<label class="ctrlField">Position overview<textarea id="positionDescription" maxlength="2500" placeholder="Key qualifications, duties and location…"></textarea></label>
+<label class="ctrlField">Application or job-posting link<input id="positionUrl" type="url" maxlength="2048" placeholder="https://employer.com/careers/position"><span class="ctrlHelp">Required for online applications. Use the direct job posting link.</span></label>
+<p><strong>How should visitors apply? * (select all that apply)</strong></p>
+<div class="ctrlChecks" id="positionMethods">
+<label><input type="checkbox" value="apply_online"><span><strong>Apply online</strong>Open the job application link</span></label>
+<label><input type="checkbox" value="discuss_event"><span><strong>Discuss during event</strong>Speak with a recruiter at the booth</span></label>
+<label><input type="checkbox" value="resume_dropoff"><span><strong>Drop off / share résumé</strong>Use the Expo consent-based résumé exchange</span></label>
+<label><input type="checkbox" value="live_interview"><span><strong>Live interviews during event</strong>Ask the recruiter about interview availability</span></label>
+</div>
+<label class="ctrlField">Additional application instructions<textarea id="positionInstructions" maxlength="800" placeholder="e.g., Apply in advance; bring your résumé; ask for the hiring lead."></textarea></label>
+<div class="ctrlPreview" id="positionPreview"></div>
+<div class="row"><button id="savePosition" type="submit">Save &amp; publish</button><button id="cancelPosition" type="button" class="secondary">Cancel</button></div>
+</form><p id="positionStatus" class="ctrlMsg" role="status"></p>
+</div></section>
+<div class="grid"><div class="metric"><strong id="countInterests">0</strong>Interested candidates</div><div class="metric"><strong id="countResumes">0</strong>Résumés currently shared</div><div class="metric"><strong id="countWex">0</strong>Verified WEX approvals</div></div><section class="card" id="boothCandidates"><h2>Candidate interest & résumé exchange</h2><div id="candidates"></div></section></div>
 </main><footer>Level Up · Talent Systems Lab · Employer Workspace</footer><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.81.1/dist/umd/supabase.min.js"></script><script>
 const sb=window.supabase.createClient('https://dnijrzotfyvmmnmueknk.supabase.co','sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc'),$=id=>document.getElementById(id);let currentUser=null;
 const EXPO_RETURN_KEY='level-up-expo-auth-return-v1';
@@ -17,10 +61,70 @@ const skills=Object.entries(d.skillStatus||{}).filter(([,v])=>v==='have').map(([
 const skill=()=>{if(skills.length){section('Skills');node('p',skills.join(' · '),wrap)}},experience=()=>{if(bullets.length){section('Experience');for(const b of bullets){node('strong',(b.title||b.source||'Experience')+(b.where?' · '+b.where:''),wrap);const ul=node('ul',undefined,wrap);node('li',String(b.bullet||'').replace(/^[\\s•·▪◦‣⁃*-]+/,'').replace(/\\s*[•·▪◦‣⁃]\\s+/g,'; '),ul)}}};
 const done=new Set();for(const key of [...(Array.isArray(d.sectionOrder)?d.sectionOrder:['skills','experience']),'skills','experience']){if(done.has(key))continue;done.add(key);if(key==='skills')skill();if(key==='experience')experience()}
 const edu=d.education||{};if(edu.type||edu.school){section('Education');if(edu.type)node('div',edu.type,wrap);if(edu.school)node('div',edu.school,wrap)}return wrap}
+
+const METHOD_LABEL={apply_online:'Apply online',discuss_event:'Discuss during the event',resume_dropoff:'Drop off / share a résumé',live_interview:'Live interviews during the event'};
+let assignedBooth=null,editingPosition=null,busyPosition=false;
+const posField=id=>$(id).value.trim();
+const posMethods=()=>[...document.querySelectorAll('#positionMethods input:checked')].map(x=>x.value);
+function posText(node,tag,text){const item=document.createElement(tag);item.textContent=text;node.append(item);return item}
+function renderPositionPreview(){
+ const target=$('positionPreview');target.replaceChildren();posText(target,'h3',posField('positionTitle')||'Position preview');
+ if(posField('positionDescription'))posText(target,'p',posField('positionDescription'));
+ posText(target,'strong','Application options');
+ const ul=document.createElement('ul');for(const x of posMethods())posText(ul,'li',METHOD_LABEL[x]||x);
+ if(!ul.children.length)posText(ul,'li','Choose at least one option.');target.append(ul);
+ const url=posField('positionUrl');if(url.startsWith('https://')){const a=posText(target,'a','Open job posting ↗');a.href=url;a.target='_blank';a.rel='noopener noreferrer'}
+ if(posField('positionInstructions'))posText(target,'p',posField('positionInstructions'));
+}
+function openPositionEditor(p){
+ editingPosition=p?.id||null;$('editHeading').textContent=p?'Edit opportunity':'New opportunity';
+ $('positionTitle').value=p?.title||'';$('positionDescription').value=p?.description||'';
+ $('positionUrl').value=p?.application_url||'';$('positionInstructions').value=p?.application_notes||'';
+ for(const input of document.querySelectorAll('#positionMethods input'))input.checked=(p?.application_methods||[]).includes(input.value);
+ $('positionStatus').textContent='';$('positionEditor').hidden=false;renderPositionPreview();
+ $('positionEditor').scrollIntoView({behavior:'smooth',block:'start'});
+}
+async function loadPositions(){
+ if(!assignedBooth)return;
+ const {data,error}=await sb.from('expo_positions').select('id,title,description,opportunity_type,wex_status,application_url,application_methods,application_notes')
+ .eq('employer_id',assignedBooth.id).order('created_at',{ascending:false});
+ if(error){$('positionSummary').textContent='Could not load opportunities: '+error.message;return}
+ $('positionSummary').textContent=data.length+' positions for this booth. Save & publish updates what participants see.';
+ const holder=$('positionList');holder.replaceChildren();
+ if(!data.length)posText(holder,'p','No opportunities yet. Choose Add opportunity.');
+ for(const p of data){const row=document.createElement('div');row.className='ctrlRow';
+ const info=document.createElement('div');posText(info,'strong',p.title);
+ posText(info,'small',p.application_methods?.length?p.application_methods.map(k=>METHOD_LABEL[k]||k).join(' · '):'No application methods selected yet');
+ if(['wex','both'].includes(p.opportunity_type))posText(info,'small','WEX status: '+p.wex_status+' (staff controlled)');
+ const edit=document.createElement('button');edit.className='secondary';edit.textContent='Edit';edit.onclick=()=>openPositionEditor(p);
+ row.append(info,edit);holder.append(row)}
+}
+async function savePositionForm(event){
+ event.preventDefault();if(busyPosition||!assignedBooth)return;
+ const methods=posMethods(),title=posField('positionTitle'),url=posField('positionUrl');
+ if(title.length<3||!methods.length){$('positionStatus').textContent='Enter a title and select at least one application method.';return}
+ if(methods.includes('apply_online')&&!url){$('positionStatus').textContent='Add a job application URL for Apply online.';return}
+ if(url){try{const u=new URL(url);if(u.protocol!=='https:'||u.username||u.password)throw Error()}catch{$('positionStatus').textContent='Use a valid https:// application URL.';return}}
+ busyPosition=true;$('savePosition').disabled=true;$('positionStatus').textContent='Publishing…';
+ const {error}=await sb.rpc('expo_save_employer_position',{
+  p_employer_id:assignedBooth.id,p_position_id:editingPosition,p_title:title,
+  p_description:posField('positionDescription'),p_application_url:url,p_application_methods:methods,
+  p_application_notes:posField('positionInstructions')
+ });
+ if(error){$('positionStatus').textContent='Save failed: '+error.message}
+ else{$('positionEditor').hidden=true;editingPosition=null;await loadPositions();say('Opportunity saved and published.')}
+ busyPosition=false;$('savePosition').disabled=false;
+}
+$('newPosition').onclick=()=>openPositionEditor(null);
+$('cancelPosition').onclick=()=>{$('positionEditor').hidden=true;editingPosition=null};
+$('positionForm').addEventListener('submit',savePositionForm);
+for(const id of ['positionTitle','positionDescription','positionUrl','positionInstructions'])$(id).addEventListener('input',renderPositionPreview);
+for(const check of document.querySelectorAll('#positionMethods input'))check.addEventListener('change',renderPositionPreview);
+
 async function renderCandidates(booth){const out=$('candidates');out.replaceChildren();say('Loading employer inbox…');const {data,error}=await sb.rpc('expo_employer_inbox',{p_employer_id:booth.id});if(error){say('Unable to load employer inbox: '+error.message);return}const items=Array.isArray(data)?data:[];$('countInterests').textContent=items.length;$('countResumes').textContent=items.filter(x=>x.has_active_share).length;$('countWex').textContent=items.filter(x=>x.wex_approved).length;if(!items.length){node('p','No participant interests have been received for this booth yet.',out);say('Employer inbox is ready.');return}
 for(const item of items){const card=node('article',undefined,out);card.className='candidate';node('div','OPPORTUNITY · '+item.position_title,card).className='eyebrow';node('h3',item.participant_name||'Interested participant',card);const tags=node('div',undefined,card);node('span',item.has_active_share?'Résumé shared':'No résumé shared',tags).className='tag'+(item.has_active_share?' ok':'');if(item.wex_approved)node('span','✓ WEX approved · verified',tags).className='tag ok';else node('span','WEX not verified',tags).className='tag';node('p','Interest submitted: '+new Date(item.created_at).toLocaleString(),card).className='sub';if(item.has_active_share&&item.resume_source==='levelup'&&item.resume_data){const btn=node('button','View shared résumé',card);btn.className='secondary controls';const holder=node('div',undefined,card);btn.onclick=()=>{if(holder.childNodes.length){holder.replaceChildren();btn.textContent='View shared résumé'}else{holder.append(resumeView(item.resume_data));btn.textContent='Hide résumé'}}}else if(item.has_active_share&&item.resume_source==='upload'){node('p','Uploaded résumé: '+(item.upload_file_name||'Document')+'. Secure employer file access is not yet enabled.',card).className='sub'}}
 say('Employer inbox updated. Refresh to check for newly shared or revoked résumés.')}
-async function load(){const {data:{user},error}=await sb.auth.getUser();if(error||!user){currentUser=null;$('identity').textContent='Not signed in';$('dashboard').classList.add('hidden');say('Sign in with your authorized employer account.');return}currentUser=user;$('identity').textContent='Signed in as '+user.email;const {data:members,error:me}=await sb.from('expo_employer_members').select('employer_id').eq('user_id',user.id);if(me){say('Employer authorization lookup failed: '+me.message);return}if(!members?.length){$('dashboard').classList.add('hidden');say('This account is not assigned to an employer booth. Contact the event facilitator.');return}const ids=members.map(x=>x.employer_id);const {data:booths,error:be}=await sb.from('expo_employers').select('id,name,booth_number,event_id,description').in('id',ids);if(be||!booths?.length){say('Could not load assigned booth: '+(be?.message||'No booths found'));return}const booth=booths[0];$('boothTitle').textContent='Booth '+booth.booth_number+' · '+booth.name;$('eventInfo').textContent=booth.description||'Virtual Career Expo';$('dashboard').classList.remove('hidden');$('refresh').onclick=()=>renderCandidates(booth);await renderCandidates(booth)}
+async function load(){const {data:{user},error}=await sb.auth.getUser();if(error||!user){currentUser=null;$('identity').textContent='Not signed in';$('dashboard').classList.add('hidden');say('Sign in with your authorized employer account.');return}currentUser=user;$('identity').textContent='Signed in as '+user.email;const {data:members,error:me}=await sb.from('expo_employer_members').select('employer_id').eq('user_id',user.id);if(me){say('Employer authorization lookup failed: '+me.message);return}if(!members?.length){$('dashboard').classList.add('hidden');say('This account is not assigned to an employer booth. Contact the event facilitator.');return}const ids=members.map(x=>x.employer_id);const {data:booths,error:be}=await sb.from('expo_employers').select('id,name,booth_number,event_id,description').in('id',ids);if(be||!booths?.length){say('Could not load assigned booth: '+(be?.message||'No booths found'));return}const booth=booths[0];assignedBooth=booth;$('boothTitle').textContent='Booth '+booth.booth_number+' · '+booth.name;$('eventInfo').textContent=booth.description||'Virtual Career Expo';$('dashboard').classList.remove('hidden');$('refresh').onclick=()=>renderCandidates(booth);await Promise.all([renderCandidates(booth),loadPositions()])}
 $('signin').onclick=async()=>{const email=$('email').value.trim();if(!email){say('Enter your assigned employer email.');return}say('Sending sign-in link…');const redirectTo=new URL('employer.html',location.href).href;const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTo}});if(!error)saveExpoReturn(email);say(error?'Unable to send sign-in link: '+error.message:'Check your inbox for your employer sign-in link. It should return to this Employer Expo page. If the shared email opens Level Up instead, sign in there and the Expo will attempt to restore this destination.')};
 async function verifyExpoCode(){
  const email=$('email').value.trim().toLowerCase(),token=$('expoCode').value.trim(),btn=$('expoVerifyCode');
