@@ -45,7 +45,12 @@
 <label for="expoCode" style="display:block;font-weight:800;margin-bottom:8px">Have a Career Expo email code?</label>
 <div class="row"><input id="expoCode" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="Enter sign-in code" aria-label="Email sign-in code" style="max-width:235px"><button id="expoVerifyCode" class="secondary" type="button">Verify code · Employer Dashboard</button></div>
 <p style="color:#b5d5e7;font-size:12px;margin:10px 0 0">When the updated sign-in email includes a code, enter it here to sign in without leaving this page. Secure email links remain available.</p></div><p id="identity"></p></section><p id="message" role="status"></p>
-<div id="dashboard" class="hidden"><section class="card hero"><div class="eyebrow">Authorized employer workspace</div><h2 id="boothTitle">Assigned booth</h2><p id="eventInfo"></p><div class="row controls"><a href="studio.html" style="display:inline-block;padding:12px 18px;background:#eab342;color:#10273a;border-radius:10px;text-decoration:none;font-weight:900">Customize My Booth →</a><button id="refresh">Refresh candidate interests</button><span class="sub">Only information explicitly shared with your booth is shown.</span></div></section>
+<div id="dashboard" class="hidden"><section class="card hero"><div class="eyebrow">Authorized employer workspace</div><h2 id="boothTitle">Assigned booth</h2><p id="eventInfo"></p>
+<div id="boothSwitcherWrap" hidden style="max-width:480px;margin:14px 0">
+<label for="boothSwitcher" style="display:block;font-weight:800;margin-bottom:6px">Choose your assigned booth</label>
+<select id="boothSwitcher" style="display:block;width:100%;padding:12px;border:1px solid #a7cbdd;background:#f5fbff;color:#0d3045;border-radius:9px;font:inherit"></select>
+<p class="sub" style="margin-top:6px">Each booth has its own opportunities, recruiter availability, and visitor settings.</p>
+</div><div class="row controls"><a href="studio.html" style="display:inline-block;padding:12px 18px;background:#eab342;color:#10273a;border-radius:10px;text-decoration:none;font-weight:900">Customize My Booth →</a><button id="refresh">Refresh candidate interests</button><span class="sub">Only information explicitly shared with your booth is shown.</span></div></section>
 
 
 <section id="boothExperience" class="card">
@@ -282,7 +287,31 @@ for(const check of document.querySelectorAll('#positionMethods input'))check.add
 async function renderCandidates(booth){const out=$('candidates');out.replaceChildren();say('Loading employer inbox…');const {data,error}=await sb.rpc('expo_employer_inbox',{p_employer_id:booth.id});if(error){say('Unable to load employer inbox: '+error.message);return}const items=Array.isArray(data)?data:[];$('countInterests').textContent=items.length;$('countResumes').textContent=items.filter(x=>x.has_active_share).length;$('countWex').textContent=items.filter(x=>x.wex_approved).length;if(!items.length){node('p','No participant interests have been received for this booth yet.',out);say('Employer inbox is ready.');return}
 for(const item of items){const card=node('article',undefined,out);card.className='candidate';node('div','OPPORTUNITY · '+item.position_title,card).className='eyebrow';node('h3',item.participant_name||'Interested participant',card);const tags=node('div',undefined,card);node('span',item.has_active_share?'Résumé shared':'No résumé shared',tags).className='tag'+(item.has_active_share?' ok':'');if(item.wex_approved)node('span','✓ WEX approved · verified',tags).className='tag ok';else node('span','WEX not verified',tags).className='tag';node('p','Interest submitted: '+new Date(item.created_at).toLocaleString(),card).className='sub';if(item.has_active_share&&item.resume_source==='levelup'&&item.resume_data){const btn=node('button','View shared résumé',card);btn.className='secondary controls';const holder=node('div',undefined,card);btn.onclick=()=>{if(holder.childNodes.length){holder.replaceChildren();btn.textContent='View shared résumé'}else{holder.append(resumeView(item.resume_data));btn.textContent='Hide résumé'}}}else if(item.has_active_share&&item.resume_source==='upload'){node('p','Uploaded résumé: '+(item.upload_file_name||'Document')+'. Secure employer file access is not yet enabled.',card).className='sub'}}
 say('Employer inbox updated. Refresh to check for newly shared or revoked résumés.')}
-async function load(){const {data:{user},error}=await sb.auth.getUser();if(error||!user){currentUser=null;$('identity').textContent='Not signed in';$('dashboard').classList.add('hidden');say('Sign in with your authorized employer account.');return}currentUser=user;$('identity').textContent='Signed in as '+user.email;const {data:members,error:me}=await sb.from('expo_employer_members').select('employer_id').eq('user_id',user.id);if(me){say('Employer authorization lookup failed: '+me.message);return}if(!members?.length){$('dashboard').classList.add('hidden');say('This account is not assigned to an employer booth. Contact the event facilitator.');return}const ids=members.map(x=>x.employer_id);const {data:booths,error:be}=await sb.from('expo_employers').select('id,name,booth_number,event_id,description').in('id',ids);if(be||!booths?.length){say('Could not load assigned booth: '+(be?.message||'No booths found'));return}const booth=booths[0];assignedBooth=booth;$('boothTitle').textContent='Booth '+booth.booth_number+' · '+booth.name;$('eventInfo').textContent=booth.description||'Virtual Career Expo';$('dashboard').classList.remove('hidden');$('refresh').onclick=()=>renderCandidates(booth);await Promise.all([renderCandidates(booth),loadPositions(),loadStaffStatus(),loadInterviewQueue(),loadBoothExperience()]);startStaffHeartbeat()}
+async function activateAssignedBooth(booth){
+ if(!booth)return;
+ assignedBooth=booth;
+ editingPosition=null;$('positionEditor').hidden=true;
+ staffActiveStatus='offline';staffMarkStatus('offline');
+ $('boothTitle').textContent='Booth '+String(booth.booth_number).padStart(2,'0')+' · '+booth.name;
+ $('eventInfo').textContent=booth.description||'Virtual Career Expo';
+ $('dashboard').classList.remove('hidden');
+ $('refresh').onclick=()=>renderCandidates(booth);
+ await Promise.all([renderCandidates(booth),loadPositions(),loadStaffStatus(),loadInterviewQueue(),loadBoothExperience()]);
+}
+async function load(){const {data:{user},error}=await sb.auth.getUser();if(error||!user){currentUser=null;$('identity').textContent='Not signed in';$('dashboard').classList.add('hidden');say('Sign in with your authorized employer account.');return}currentUser=user;$('identity').textContent='Signed in as '+user.email;const {data:members,error:me}=await sb.from('expo_employer_members').select('employer_id').eq('user_id',user.id);if(me){say('Employer authorization lookup failed: '+me.message);return}if(!members?.length){$('dashboard').classList.add('hidden');say('This account is not assigned to an employer booth. Contact the event facilitator.');return}const ids=members.map(x=>x.employer_id);const {data:booths,error:be}=await sb.from('expo_employers').select('id,name,booth_number,event_id,description').in('id',ids);if(be||!booths?.length){say('Could not load assigned booth: '+(be?.message||'No booths found'));return}const choices=booths.sort((a,b)=>a.booth_number-b.booth_number);
+const switcher=$('boothSwitcher'),wrap=$('boothSwitcherWrap');
+switcher.replaceChildren();
+for(const optionBooth of choices){
+ const option=document.createElement('option');option.value=optionBooth.id;
+ option.textContent='Booth '+String(optionBooth.booth_number).padStart(2,'0')+' · '+optionBooth.name;
+ switcher.append(option);
+}
+wrap.hidden=choices.length<2;
+const preferred=sessionStorage.getItem('expo-employer-selected-booth');
+switcher.value=choices.some(b=>b.id===preferred)?preferred:choices[0].id;
+switcher.onchange=()=>{sessionStorage.setItem('expo-employer-selected-booth',switcher.value);
+ activateAssignedBooth(choices.find(b=>b.id===switcher.value))};
+await activateAssignedBooth(choices.find(b=>b.id===switcher.value));startStaffHeartbeat()}
 $('signin').onclick=async()=>{const email=$('email').value.trim();if(!email){say('Enter your assigned employer email.');return}say('Sending sign-in link…');const redirectTo=new URL('employer.html',location.href).href;const {error}=await sb.auth.signInWithOtp({email,options:{emailRedirectTo:redirectTo}});if(!error)saveExpoReturn(email);say(error?'Unable to send sign-in link: '+error.message:'Check your inbox for your employer sign-in link. It should return to this Employer Expo page. If the shared email opens Level Up instead, sign in there and the Expo will attempt to restore this destination.')};
 async function verifyExpoCode(){
  const email=$('email').value.trim().toLowerCase(),token=$('expoCode').value.trim(),btn=$('expoVerifyCode');
