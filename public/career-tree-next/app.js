@@ -23,6 +23,13 @@
     write(state);
   }
 
+  // On the youth subdomain, provide an explicit way into Opportunity City.
+  // The original Level Up host's navigation stays exactly as it is.
+  if(document.querySelector('meta[name="level-up-youth-entry"][content="1"]')){
+    const cityLink=document.querySelector('.city-link');
+    if(cityLink)cityLink.href=new URL('../?view=city',window.location.href).href;
+  }
+
   document.querySelectorAll('[data-destination]').forEach(link=>{
     link.addEventListener('click',()=>remember(link.dataset.destination));
   });
