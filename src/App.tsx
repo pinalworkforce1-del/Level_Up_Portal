@@ -574,8 +574,9 @@ export function App() {
   }
 
   // After authenticated sign-in (and any existing first-time name/email gates),
-  // open O*NET only on the youth hostname. A session-scoped flag ensures that
-  // returning to Opportunity City later in the same tab remains possible.
+  // open the full illustrated Career Tree map on the youth hostname, NOT the
+  // O*NET assessment. Participants select a destination inside Career Tree.
+  // A session-scoped flag preserves navigation back to Opportunity City.
   useEffect(() => {
     if (!YOUTH_ENTRY || !authReady || loading || !session || needsName) return;
     if (!session.user.email && !optionalEmailSkipped && localStorage.getItem("level-up-optional-email-skip:" + session.user.id) !== "1") return;
@@ -584,7 +585,7 @@ export function App() {
     if (new URLSearchParams(window.location.search).get("view") === "city") return;
     if (sessionStorage.getItem(YOUTH_LAUNCH_KEY) === session.user.id) return;
     sessionStorage.setItem(YOUTH_LAUNCH_KEY, session.user.id);
-    window.location.replace(new URL(`${BASE}career-tree-next/discover-me/`, window.location.origin).href);
+    window.location.replace(new URL(`${BASE}career-tree-next/`, window.location.origin).href);
   }, [authReady, loading, session, needsName, optionalEmailSkipped]);
 
   const activeDistrict = activeKey ? DISTRICTS[activeKey] : null;
@@ -819,9 +820,9 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit, y
     <section className="signin-card">
       <div className="brand"><span className="brand-mark">LU</span><div><strong>LEVEL UP</strong><span>OPPORTUNITY CITY</span></div></div>
       <p className="eyebrow">{youthEntry ? "WELCOME TO YOUR CAREER JOURNEY" : "ONE ACCOUNT. EVERY LEVEL."}</p>
-      <h1>{youthEntry ? "Start with Discover Me" : "Enter Opportunity City"}</h1>
-      <p>{youthEntry ? "Sign in or create your Level Up account. Then discover your interests with the O*NET Mini Interest Profiler and explore careers that fit you." : "Sign in to restore your completed experiences, XP, and next unlocked destination."}</p>
-      {sent ? <div className="sent"><Mail /><div><strong>Check your email</strong><span>{youthEntry ? "Open the secure link to begin Discover Me." : "Open the secure link to return to Opportunity City."}</span></div></div> : <>
+      <h1>{youthEntry ? "Your Career Tree Starts Here" : "Enter Opportunity City"}</h1>
+      <p>{youthEntry ? "Sign in or create your Level Up account to enter Career Tree. Explore the world, choose your own direction, and visit Discover Me when you're ready." : "Sign in to restore your completed experiences, XP, and next unlocked destination."}</p>
+      {sent ? <div className="sent"><Mail /><div><strong>Check your email</strong><span>{youthEntry ? "Open the secure link to enter Career Tree." : "Open the secure link to return to Opportunity City."}</span></div></div> : <>
         <label htmlFor="county">County</label>
         <select id="county" value={county} onChange={(event) => setCounty(event.target.value as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "")}>
           <option value="">Choose county</option>
