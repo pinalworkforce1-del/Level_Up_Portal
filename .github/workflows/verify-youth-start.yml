@@ -1,0 +1,28 @@
+name: Validate Youth Start Worker
+
+on:
+  pull_request:
+    paths:
+      - 'cloudflare/youth-start/**'
+      - 'src/App.tsx'
+      - 'public/career-tree-next/app.js'
+      - '.github/workflows/verify-youth-start.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Verify worker JavaScript and proxy routing
+        run: |
+          node --check cloudflare/youth-start/worker.mjs
+          node --test cloudflare/youth-start/worker.test.mjs
+      - name: Verify Career Tree entry script syntax
+        run: node --check public/career-tree-next/app.js
