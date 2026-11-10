@@ -48,6 +48,10 @@ type District = {
 };
 
 const BASE = import.meta.env.BASE_URL;
+// Only the Cloudflare youth-entry proxy adds this marker to its HTML.
+// The existing Level Up host never receives it and retains its normal flow.
+const YOUTH_ENTRY = Boolean(document.querySelector('meta[name="level-up-youth-entry"][content="1"]'));
+const YOUTH_LAUNCH_KEY = "level-up-youth-entry-launch-v1";
 const ASSET = `${BASE}opportunity-city/`;
 
 const CORE_SEQUENCE = [
@@ -569,6 +573,21 @@ export function App() {
     navigate(district.href);
   }
 
+  // After authenticated sign-in (and any existing first-time name/email gates),
+  // open the full illustrated Career Tree map on the youth hostname, NOT the
+  // O*NET assessment. Participants select a destination inside Career Tree.
+  // A session-scoped flag preserves navigation back to Opportunity City.
+  useEffect(() => {
+    if (!YOUTH_ENTRY || !authReady || loading || !session || needsName) return;
+    if (!session.user.email && !optionalEmailSkipped && localStorage.getItem("level-up-optional-email-skip:" + session.user.id) !== "1") return;
+    const path = window.location.pathname;
+    if (path !== "/" && path !== BASE && path !== BASE.replace(/\/$/, "")) return;
+    if (new URLSearchParams(window.location.search).get("view") === "city") return;
+    if (sessionStorage.getItem(YOUTH_LAUNCH_KEY) === session.user.id) return;
+    sessionStorage.setItem(YOUTH_LAUNCH_KEY, session.user.id);
+    window.location.replace(new URL(`${BASE}career-tree-next/`, window.location.origin).href);
+  }, [authReady, loading, session, needsName, optionalEmailSkipped]);
+
   const activeDistrict = activeKey ? DISTRICTS[activeKey] : null;
   const activeState = activeDistrict ? districtState(activeDistrict) : "locked";
   const currentCaption = cues.find((cue) => welcomeTime >= cue.start && welcomeTime < cue.end)?.text ?? "";
@@ -577,8 +596,8 @@ export function App() {
   const shadowVisible = complete("first-day-challenge") || progressById.has("shadow-passage");
   const shadowComplete = complete("shadow-passage");
 
-  if (!authReady || loading) return <main className="loading"><span className="brand-mark">LU</span><p>Loading Opportunity City…</p></main>;
-  if (configured && !session) return <SignIn email={email} setEmail={setEmail} county={county} setCounty={setCounty} sent={sent} message={message} onSubmit={signIn} />;
+  if (!authReady || loading) return <main className="loading"><span className="brand-mark">LU</span><p>{YOUTH_ENTRY ? "Getting your Career Tree ready…" : "Loading Opportunity City…"}</p></main>;
+  if (configured && !session) return <SignIn email={email} setEmail={setEmail} county={county} setCounty={setCounty} sent={sent} message={message} onSubmit={signIn} youthEntry={YOUTH_ENTRY} />;
   if (configured && session && needsName) return <NameGate value={nameDraft} setValue={setNameDraft} saving={savingName} message={message} onSave={saveProfileName} onSignOut={signOut} />;
   if (configured && session && !session.user.email && !optionalEmailSkipped && localStorage.getItem("level-up-optional-email-skip:" + session.user.id) !== "1") return <OptionalEmailGate value={optionalEmail} setValue={setOptionalEmail} busy={optionalEmailBusy} notice={optionalEmailNotice} onAdd={addOptionalEmail} onSkip={skipOptionalEmail} />;
 
@@ -765,7 +784,7 @@ function NameGate({ value, setValue, saving, message, onSave, onSignOut }: { val
 // authorization gateway and linked-account flow have passed verification.
 const PINAL_SMS_PILOT_ACTIVE = true;
 
-function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | ""; setCounty: (value: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") => void; sent: boolean; message: string; onSubmit: () => void }) {
+function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit, youthEntry = false }: { email: string; setEmail: (value: string) => void; county: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | ""; setCounty: (value: "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "") => void; sent: boolean; message: string; onSubmit: () => void; youthEntry?: boolean }) {
   const [method,setMethod]=useState<"email"|"sms">("email");
   const [phone,setPhone]=useState("");
   const [otp,setOtp]=useState("");
@@ -800,10 +819,10 @@ function SignIn({ email, setEmail, county, setCounty, sent, message, onSubmit }:
     <div className="signin-shade" />
     <section className="signin-card">
       <div className="brand"><span className="brand-mark">LU</span><div><strong>LEVEL UP</strong><span>OPPORTUNITY CITY</span></div></div>
-      <p className="eyebrow">ONE ACCOUNT. EVERY LEVEL.</p>
-      <h1>Enter Opportunity City</h1>
-      <p>Sign in to restore your completed experiences, XP, and next unlocked destination.</p>
-      {sent ? <div className="sent"><Mail /><div><strong>Check your email</strong><span>Open the secure link to return to Opportunity City.</span></div></div> : <>
+      <p className="eyebrow">{youthEntry ? "WELCOME TO YOUR CAREER JOURNEY" : "ONE ACCOUNT. EVERY LEVEL."}</p>
+      <h1>{youthEntry ? "Your Career Tree Starts Here" : "Enter Opportunity City"}</h1>
+      <p>{youthEntry ? "Sign in or create your Level Up account to enter Career Tree. Explore the world, choose your own direction, and visit Discover Me when you're ready." : "Sign in to restore your completed experiences, XP, and next unlocked destination."}</p>
+      {sent ? <div className="sent"><Mail /><div><strong>Check your email</strong><span>{youthEntry ? "Open the secure link to enter Career Tree." : "Open the secure link to return to Opportunity City."}</span></div></div> : <>
         <label htmlFor="county">County</label>
         <select id="county" value={county} onChange={(event) => setCounty(event.target.value as "Pinal" | "Northern" | "UFO - Eastern New Mexico" | "")}>
           <option value="">Choose county</option>
