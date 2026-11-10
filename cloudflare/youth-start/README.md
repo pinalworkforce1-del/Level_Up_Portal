@@ -6,7 +6,7 @@ This is a **second entrance** to the existing Level Up platform. The existing
 ## How it works
 
 - The Cloudflare Worker in \`worker.mjs\` serves the **same** Level Up GitHub Pages build under \`https://start.levelupcareers.org\`.
-- A server-injected \`level-up-youth-entry\` HTML meta flag is present **only** on the subdomain. The React app uses it to show youth-specific sign-in wording and, following sign-in, launch \`/Level_Up_Portal/career-tree-next/discover-me/\` (O*NET Mini Interest Profiler).
+- A server-injected \`level-up-youth-entry\` HTML meta flag is present **only** on the subdomain. The React app uses it to show youth-specific sign-in wording and, following sign-in, launch the illustrated \`/Level_Up_Portal/career-tree-next/\` map. Discover Me (O*NET) remains a participant-selected destination.
 - Existing Level Up sign-in methods, county selection, first-name capture, profile and progress synchronization are **reused**. No new Supabase project or user table is created.
 - The youth domain and original Level Up domain have independent browser sessions, but both use the **same Supabase project and user accounts**. A participant may need to sign in when switching between domains.
 - Career Tree and Discover Me stay on \`start.levelupcareers.org\` through the proxy. The Career Tree header has a route to Opportunity City.
@@ -27,9 +27,9 @@ This repository has no Cloudflare zone credentials. Committing the Worker **does
 ## Acceptance checks
 
 - [ ] \`https://levelupcareers.org\` still shows its original landing/sign-in behavior.
-- [ ] \`https://start.levelupcareers.org\` shows "Start with Discover Me" and requires Level Up sign-in, including county selection.
+- [ ] \`https://start.levelupcareers.org\` shows "Your Career Tree Starts Here" and requires Level Up sign-in, including county selection.
 - [ ] Email magic-link sign-in returns to the **start** subdomain, not the GitHub URL. Pinal SMS login is tested if applicable.
-- [ ] First-time name capture still runs if needed, and then Discover Me opens.
+- [ ] First-time name capture still runs if needed, and then the illustrated Career Tree map opens.
 - [ ] Sign-in with an existing Level Up account does not create a duplicate account.
 - [ ] O*NET questionnaire, score results, resume/re-entry, "Explore Careers" and Supabase progress writes work.
 - [ ] Career Tree remains on the start hostname; Opportunity City link works and does not loop to O*NET.
@@ -45,8 +45,9 @@ prefix-free requests. Youth navigation may expose that path prefix on some
 links; **the hostname remains the branded start domain**.
 
 The youth auto-launch happens just once per tab/session. Visiting Opportunity
-City after starting Discover Me therefore remains possible. A fresh tab on
-the youth home route launches Discover Me for an already-authenticated user.
+City after entering Career Tree therefore remains possible. A fresh tab on
+the youth home route launches the illustrated Career Tree map for an already-authenticated user.
+Discover Me / O*NET is never auto-launched; participants select it from the map.
 
 Do not point the main apex host at this Worker. Cloudflare DNS/Workers routing
 and Supabase Auth Redirect URLs are the only infrastructure changes required.
