@@ -1,0 +1,27 @@
+name: Verify Nova Resume Rise Progression (Staging)
+
+on:
+  push:
+    branches:
+      - nova-resume-progression-staging-20261111
+    paths:
+      - public/career-tree-next/ready-2-work/app.js
+      - public/career-tree-next/ready-2-work/index.html
+      - public/career-tree-next/ready-2-work/resume-progression-policy.js
+      - tests/verify-resume-rise-progression.cjs
+      - .github/workflows/verify-nova-resume-progression.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  progression:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate Resume Rise evidence source and legacy isolation
+        run: node tests/verify-resume-rise-progression.cjs
