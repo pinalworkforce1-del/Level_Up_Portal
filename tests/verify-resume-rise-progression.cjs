@@ -11,14 +11,21 @@ const make=(source,entry,valid=true)=>({version_data:{
  contact:{name:valid?'Test participant':''},
  bullets:[{bullet:'Coordinated school tournaments with fellow students.'}]
 }});
-const legacy=make(undefined,undefined);
+const legacy={...make(undefined,undefined),created_at:'2026-11-07T20:31:10Z'};
+const postCutoff={...make(undefined,undefined),created_at:'2026-11-13T01:00:00Z'};
+const missingTimestamp=make(undefined,undefined);
 const district=make('resume-district','resume-district');
 const tagged=make('resume-rise','ready-2-work');
 const invalid=make('resume-rise','ready-2-work',false);
 const row=(module_id,is_complete)=>({module_id,is_complete});
 assert.equal(policy.resumeRiseComplete([],[]),false,'No evidence does not complete');
-assert.equal(policy.resumeRiseComplete([],[legacy]),false,'Legacy untagged résumé does not auto-complete Ready 2 Work');
+assert.equal(policy.resumeRiseComplete([],[legacy]),true,'Credible historical résumé retains previous Ready 2 Work eligibility');
+assert.equal(policy.resumeRiseEvidence([],[legacy]),'historical','Historical résumé is not relabeled as confirmed Resume Rise');
+assert.equal(policy.resumeRiseComplete([],[postCutoff]),false,'New untagged résumé cannot bypass source-aware rules');
+assert.equal(policy.resumeRiseComplete([],[missingTimestamp]),false,'Missing creation timestamp cannot bypass source-aware rules');
+assert.equal(policy.legacyEligible(legacy),true,'Historical cutoff is fixed and explicit');
 assert.equal(policy.resumeRiseComplete([],[district]),false,'District résumé does not complete Ready 2 Work');
+assert.equal(policy.resumeRiseComplete([], [{...district,created_at:'2026-10-23T01:20:00Z'}]),false,'Provenance-tagged Resume District version remains excluded even when old');
 assert.equal(policy.resumeRiseComplete([],[invalid]),false,'Invalid draft does not complete Ready 2 Work');
 assert.equal(policy.resumeRiseComplete([],[tagged]),true,'Completed Ready 2 Work résumé does complete');
 assert.equal(policy.resumeRiseComplete([row('ready2work-resume-rise',true)],[]),true,'Participant-owned Resume Rise progress completes');
@@ -32,4 +39,5 @@ assert.match(app,/LevelUpResumeProgression\?\.resumeRiseComplete\(rows,versions\
 assert.doesNotMatch(app,/state\.resumeBuilderCloudSaved===true/);
 assert.doesNotMatch(app,/module_id=in\.\(resume-district,interview-arena\)/);
 assert.match(app,/module_id=in\.\(ready2work-resume-rise,interview-arena\)/);
-console.log('PASS Resume Rise source isolation, legacy exclusion, progress and load order');
+assert.match(app,/select=version_data,created_at/,'Historical eligibility requires immutable creation date');
+console.log('PASS Resume Rise source isolation, grandfathered legacy eligibility, progress and load order');
