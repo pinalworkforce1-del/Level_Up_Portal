@@ -28,7 +28,7 @@
       const res=await fetch(url,{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
       if(!res.ok)return;
       const rows=await res.json();
-      const saved=await fetch('https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/resume_versions?select=version_data&user_id=eq.'+encodeURIComponent(session.user.id)+'&limit=100',{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
+      const saved=await fetch('https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/resume_versions?select=version_data,created_at&user_id=eq.'+encodeURIComponent(session.user.id)+'&limit=100',{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
       if(saved.ok){
         const versions=await saved.json();
         MODULE_COMPLETIONS.resume=window.LevelUpResumeProgression?.resumeRiseComplete(rows,versions)===true;
