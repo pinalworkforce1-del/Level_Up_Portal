@@ -2,7 +2,10 @@ const assert=require('node:assert/strict');
 const fs=require('node:fs');
 const path=require('node:path');
 const dir=path.join(__dirname,'../public/career-tree-next/ready-2-work');
-const policy=require(path.join(dir,'resume-progression-policy.js'));
+const vm=require('node:vm');
+const sandbox={module:{exports:{}},globalThis:{}};
+vm.runInNewContext(fs.readFileSync(path.join(dir,'resume-progression-policy.js'),'utf8'),sandbox);
+const policy=sandbox.module.exports;
 const make=(source,entry,valid=true)=>({version_data:{
  levelUpResumeCompletionSource:source,levelUpEntryPoint:entry,
  contact:{name:valid?'Test participant':''},
