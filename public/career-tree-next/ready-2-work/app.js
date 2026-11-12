@@ -8,11 +8,11 @@
   const RESUME_CHOICE_KEYMAP={"21":{"A":"D","B":"A","C":"B","D":"C"},"22":{"A":"B","B":"C","C":"A","D":"D"},"23":{"A":"C","B":"D","C":"A","D":"B"},"24":{"A":"B","B":"C","C":"D","D":"A"},"25":{"A":"D","B":"B","C":"A","D":"C"}};
   function migrateResumeChoices(choices){ const next={...choices};for(const [id,map] of Object.entries(RESUME_CHOICE_KEYMAP)){if(next[id]&&map[next[id]])next[id]=map[next[id]];}return next; }
 
-  const RESUME_URL = 'https://pinalworkforce1-del.github.io/LU_Discovery/resume-builder-prototype.html?source=ready2work';
+  const RESUME_URL = 'https://pinalworkforce1-del.github.io/Level-Up-Resume-Staging/?from=ready-2-work';
   const INTERVIEW_URL = 'live-interview-pilot.html?source=ready2work';
   const MODULE_COMPLETIONS = {resume:false, interview:false};
   function launchLevelUp(url){ saveState(); window.location.href=url; }
-  function linkedResumeComplete(){return MODULE_COMPLETIONS.resume || state.resumeBuilderCloudSaved===true;}
+  function linkedResumeComplete(){return MODULE_COMPLETIONS.resume===true;}
   function linkedInterviewComplete(){return MODULE_COMPLETIONS.interview;}
   function levelUpSession(){
     try{ const x=JSON.parse(sessionStorage.getItem('level-up-supabase-session-v1')||'null');if(x?.access_token&&x?.user)return x;}catch{}
@@ -24,17 +24,16 @@
     if(!session)return;
     try{
       const url='https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/module_progress?select=module_id,is_complete&user_id=eq.'+
-        encodeURIComponent(session.user.id)+'&module_id=in.(resume-district,interview-arena)';
+        encodeURIComponent(session.user.id)+'&module_id=in.(ready2work-resume-rise,interview-arena)';
       const res=await fetch(url,{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
       if(!res.ok)return;
       const rows=await res.json();
-      const saved=await fetch('https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/resume_versions?select=version_data&user_id=eq.'+encodeURIComponent(session.user.id)+'&limit=100',{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
+      const saved=await fetch('https://dnijrzotfyvmmnmueknk.supabase.co/rest/v1/resume_versions?select=version_data,created_at&user_id=eq.'+encodeURIComponent(session.user.id)+'&limit=100',{headers:{apikey:'sb_publishable_qSEo4iczJBozMaSIvTKisw_BsJy-iPc',Authorization:'Bearer '+session.access_token}});
       if(saved.ok){
         const versions=await saved.json();
-        MODULE_COMPLETIONS.resume=versions.some(v=>{
-          const d=v.version_data||{};
-          return Boolean(d.contact?.name?.trim() && Array.isArray(d.bullets) && d.bullets.some(b=>typeof b==='string'?b.trim().length>15:(b?.text||b?.bullet||b?.final||'').trim().length>15));
-        });
+        MODULE_COMPLETIONS.resume=window.LevelUpResumeProgression?.resumeRiseComplete(rows,versions)===true;
+      }else{
+        MODULE_COMPLETIONS.resume=window.LevelUpResumeProgression?.resumeRiseComplete(rows,[])===true;
       }
       MODULE_COMPLETIONS.interview=rows.some(r=>r.module_id==='interview-arena'&&r.is_complete===true);
       const view=document.querySelector('.view:not([hidden])');
@@ -551,7 +550,11 @@
   $('printCertificateBtn').onclick=()=>window.print();
   $('resetBtn').onclick=()=>{ if(confirm('Start Ready 2 Work over on this device? This clears decisions, skill evidence, and certificate progress.')){ localStorage.removeItem(STORAGE_KEY); location.hash='#map'; location.reload(); } };
 
-  loadState(); if(new URLSearchParams(location.search).get('resume_saved')==='1'){state.resumeBuilderCloudSaved=true;try{localStorage.setItem(STORAGE_KEY,JSON.stringify(state));}catch{}} recalcScores(); updateOverall();
+  loadState();
+  // Legacy query flags and browser-only resumeBuilderCloudSaved cannot certify completion.
+  // Only participant-owned module progress or a provenance-tagged completed version can.
+  delete state.resumeBuilderCloudSaved;
+  recalcScores(); updateOverall();
   document.getElementById('syncSoftSkillsNow')?.addEventListener('click',()=>{const snapshot=softSkillsSnapshot();syncStatus('Sending '+snapshot.completed_scenes+' of '+snapshot.total_scenes+' recorded Soft Skills decisions…');cloudRevision++;flushCloudSave();});
   loadCloudSoftSkills();
   refreshLinkedCompletions();
