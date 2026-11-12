@@ -11,9 +11,15 @@ const make=(source,entry,valid=true)=>({version_data:{
  contact:{name:valid?'Test participant':''},
  bullets:[{bullet:'Coordinated school tournaments with fellow students.'}]
 }});
-const legacy={...make(undefined,undefined),created_at:'2026-11-07T20:31:10Z'};
-const postCutoff={...make(undefined,undefined),created_at:'2026-11-13T01:00:00Z'};
-const missingTimestamp=make(undefined,undefined);
+const untagged=()=>{
+ const x=make(undefined,undefined);
+ delete x.version_data.levelUpResumeCompletionSource;
+ delete x.version_data.levelUpEntryPoint;
+ return x;
+};
+const legacy={...untagged(),created_at:'2026-11-07T20:31:10Z'};
+const postCutoff={...untagged(),created_at:'2026-11-13T01:00:00Z'};
+const missingTimestamp=untagged();
 const district=make('resume-district','resume-district');
 const tagged=make('resume-rise','ready-2-work');
 const invalid=make('resume-rise','ready-2-work',false);
