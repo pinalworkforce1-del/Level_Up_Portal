@@ -8,7 +8,7 @@
   const RESUME_CHOICE_KEYMAP={"21":{"A":"D","B":"A","C":"B","D":"C"},"22":{"A":"B","B":"C","C":"A","D":"D"},"23":{"A":"C","B":"D","C":"A","D":"B"},"24":{"A":"B","B":"C","C":"D","D":"A"},"25":{"A":"D","B":"B","C":"A","D":"C"}};
   function migrateResumeChoices(choices){ const next={...choices};for(const [id,map] of Object.entries(RESUME_CHOICE_KEYMAP)){if(next[id]&&map[next[id]])next[id]=map[next[id]];}return next; }
 
-  const RESUME_URL = 'https://pinalworkforce1-del.github.io/LU_Discovery/resume-builder-prototype.html?source=ready2work';
+  const RESUME_URL = 'https://pinalworkforce1-del.github.io/Level-Up-Resume-Staging/?from=ready-2-work';
   const INTERVIEW_URL = 'live-interview-pilot.html?source=ready2work';
   const MODULE_COMPLETIONS = {resume:false, interview:false};
   function launchLevelUp(url){ saveState(); window.location.href=url; }
