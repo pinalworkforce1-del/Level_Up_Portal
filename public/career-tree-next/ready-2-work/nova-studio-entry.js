@@ -1,5 +1,5 @@
 (()=>{
-  const STUDIO='https://pinalworkforce1-del.github.io/LU_Discovery/resume-builder-prototype.html';
+  const STUDIO='https://pinalworkforce1-del.github.io/Level-Up-Resume-Staging/?from=ready-2-work';
   function mount(){
     if(document.getElementById('novaStudioLaunch'))return;
     const region=document.getElementById('stageExperienceGrid');
