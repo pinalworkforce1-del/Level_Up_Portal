@@ -46,4 +46,10 @@ assert.doesNotMatch(app,/state\.resumeBuilderCloudSaved===true/);
 assert.doesNotMatch(app,/module_id=in\.\(resume-district,interview-arena\)/);
 assert.match(app,/module_id=in\.\(ready2work-resume-rise,interview-arena\)/);
 assert.match(app,/select=version_data,created_at/,'Historical eligibility requires immutable creation date');
+const entry=fs.readFileSync(path.join(dir,'nova-studio-entry.js'),'utf8');
+const stagingUrl='https://pinalworkforce1-del.github.io/Level-Up-Resume-Staging/?from=ready-2-work';
+assert.ok(app.includes(stagingUrl),'Resume Rise primary launcher targets staged builder with explicit origin');
+assert.ok(entry.includes(stagingUrl),'Resume Rise card launcher targets same staged builder');
+assert.doesNotMatch(entry,/resume-builder-prototype\.html/,'No reconstructed builder in staged launch card');
+
 console.log('PASS Resume Rise source isolation, grandfathered legacy eligibility, progress and load order');
