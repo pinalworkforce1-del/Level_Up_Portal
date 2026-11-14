@@ -38,3 +38,25 @@ assert.match(app,/state\.coachConversation\?'☑ I would like to talk privately/
 assert.doesNotMatch(app,/\{id:'barriers'/,'Do not collect sensitive barriers');
 const css=read('public/career-tree-next/my-path-forward/styles.css');
 assert.match(css,/@page\{size:letter landscape/,'Landscape letter worksheet PDF layout');
+
+
+const readinessCoach=read('supabase/functions/career-tree-coach-detail/index.ts');
+const readinessRoster=read('supabase/functions/career-tree-coach-roster/index.ts');
+const coachHtml=read('public/career-tree-next/coach-readiness/index.html');
+const coachApp=read('public/career-tree-next/coach-readiness/app.js');
+assert.match(app,/PLAN_PROMPTS=/,'Participant readiness prompts are defined');
+assert.match(app,/planResponses/,'Participant responses are persisted');
+assert.match(app,/readinessSupports/,'Participant-requested support is persisted');
+assert.match(app,/readinessHistory/,'Historical score inputs are preserved');
+assert.match(html,/id="planReadinessQuestions"/,'Guided reflection is visible to participants');
+assert.match(html,/id="readinessSupportChoices"/,'Support needs prompt visible to participants');
+assert.doesNotMatch(html,/Plan Readiness Score|Calculated readiness|Scored Dimensions/i,'Coach-only rating must not be in participant UI');
+assert.match(readinessCoach,/function planReadiness\(/,'Server calculates coach-only score');
+assert.match(readinessCoach,/every\(m=>m.value!==null\)/,'Incomplete reflections have no calculated score');
+assert.match(readinessCoach,/This participant is not assigned to this coach/,'Assignment gate is retained');
+assert.match(readinessCoach,/validateCoach\(req\)/,'Coach authorization is retained');
+assert.match(readinessRoster,/my_path_forward:statusFor/,'Roster surfaces mind map status');
+assert.match(coachHtml,/Coach sign-in/,'Coach viewer requires credentials');
+assert.match(coachApp,/staff_login/,'Reuse existing Level Up staff sign in');
+assert.match(coachApp,/career-tree-coach-detail/,'Coach-only details loaded from authorized endpoint');
+console.log('Pinal guided readiness, coach authorization, and rubric source checks passed.');
