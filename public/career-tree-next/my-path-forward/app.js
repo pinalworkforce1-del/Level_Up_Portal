@@ -15,7 +15,6 @@ const READINESS_SUPPORTS=[
  ['ready','I feel ready to take action']
 ];
 const INTEREST_KEY='level-up-career-skill-tree-v1';
-const GEO_KEY='level-up-career-tree-geography-v1';
 const ACCOUNT_KEY='sb-dnijrzotfyvmmnmueknk-auth-token';
 const $=id=>document.getElementById(id);
 const FIELDS=[
@@ -44,14 +43,6 @@ function userSession(){try{
   return value?.access_token&&value?.user?.id?value:null
 }catch{return null}}
 function localKey(){return LOCAL_PREFIX+':'+(session?.user?.id||'guest')}
-function permittedGeo(){
-  const labor=String(localStorage.getItem(GEO_KEY)||'').trim().toLowerCase();
-  const next=readJSON('level-up-career-tree-next-v1');
-  const previous=readJSON(INTEREST_KEY);
-  const selected=String(next?.exploreCareers?.geography||previous?.alignment?.geography||'').trim().toLowerCase();
-  const region=String(localStorage.getItem('level-up-pending-county')||previous?.profile?.county||'').trim().toLowerCase();
-  return labor==='pinal'||selected==='pinal'||region.includes('pinal')
-}
 function interestComplete(){return Boolean(readJSON(INTEREST_KEY)?.interest?.complete)}
 function fromRow(row){
   const payload=row?.journey_state;
@@ -188,7 +179,7 @@ function viewReport(){
     return section;
   };
   const board=make('div','mapWorksheet');
-  board.setAttribute('aria-label','My Path Forward youth discovery worksheet');
+  board.setAttribute('aria-label','My Path Forward career discovery worksheet');
   const intro=make('div','worksheetIntro');
   intro.append(make('div','worksheetAppendix','A.7 · MY PATH FORWARD'),make('div','worksheetTitle','MY PATH FORWARD'));
   board.append(intro);
@@ -297,14 +288,14 @@ function build(){
 }
 async function init(){
   session=userSession();
-  const regionOkay=permittedGeo();
   const completed=interestComplete();
-  const allowed=regionOkay&&completed;
+  // O*NET completion is the only activity prerequisite; geography is never a gate.
+  const allowed=completed;
   $('gate').hidden=allowed;
   $('activity').hidden=!allowed;
   if(!allowed){
-    $('gateTitle').textContent=!completed?'Start with Discover Me first':'My Path Forward is a Pinal optional activity';
-    $('gateDetail').textContent=!completed?'Finish your 30 O*NET interest questions, then return here to explore My Path Forward. You can always continue to Explore Careers instead.':'This optional activity is available when Pinal is your selected workforce region or career geography. Your Discover Me results and Explore Careers remain available.';
+    $('gateTitle').textContent='Start with Discover Me first';
+    $('gateDetail').textContent='Finish your 30 O*NET interest questions, then return here to explore My Path Forward. You can also continue directly to Explore Careers.';
     return;
   }
   build();
