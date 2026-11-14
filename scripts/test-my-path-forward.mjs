@@ -20,12 +20,17 @@ assert.match(app,/next\.coachConversation=data\.coachConversation===true;/,'Save
 assert.match(app,/Number\.isInteger\(data\.readiness\)/,'Readiness remains optional numeric');
 assert.match(html,/class="example"/,'Examples available alongside prompts');
 assert.match(app,/document\.createElement\('details'\)/,'Every field receives Show me an example');
-assert.match(app,/const allowed=regionOkay&&completed;/,'Pinal plus completed O*NET required');
+assert.match(app,/const allowed=completed;/,'Completed O*NET is the only activity gate');
+assert.doesNotMatch(app,/permittedGeo|regionOkay|GEO_KEY|selected==='pinal'/,'No county restriction on activity');
+assert.match(discover,/function showOptionalPathForward\(\)/,'Optional invitation is available across all regions');
+assert.match(discover,/\$\('myPathInvitation'\)\.hidden=false/,'Invitation is displayed after O*NET completion');
+assert.doesNotMatch(intro,/PINAL · OPTIONAL/,'Invitation is geography-neutral');
+assert.match(html,/OPTIONAL · ALL REGIONS · AFTER O\*NET/,'Activity is available across all geographies');
 assert.match(app,/saved on this device|Saved on this device/,'Local save fallback included');
 assert.match(app,/LevelUpCareerTreeSync\.save\(MODULE_ID/,'Cloud sync supported');
 assert.match(sync,/'my-path-forward'/,'Cloud sync module ID enabled');
 assert.match(intro,/id="myPathInvitation" hidden/,'Optional link shown only when eligible');
-assert.match(discover,/function showOptionalPinalPath\(\)/,'Discover Me results honor Pinal');
+
 assert.match(intro,/Continue to Explore Careers/,'Existing direct Explore Careers progression kept');
 assert.match(html,/You don't need to share personal details here/,'Private conversation wording present');
 console.log('My Path Forward static privacy, optional gating, example, and saving checks passed.');
@@ -59,4 +64,4 @@ assert.match(readinessRoster,/my_path_forward:statusFor/,'Roster surfaces mind m
 assert.match(coachHtml,/Coach sign-in/,'Coach viewer requires credentials');
 assert.match(coachApp,/staff_login/,'Reuse existing Level Up staff sign in');
 assert.match(coachApp,/career-tree-coach-detail/,'Coach-only details loaded from authorized endpoint');
-console.log('Pinal guided readiness, coach authorization, and rubric source checks passed.');
+console.log('All-region guided readiness, coach authorization, and rubric source checks passed.');
