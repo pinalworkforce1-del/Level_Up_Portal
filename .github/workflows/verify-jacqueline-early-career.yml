@@ -1,0 +1,35 @@
+name: Verify Jacqueline Early Career Interviews
+on:
+  pull_request:
+    paths:
+      - "live-interview-pilot/**"
+      - "supabase/functions/levelup-live-interview-token/**"
+      - "supabase/functions/levelup-interview-feedback-lab/**"
+      - "public/career-tree-next/ready-2-work/live-interview-pilot.html"
+      - "scripts/verify-jacqueline-early-career.py"
+      - ".github/workflows/verify-jacqueline-early-career.yml"
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate worker Python
+        run: python -m py_compile live-interview-pilot/agent.py
+      - name: Verify role mapping, transcript and backwards compatibility
+        run: python scripts/verify-jacqueline-early-career.py
+      - name: Check HTML and TS source
+        run: |
+          node --input-type=module -e '
+          import fs from "node:fs";
+          const h=fs.readFileSync("public/career-tree-next/ready-2-work/live-interview-pilot.html","utf8");
+          if(!h.includes("Fast Food &amp; Food Service") || !h.includes("Work Experience (WEX)"))process.exit(1);
+          const t=fs.readFileSync("supabase/functions/levelup-live-interview-token/index.ts","utf8");
+          if(!t.includes("RoomAgentDispatch") || !t.includes("EARLY_CAREER_BANK") || !t.includes("required_questions:questions")) process.exit(1);
+          console.log("PASS: HTML and typed backend anchors");
+          '

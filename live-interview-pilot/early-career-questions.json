@@ -1,0 +1,67 @@
+{
+  "version": "early-career-v1",
+  "core": [
+    {
+      "id": "q1",
+      "text": "Tell me about yourself.",
+      "theme": "Self-awareness and communication"
+    },
+    {
+      "id": "q2",
+      "text": "Tell me about a time you worked with someone else to accomplish something.",
+      "theme": "Teamwork and cooperation"
+    },
+    {
+      "id": "q3",
+      "text": "Tell me about a time you had several responsibilities or deadlines. How did you manage them?",
+      "theme": "Time management and dependability"
+    },
+    {
+      "id": "q5",
+      "text": "Tell me about a time you learned something new or received feedback. What did you do with it?",
+      "theme": "Learning and adaptability"
+    }
+  ],
+  "roles": {
+    "first_job": {
+      "label": "My First Job",
+      "scenario": "Imagine you are busy with a task and someone asks for help. What would you do?"
+    },
+    "food_service": {
+      "label": "Fast Food & Food Service",
+      "scenario": "Imagine the restaurant is busy and a customer tells you their order is wrong. What would you do?"
+    },
+    "retail": {
+      "label": "Retail Associate",
+      "scenario": "Imagine you are stocking shelves when a customer asks for help finding something. What would you do?"
+    },
+    "customer_service": {
+      "label": "Customer Service",
+      "scenario": "Imagine a customer is frustrated because something did not go as expected. How would you respond?"
+    },
+    "wex": {
+      "label": "Work Experience (WEX)",
+      "scenario": "Imagine your supervisor gives you a task you have never done before. How would you make sure you understand what to do?"
+    },
+    "electrician": {
+      "label": "Electrician (Entry Level)",
+      "scenario": "Imagine a teammate needs help while you are finishing an important task. How would you communicate and decide what to do safely?"
+    },
+    "nursing_assistant": {
+      "label": "Nursing Assistant (Entry Level)",
+      "scenario": "Imagine someone needs help while you are already busy. How would you communicate and follow workplace directions?"
+    },
+    "manufacturing": {
+      "label": "Manufacturing / Team Assembler",
+      "scenario": "Imagine a team member is falling behind on a task. How would you help while keeping your own work and safety in mind?"
+    },
+    "cdl_driver": {
+      "label": "Commercial Driver (Entry Level)",
+      "scenario": "Imagine you are running behind schedule and someone needs an update. How would you communicate and handle the situation safely?"
+    }
+  },
+  "aliases": {
+    "general": "first_job"
+  },
+  "scenario_theme": "Customer service and problem-solving"
+}
