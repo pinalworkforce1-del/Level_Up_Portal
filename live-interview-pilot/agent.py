@@ -13,6 +13,7 @@ import urllib.request
 import logging
 import re
 from difflib import SequenceMatcher
+from pathlib import Path
 
 logger = logging.getLogger('livekit.agents.interview_completion')
 
@@ -23,11 +24,44 @@ from livekit.plugins import synthesia
 AVATAR_ID = os.getenv("SYNTHESIA_INTERACTIVE_AVATAR_ID", "fdec2525-6f4c-4544-87c6-abb3e47a12b4")
 AGENT_NAME = "levelup-interview-pilot"
 MAX_INTERVIEW_SECONDS = 480
+# Legacy three-question sessions have no job metadata and remain supported.
 PILOT_QUESTIONS = [
     ("q1", "What interests you about this position and what experience would help you succeed?"),
     ("q2", "What workplace responsibilities have best prepared you to work with a team?"),
     ("q3", "What would you do if you encountered a customer or coworker who needed assistance while you were busy?"),
 ]
+EARLY_CAREER_BANK = json.loads(
+    (Path(__file__).resolve().parent / "early-career-questions.json").read_text(encoding="utf-8")
+)
+
+def questions_for_role(role: str):
+    """Return the canonical five-question set; do not trust wording from job metadata."""
+    alias = EARLY_CAREER_BANK.get("aliases", {}).get(role, role)
+    selected = EARLY_CAREER_BANK["roles"].get(alias)
+    if not selected:
+        alias = "first_job"
+        selected = EARLY_CAREER_BANK["roles"][alias]
+    core = EARLY_CAREER_BANK["core"]
+    questions = core[:3] + [
+        {"id": "q4", "text": selected["scenario"], "theme": EARLY_CAREER_BANK["scenario_theme"]}
+    ] + [core[3]]
+    return [{ "id": q["id"], "text": q["text"], "theme": q["theme"] } for q in questions]
+
+def resolve_interview_questions(job_metadata):
+    """New sessions provide an explicit role; older sessions keep their original three questions."""
+    try:
+        meta = json.loads(job_metadata or "{}")
+    except (ValueError, TypeError):
+        meta = {}
+    if isinstance(meta, dict) and meta.get("question_bank") == EARLY_CAREER_BANK["version"]:
+        role = meta.get("role", "first_job")
+        if not isinstance(role, str):
+            role = "first_job"
+        questions = questions_for_role(role)
+        logger.info("JACQUELINE_EARLY_CAREER role=%s questions=%d", role, len(questions))
+        return questions
+    logger.info("JACQUELINE_LEGACY_QUESTION_SET questions=3")
+    return [{"id": qid, "text": text} for qid, text in PILOT_QUESTIONS]
 
 
 def build_interview_instructions(questions):
@@ -38,7 +72,19 @@ not a real hiring decision.
 Ask the following {len(questions)} required questions in order, one at a time.
 Keep each required question recognizable; do not replace its central meaning.
 {numbered}
-Wait for the participant's response before moving on. One brief clarification is allowed.
+Wait for the participant's response before moving on. You may ask ONE short, natural
+clarifying follow-up per required question when it helps the participant share a specific
+example. Then move forward. Keep the five-question session concise.
+Many participants will be first-time job seekers or Work Experience (WEX) participants.
+They do NOT need paid employment to answer: after an uncertain answer, gently suggest
+they may use an honest example from school, group projects, sports, volunteering,
+family responsibilities, or daily life. For scenario questions, they may explain
+what they WOULD do. Never assume they have a job or invent an experience.
+For "Tell me about yourself," invite interests, activities, strengths, and what
+they would like an employer to know. Do not demand a résumé or employment history.
+Ask the exact required question text first so responses can be verified.
+Follow-ups should encourage reflection rather than supply the ideal answer.
+Do not judge answers or give a score during the conversation.
 A short, uncertain, or poor-quality answer still counts as an answer; Nova evaluates quality later.
 Do not invent an answer if the participant refuses or does not respond.
 After all required questions have participant responses, call finish_interview once.
@@ -79,7 +125,10 @@ def extract_question_answers(turns, questions):
         if not replies:
             break
         # Supabase validates each extracted answer against a captured participant turn.
-        answers.append({"question_id": question["id"], "response": replies[0][:5000]})
+        # Use the most substantive real participant turn, including a later response
+        # to a supportive follow-up. The ledger verifies it appears verbatim in transcript.
+        best_response = max(replies, key=lambda value: len(value.strip()))
+        answers.append({"question_id": question["id"], "response": best_response[:5000]})
         cursor = next_index if next_index < len(turns) else len(turns)
     return answers
 
@@ -164,7 +213,7 @@ async def interview(ctx: agents.JobContext):
         llm="openai/gpt-4.1-mini",
         tts=f"cartesia/sonic-3:{os.getenv('INTERVIEW_TTS_VOICE_ID', '9626c31c-bec5-4cca-baa8-f8ba9e84c8bc')}",
     )
-    questions = [{"id": qid, "text": wording} for qid, wording in PILOT_QUESTIONS]
+    questions = resolve_interview_questions(getattr(ctx.job, "metadata", None))
     transcript_turns = []
     transcript_flush = None
     @session.on("conversation_item_added")
