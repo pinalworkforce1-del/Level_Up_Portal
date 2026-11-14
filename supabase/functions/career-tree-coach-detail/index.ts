@@ -49,7 +49,8 @@ function planReadiness(d:any,row:any){
    at:typeof v?.at==="string"?v.at:null,self_reported_readiness:Number.isInteger(v?.selfRating)&&v.selfRating>=0&&v.selfRating<=10?v.selfRating:null,
    plan_readiness:prompts.every(([key])=>Number.isInteger(v?.planResponses?.[key])&&v.planResponses[key]>=0&&v.planResponses[key]<=2)?prompts.reduce((n,[key])=>n+v.planResponses[key],0):null
   })).filter((x:any)=>x.at):[],
-  fields:{nextChapter:String(d?.fields?.nextChapter||"").slice(0,700),strengths:String(d?.fields?.strengths||"").slice(0,700),goal:String(d?.fields?.goal||"").slice(0,700),nextStep:String(d?.fields?.nextStep||"").slice(0,700),target:String(d?.fields?.target||"").slice(0,120)},
+  fields:Object.fromEntries(["nextChapter","myStory","whereNow","strengths","motivations","resources","futureVision","goal","nextStep","support","target"].map(key=>[key,String(d?.fields?.[key]||"").slice(0,key==="target"?120:700)])),
+  options:Array.isArray(d?.options)?d.options.filter((v:any)=>["diploma","wex","training","apprenticeship","college","business"].includes(v)):[],
   completed_at:row?.completed_at||null,updated_at:row?.updated_at||null,is_complete:Boolean(row?.is_complete)
  };
 }
