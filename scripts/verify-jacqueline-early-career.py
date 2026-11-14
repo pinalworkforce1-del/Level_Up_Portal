@@ -48,7 +48,7 @@ for role in list(bank["roles"])+["general"]:
     assert [q["id"] for q in questions] == ["q1","q2","q3","q4","q5"]
     assert questions[0]["text"] == "Tell me about yourself."
     assert all(len(q["text"])>=20 for q in questions)
-    assert "paid employment" not in " ".join(q["text"]).lower()
+    assert "paid employment" not in " ".join(q["text"] for q in questions).lower()
     scenario = bank["roles"].get(role,bank["roles"]["first_job"])["scenario"]
     assert questions[3]["text"] == scenario
     turns=[]
