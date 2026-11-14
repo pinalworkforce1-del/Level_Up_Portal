@@ -2,6 +2,18 @@
 'use strict';
 const MODULE_ID='my-path-forward';
 const LOCAL_PREFIX='levelup-my-path-forward-v1';
+const PLAN_PROMPTS=[
+  {id:'direction',label:'Career direction',question:'Where are you with choosing a career direction?',choices:['I am exploring possibilities','I have a few directions in mind','I have one direction I want to explore next']},
+  {id:'strengths',label:'Strengths and interests',question:'How well can you describe the strengths or interests you could build on?',choices:['I am still discovering them','I can name one or two','I can name strengths or interests that connect to my goals']},
+  {id:'goal',label:'A goal I can work toward',question:'How clear is the goal you want to work toward?',choices:['I am not sure yet','I have a general goal','I have a specific goal I can explain']},
+  {id:'action',label:'My first action',question:'What does your first step look like?',choices:['I need help identifying a step','I have an idea of what to do','I can name an action I could take']},
+  {id:'timeframe',label:'My time frame',question:'Have you considered when to begin?',choices:['Not yet','I have a general time in mind','I have a realistic time frame for my first step']}
+];
+const READINESS_SUPPORTS=[
+ ['career_info','Learn more about career options'],['action_plan','Make a clearer action plan'],
+ ['training','Explore training or work experience'],['coach','Talk with my Career Coach'],
+ ['ready','I feel ready to take action']
+];
 const INTEREST_KEY='level-up-career-skill-tree-v1';
 const GEO_KEY='level-up-career-tree-geography-v1';
 const ACCOUNT_KEY='sb-dnijrzotfyvmmnmueknk-auth-token';
@@ -23,7 +35,7 @@ const OPTIONS=[
   ['diploma','GED or diploma'],['wex','Job or work experience'],['training','Training or credential'],
   ['apprenticeship','Apprenticeship'],['college','College'],['business','Starting a business']
 ];
-const EMPTY=()=>({version:1,fields:{},options:[],readiness:null,coachConversation:false,completedAt:null,updatedAt:null});
+const EMPTY=()=>({version:2,fields:{},options:[],readiness:null,planResponses:{},readinessSupports:[],readinessHistory:[],coachConversation:false,completedAt:null,updatedAt:null});
 let state=EMPTY(),session=null,syncTimer=null,saveInProgress=false,lastEdit=0,loading=true,initialDirty=false;
 const txt=(value)=>String(value??'').slice(0,1500);
 function readJSON(key){try{return JSON.parse(localStorage.getItem(key)||'null')}catch{return null}}
@@ -54,6 +66,16 @@ function sanitize(data){
   }
   next.options=Array.isArray(data.options)?data.options.filter(v=>OPTIONS.some(([k])=>v===k)).slice(0,OPTIONS.length):[];
   next.readiness=Number.isInteger(data.readiness)&&data.readiness>=0&&data.readiness<=10?data.readiness:null;
+  if(data.planResponses&&typeof data.planResponses==='object')for(const prompt of PLAN_PROMPTS){
+    const value=data.planResponses[prompt.id];
+    if(Number.isInteger(value)&&value>=0&&value<=2)next.planResponses[prompt.id]=value;
+  }
+  next.readinessSupports=Array.isArray(data.readinessSupports)?data.readinessSupports.filter(v=>READINESS_SUPPORTS.some(([key])=>v===key)):[];
+  next.readinessHistory=Array.isArray(data.readinessHistory)?data.readinessHistory.slice(-20).map(v=>({
+    at:typeof v?.at==='string'?v.at:null,
+    selfRating:Number.isInteger(v?.selfRating)&&v.selfRating>=0&&v.selfRating<=10?v.selfRating:null,
+    planResponses:Object.fromEntries(PLAN_PROMPTS.filter(p=>Number.isInteger(v?.planResponses?.[p.id])&&v.planResponses[p.id]>=0&&v.planResponses[p.id]<=2).map(p=>[p.id,v.planResponses[p.id]]))
+  })).filter(v=>v.at):[];
   next.coachConversation=data.coachConversation===true;
   next.completedAt=typeof data.completedAt==='string'?data.completedAt:null;
   next.updatedAt=typeof data.updatedAt==='string'?data.updatedAt:null;
@@ -66,9 +88,16 @@ function persistLocal(){
 function saveIndicator(text){$('saveState').textContent=text}
 function progress(){
   const filled=FIELDS.filter(def=>Boolean(state.fields[def.id]?.trim())).length;
-  const count=filled+(state.options.length?1:0)+(state.readiness!==null?1:0);
-  $('progressLabel').textContent=count+' of '+(FIELDS.length+2)+' optional prompts filled';
-  $('progressFill').style.width=String(count/(FIELDS.length+2)*100)+'%';
+  const planCount=PLAN_PROMPTS.filter(p=>Number.isInteger(state.planResponses[p.id])).length;
+  const count=filled+(state.options.length?1:0)+(state.readiness!==null?1:0)+planCount+(state.readinessSupports.length?1:0);
+  const total=FIELDS.length+2+PLAN_PROMPTS.length+1;
+  $('progressLabel').textContent=count+' of '+total+' optional prompts filled';
+  $('progressFill').style.width=String(count/total*100)+'%';
+  const reflectionText=$('reflectionSummary');
+  if(reflectionText){
+    const count=PLAN_PROMPTS.filter(p=>Number.isInteger(state.planResponses[p.id])).length;
+    reflectionText.textContent=count===5?'You have reflected on all five planning questions. Your Career Coach can use these responses to help you identify a next step.':count?count+' of 5 planning reflections answered. You may skip any question.':'Choose the statements that best reflect where you are today. This is not a test.';
+  }
   $('readinessValue').textContent=state.readiness===null?'Not selected':state.readiness+' / 10';
   $('readiness').value=String(state.readiness??5);
   $('clearReadiness').hidden=state.readiness===null;
@@ -78,17 +107,37 @@ function formValues(){
   for(const def of FIELDS)state.fields[def.id]=txt($(def.id).value.trim());
   state.options=OPTIONS.filter(([key])=>$('choice_'+key).checked).map(([key])=>key);
   state.coachConversation=$('coachConversation').checked;
+  for(const prompt of PLAN_PROMPTS){
+    const selected=document.querySelector('input[name="plan_'+prompt.id+'"]:checked');
+    if(selected)state.planResponses[prompt.id]=Number(selected.value);
+    else delete state.planResponses[prompt.id];
+  }
+  state.readinessSupports=READINESS_SUPPORTS.filter(([key])=>$('support_'+key)?.checked).map(([key])=>key);
 }
 function setForm(){
   for(const def of FIELDS)$(def.id).value=state.fields[def.id]||'';
   for(const [key] of OPTIONS)$('choice_'+key).checked=state.options.includes(key);
   $('coachConversation').checked=Boolean(state.coachConversation);
+  for(const prompt of PLAN_PROMPTS){
+    for(let value=0;value<=2;value++){
+      const input=$('plan_'+prompt.id+'_'+value);
+      if(input)input.checked=state.planResponses[prompt.id]===value;
+    }
+  }
+  for(const [key] of READINESS_SUPPORTS){const input=$('support_'+key);if(input)input.checked=state.readinessSupports.includes(key)}
   progress();
 }
 async function save(showMessage=false,complete=false){
   if(loading)return;
   formValues();
-  if(complete&&!state.completedAt)state.completedAt=new Date().toISOString();
+  if(complete){
+    if(!state.completedAt)state.completedAt=new Date().toISOString();
+    const snapshot={at:new Date().toISOString(),selfRating:state.readiness,planResponses:{...state.planResponses}};
+    const previous=state.readinessHistory[state.readinessHistory.length-1];
+    if(!previous||JSON.stringify([previous.selfRating,previous.planResponses])!==JSON.stringify([snapshot.selfRating,snapshot.planResponses])){
+      state.readinessHistory=[...state.readinessHistory,snapshot].slice(-20);
+    }
+  }
   persistLocal();
   progress();
   saveIndicator('Saved on this device');
@@ -219,6 +268,24 @@ function build(){
     const input=document.createElement('input');input.type='checkbox';input.id='choice_'+key;input.value=key;input.addEventListener('change',queueSave);
     const title=document.createElement('span');title.textContent=label;
     wrapper.append(input,title);$('optionChoices').append(wrapper);
+  }
+  const promptRoot=$('planReadinessQuestions');
+  for(const prompt of PLAN_PROMPTS){
+    const fieldset=document.createElement('fieldset');fieldset.className='readinessPrompt';
+    const legend=document.createElement('legend');legend.textContent=prompt.question;fieldset.append(legend);
+    const choices=document.createElement('div');choices.className='readinessChoices';
+    prompt.choices.forEach((choice,idx)=>{
+      const label=document.createElement('label');label.className='readinessChoice';
+      const input=document.createElement('input');input.type='radio';input.name='plan_'+prompt.id;input.id='plan_'+prompt.id+'_'+idx;input.value=String(idx);input.addEventListener('change',queueSave);
+      const span=document.createElement('span');span.textContent=choice;label.append(input,span);choices.append(label);
+    });fieldset.append(choices);promptRoot.append(fieldset);
+  }
+  const supportRoot=$('readinessSupportChoices');
+  for(const [key,label] of READINESS_SUPPORTS){
+    const wrapper=document.createElement('label');wrapper.className='optionChoice';
+    const input=document.createElement('input');input.type='checkbox';input.id='support_'+key;input.addEventListener('change',queueSave);
+    const caption=document.createElement('span');caption.textContent=label;
+    wrapper.append(input,caption);supportRoot.append(wrapper);
   }
   $('coachConversation').addEventListener('change',queueSave);
   $('readiness').addEventListener('input',()=>{state.readiness=Number($('readiness').value);queueSave()});
