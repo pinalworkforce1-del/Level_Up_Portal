@@ -1,0 +1,30 @@
+name: Verify Pinal Personalized Coach Guidance
+on:
+  pull_request:
+    paths:
+      - 'supabase/functions/career-tree-coach-detail/**'
+      - 'scripts/test-coaching-guidance.mjs'
+      - '.github/workflows/verify-pinal-coaching-guidance.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Exercise coaching priority generator
+        run: node --experimental-strip-types scripts/test-coaching-guidance.mjs
+      - name: Confirm staff authorization remains ahead of coach data
+        run: |
+          node --input-type=module -e '
+          import fs from "node:fs";
+          const s=fs.readFileSync("supabase/functions/career-tree-coach-detail/index.ts","utf8");
+          if(!s.includes("const coach=await validateCoach(req)") ||
+             !s.includes("This participant is not assigned to this coach") ||
+             !s.includes("buildCoachingGuidance(d,score,self,measures)")) process.exit(1);
+          console.log("Staff token and assigned participant guard retained.");
+          '
