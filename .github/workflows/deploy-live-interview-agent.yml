@@ -2,6 +2,12 @@ name: Deploy Interview Intelligence Pilot
 
 on:
   workflow_dispatch:
+  push:
+    branches: ["main"]
+    paths:
+      - "live-interview-pilot/agent.py"
+      - "live-interview-pilot/Dockerfile"
+      - "live-interview-pilot/early-career-questions.json"
 
 permissions:
   contents: write

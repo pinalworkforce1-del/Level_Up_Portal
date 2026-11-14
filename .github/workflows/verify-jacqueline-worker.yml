@@ -1,0 +1,36 @@
+name: Verify Jacqueline Worker Compatibility
+on:
+  pull_request:
+    paths:
+      - "live-interview-pilot/**"
+      - ".github/workflows/deploy-live-interview-agent.yml"
+      - ".github/workflows/verify-jacqueline-worker.yml"
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Validate agent and role bank
+        run: |
+          python -m py_compile live-interview-pilot/agent.py
+          python - <<'PY'
+          import ast, json
+          from pathlib import Path
+          path=Path('live-interview-pilot')
+          s=(path/'agent.py').read_text()
+          bank=json.loads((path/'early-career-questions.json').read_text())
+          ast.parse(s)
+          assert bank['version']=='early-career-v1'
+          assert 'resolve_interview_questions' in s
+          assert 'ctx.job' in s
+          assert 'JACQUELINE_LEGACY_QUESTION_SET' in s
+          assert 'early-career-questions.json' in (path/'Dockerfile').read_text()
+          for r in ['first_job','food_service','retail','customer_service','wex','electrician','nursing_assistant','manufacturing','cdl_driver']:
+            assert bank['roles'][r]['scenario']
+          print('PASS: worker Python, legacy fallback, nine role scenarios, packaged JSON')
+          PY
