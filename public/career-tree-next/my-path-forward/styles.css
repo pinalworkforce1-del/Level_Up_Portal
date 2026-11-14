@@ -81,3 +81,15 @@
   .readinessNote{font-size:8px!important;padding:5px 7px!important}
   .worksheetDisclaimer{font-size:8px!important;padding:5px 7px!important}
 }
+
+
+/* Optional planning reflection: ungraded, selectable answer cards. */
+.readinessPrompt{border:1px solid rgba(130,173,215,.35);border-radius:16px;padding:15px;margin:12px 0;background:rgba(13,29,63,.38);min-width:0}
+.readinessPrompt legend{font-weight:800;font-size:1rem;padding:0 8px;max-width:100%}
+.readinessChoices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:6px}
+.readinessChoice{display:flex;align-items:stretch;gap:0;cursor:pointer;min-width:0}
+.readinessChoice input{position:absolute;opacity:0;pointer-events:none}
+.readinessChoice span{display:flex;align-items:center;width:100%;padding:12px 13px;border:1px solid #5b779c;border-radius:12px;line-height:1.4;background:#182b4a;color:#f0f6ff;min-height:75px}
+.readinessChoice input:checked+span{border-color:#9de0bb;background:#1b504a;box-shadow:inset 0 0 0 2px #a7e0be}
+.readinessChoice input:focus-visible+span{outline:3px solid #f4cc6a;outline-offset:3px}
+@media(max-width:680px){.readinessChoices{grid-template-columns:1fr}.readinessChoice span{min-height:52px}}
