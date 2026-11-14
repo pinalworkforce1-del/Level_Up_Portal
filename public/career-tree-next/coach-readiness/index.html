@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex,nofollow"><meta name="theme-color" content="#0c1934">
+<title>Level Up · Coach Readiness Insights</title>
+<style>
+:root{color-scheme:dark;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif;background:#09162b;color:#f5f8fd}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(ellipse at 20% 0%,#1b3959,#09162b 65%);min-height:100vh}
+header{padding:20px max(20px,calc((100vw - 1080px)/2));border-bottom:1px solid #314964;display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap}
+header small{letter-spacing:.12em;color:#aac8dc;font-size:12px}h1{font-size:clamp(1.4rem,2.5vw,2.1rem);margin:4px 0}.shell{max-width:1080px;margin:0 auto;padding:26px 20px 60px}.panel{background:#13263d;border:1px solid #385774;border-radius:18px;padding:22px;margin:0 0 18px}
+h2{font-size:1.1rem;margin:0 0 12px}p{line-height:1.55;margin:8px 0 14px;color:#d4e5ef}
+.field{display:flex;flex-direction:column;gap:7px;max-width:440px;margin:12px 0}
+input,select{font:inherit;padding:12px;border-radius:10px;border:1px solid #8399b1;background:#07172a;color:#f6f9ff;width:100%}
+button{border:1px solid #88b1ce;background:#225784;color:white;padding:11px 17px;border-radius:9px;font:inherit;font-weight:700;cursor:pointer}
+button:disabled{opacity:.55;cursor:not-allowed}.ghost{background:transparent}.split{display:grid;grid-template-columns:minmax(230px,320px) 1fr;gap:18px;align-items:start}
+.list{display:grid;gap:8px}.person{width:100%;text-align:left;background:#0c2036}.person[aria-current="true"]{border-color:#8cdfbc;background:#225443}
+.muted{color:#b9c9dc;font-size:.9rem}.scores{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin:14px 0}
+.score{background:#0b2035;border:1px solid #355975;border-radius:14px;padding:18px}
+.score strong{display:block;font-size:2.4rem;line-height:1.25}.score span{color:#a7c8d4}.row{display:flex;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid #35516b}
+.tag{border:1px solid #69978a;border-radius:30px;padding:5px 12px;display:inline-block;color:#bce9d4;font-size:.8rem}
+.notice{border-left:3px solid #efce7c;padding:12px 14px;background:#34402f;margin:14px 0}
+ul{padding-left:20px}li{line-height:1.55;margin:7px 0}
+.textblock{white-space:pre-wrap;overflow-wrap:anywhere;background:#0a1c31;padding:12px;border-radius:10px;margin:7px 0 15px}
+label{font-weight:700}.error{color:#ffbaa9}
+[hidden]{display:none!important}@media(max-width:700px){.split,.scores{grid-template-columns:1fr}}
+@media print{header,#login,#rosterPanel,#logout,.hide-print{display:none!important}.split{display:block}.panel{border:0;background:white;color:black}.score,.textblock{color:black;background:white}body{color:black;background:white}}
+</style></head><body>
+<header><div><small>LEVEL UP · CAREER TREE · PINAL</small><h1>Coach Readiness Insights</h1></div><button id="logout" class="ghost" hidden>Sign out</button></header>
+<main class="shell">
+<section id="login" class="panel"><h2>Coach sign-in</h2><p>Use your existing Level Up staff credentials. Only assigned participants can be viewed; administrators retain their established access.</p>
+<form id="loginForm"><div class="field"><label for="email">Staff email</label><input required type="email" id="email" autocomplete="username"></div>
+<div class="field"><label for="accessCode">Staff access code</label><input required type="password" id="accessCode" autocomplete="current-password"></div>
+<button type="submit">Sign in</button></form></section>
+<div id="workspace" class="split" hidden>
+<aside id="rosterPanel" class="panel"><h2>Participants</h2><p class="muted">Pinal Career Tree · My Path Forward</p><div id="roster" class="list"></div></aside>
+<article id="insights" class="panel"><h2>Select a participant</h2><p>Choose an assigned participant to review their readiness reflections and coach talking points.</p></article>
+</div><p id="status" role="status" aria-live="polite"></p>
+</main><script src="./app.js?v=20261114-1"></script></body></html>
