@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.45.4";
+import { buildCoachingGuidance } from "./coaching-guidance.ts";
 
 const SUPABASE_URL=Deno.env.get("SUPABASE_URL")!;
 const SERVICE_KEY=Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -38,14 +39,12 @@ function planReadiness(d:any,row:any){
  const supports=Array.isArray(d?.readinessSupports)?d.readinessSupports.filter((v:any)=>["career_info","action_plan","training","coach","ready"].includes(v)):[];
  const gap=score!==null&&self!==null?score-self:null;
  const interpretation=score===null?"Planning reflection is incomplete; use the available answers to begin a conversation.":gap!==null&&gap>=2?"The participant's plan appears more developed than their own readiness rating. Explore confidence and desired support.":gap!==null&&gap<=-2?"The participant feels ready but may benefit from making their plan more specific.":score>=7?"A next-step plan is taking shape. Discuss timing and follow-through.":score>=4?"Several planning elements are emerging. Identify one useful next step.":"Explore career possibilities and build an achievable first step together.";
- const topics=measures.filter(m=>m.value!==2).slice(0,3).map(m=>m.talking_point);
- if(supports.includes("coach"))topics.unshift("What would you like support from your Career Coach with?");
- if(d?.coachConversation===true)topics.unshift("You asked for a private conversation. What would you like to discuss today?");
+ const guidance=buildCoachingGuidance(d,score,self,measures);
  return {
   self_reported_readiness:self,plan_readiness:score,category,interpretation,
   scored_dimensions:measures,answered_dimensions:measures.filter(m=>m.value!==null).length,
   readiness_gap:gap,requested_support:supports,private_conversation_requested:d?.coachConversation===true,
-  coach_talking_points:topics.slice(0,4),history:Array.isArray(d?.readinessHistory)?d.readinessHistory.slice(-20).map((v:any)=>({
+  coach_talking_points:guidance.talking_points,suggested_coaching_priorities:guidance.suggested_coaching_priorities,action_specificity:guidance.action_specificity,history:Array.isArray(d?.readinessHistory)?d.readinessHistory.slice(-20).map((v:any)=>({
    at:typeof v?.at==="string"?v.at:null,self_reported_readiness:Number.isInteger(v?.selfRating)&&v.selfRating>=0&&v.selfRating<=10?v.selfRating:null,
    plan_readiness:prompts.every(([key])=>Number.isInteger(v?.planResponses?.[key])&&v.planResponses[key]>=0&&v.planResponses[key]<=2)?prompts.reduce((n,[key])=>n+v.planResponses[key],0):null
   })).filter((x:any)=>x.at):[],
