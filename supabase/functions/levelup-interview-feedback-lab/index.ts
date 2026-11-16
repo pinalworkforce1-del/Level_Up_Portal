@@ -174,40 +174,75 @@ For each question, give one growth opportunity of 2-3 concise sentences. Name ON
 Return a JSON object containing overview (string), questions (array of objects containing index (zero based integer), score (integer 1-5 evaluating answer relevance, specificity, individual contribution and supporting example; never scoring the person), strength (string), growth (string), stronger_approach (string), followup_feedback (array of zero or more objects with question_text string, score integer 1-5 for answer quality, strength string and growth string for actual asked follow-ups))), and next_steps (array of 2-3 strings). Scores are developmental coaching indicators, never hiring predictions. If a follow-up was not actually asked and answered, return an empty followup_feedback array.
 Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and generic repeated phrases. Keep the feedback developmental, professional, and encouraging.`;
 
-    const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: { authorization: "Bearer " + aiKey, "content-type": "application/json" },
-      body: JSON.stringify({
-        model: "gpt-4.1-mini",
-        temperature: 0.35,
-        max_completion_tokens: 3600,
-        response_format: { type: "json_object" },
-        messages: [
-          { role: "system", content: instructions },
-          { role: "user", content: JSON.stringify({ kind: isLive ? "real_interview" : "fictional_sample", questions: questionAnswers }) },
-        ],
-      }),
-    });
-    if (!aiResponse.ok) {
-      console.error("Nova feedback provider failure", aiResponse.status);
-      return respond({ error: "feedback_unavailable" }, 502);
+
+    // JSON mode alone does not ensure the shape of a five-question report.
+    // Structured Outputs makes required scores and follow-up fields reliable.
+    const answerReportSchema={
+      type:"object",additionalProperties:false,
+      required:["overview","questions","next_steps"],
+      properties:{
+        overview:{type:"string"},
+        questions:{type:"array",items:{
+          type:"object",additionalProperties:false,
+          required:["index","score","strength","growth","stronger_approach","followup_feedback"],
+          properties:{
+            index:{type:"integer"},score:{type:"integer"},strength:{type:"string"},
+            growth:{type:"string"},stronger_approach:{type:"string"},
+            followup_feedback:{type:"array",items:{
+              type:"object",additionalProperties:false,
+              required:["question_text","score","strength","growth"],
+              properties:{question_text:{type:"string"},score:{type:"integer"},strength:{type:"string"},growth:{type:"string"}}
+            }}
+          }
+        }},
+        next_steps:{type:"array",items:{type:"string"}}
+      }
+    };
+    let parsed:Record<string,unknown>|null=null;
+    let lastFailure="provider";
+    for(let attempt=1;attempt<=2;attempt++){
+      const aiResponse=await fetch("https://api.openai.com/v1/chat/completions",{
+        method:"POST",
+        headers:{authorization:"Bearer "+aiKey,"content-type":"application/json"},
+        body:JSON.stringify({
+          model:"gpt-4.1-mini",temperature:0.35,max_completion_tokens:4800,
+          response_format:{type:"json_schema",json_schema:{name:"nova_interview_feedback_v2",strict:true,schema:answerReportSchema}},
+          messages:[
+            {role:"system",content:instructions+"\nReturn feedback for ALL provided questions in order, one entry per question and no missing indices. Return an empty followup_feedback array if the question had no actual answered follow-up. Do not add follow-ups that were never asked and answered."},
+            {role:"user",content:JSON.stringify({kind:isLive?"real_interview":"fictional_sample",questions:questionAnswers})}
+          ]
+        })
+      }).catch(()=>null);
+      if(!aiResponse?.ok){
+        const reason=aiResponse?.status||"network";
+        console.error("NOVA_FEEDBACK provider_failure",reason,"attempt",attempt);
+        lastFailure="provider";continue;
+      }
+      const completion=await aiResponse.json().catch(()=>null);
+      const content=completion?.choices?.[0]?.message?.content;
+      const finishReason=completion?.choices?.[0]?.finish_reason;
+      let candidate:Record<string,unknown>|null=null;
+      try{candidate=JSON.parse(String(content||""));}catch{
+        console.error("NOVA_FEEDBACK parse_failure",finishReason||"no_finish_reason","attempt",attempt);
+        lastFailure="parse";continue;
+      }
+      const entries=candidate?.questions,next=candidate?.next_steps;
+      if(!Array.isArray(entries)||entries.length!==questionAnswers.length||!Array.isArray(next)||
+         entries.length!==new Set(entries.map((row:any)=>Number(row.index))).size||
+         entries.some((row:any)=>!Number.isInteger(Number(row.index))||Number(row.index)<0||
+           Number(row.index)>=questionAnswers.length||!Number.isInteger(Number(row.score))||
+           Number(row.score)<1||Number(row.score)>5)){
+        console.error("NOVA_FEEDBACK invalid_question_shape","expected",questionAnswers.length,
+          "got",Array.isArray(entries)?entries.length:"non_array","attempt",attempt);
+        lastFailure="shape";continue;
+      }
+      parsed=candidate;break;
     }
-    const result = await aiResponse.json();
-    let parsed: Record<string, unknown>;
-    try { parsed = JSON.parse(result.choices[0].message.content); }
-    catch { return respond({ error: "invalid_ai_response" }, 502); }
-    const outputQuestions = parsed.questions;
-    const nextSteps = parsed.next_steps;
-    if (!Array.isArray(outputQuestions) || outputQuestions.length !== questionAnswers.length || !Array.isArray(nextSteps)) {
-      return respond({ error: "invalid_feedback_shape" }, 502);
-    }
-    const indices = outputQuestions.map((row: Record<string, unknown>) => Number(row.index));
-    if (new Set(indices).size !== indices.length || indices.some((n: number) => !Number.isInteger(n) || n < 0 || n >= questionAnswers.length)) {
-      return respond({ error: "invalid_feedback_indices" }, 502);
-    }
-    if(isLive&&questionAnswers.length===5&&!outputQuestions.every((row:Record<string,unknown>)=>Number.isInteger(row.score)&&Number(row.score)>=1&&Number(row.score)<=5)){
-      return respond({error:"invalid_feedback_scores"},502);
-    }
+    if(!parsed)return respond({error:"nova_feedback_retryable",reason:lastFailure,
+      message:"Nova could not finish the report. Your completed interview is saved. Please select View Interview Feedback again; no new interview is needed."},503);
+    const outputQuestions=(parsed.questions as Record<string,unknown>[]).sort((a,b)=>Number(a.index)-Number(b.index));
+    const nextSteps=parsed.next_steps as string[];
+    console.info("NOVA_FEEDBACK generation_complete","question_count",outputQuestions.length);
     const feedback: Feedback = {
       source: isLive ? "nova_ai" : "ai_generated",
       fictional: !isLive,
