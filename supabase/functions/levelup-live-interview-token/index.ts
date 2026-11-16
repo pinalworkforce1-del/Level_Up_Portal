@@ -89,7 +89,7 @@ Deno.serve(async req=>{
  const reserved=await reservation.json().catch(()=>({ok:false}));
  if(!reserved.ok)return response({error:reserved.error||"session_not_available",remaining:reserved.remaining??null},429,origin);
  try {
-  const token=new AccessToken(key,secret,{identity:"participant-"+user.id,ttl:"9m"});
+  const token=new AccessToken(key,secret,{identity:"participant-"+user.id,ttl:"19m"});
   token.addGrant({roomJoin:true,room,canPublish:true,canPublishData:true,canSubscribe:true});
   token.roomConfig=new RoomConfiguration({agents:[new RoomAgentDispatch({agentName:"levelup-interview-pilot",metadata:JSON.stringify({question_bank:EARLY_CAREER_BANK.version,role:occupation})})]});
   const participantToken=await token.toJwt();
