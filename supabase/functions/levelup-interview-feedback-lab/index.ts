@@ -37,10 +37,11 @@ const SAMPLE_RESPONSES: Record<string, string[]> = {
 type QuestionAnswer = { q: string; a: string };
 type FeedbackQuestion = {
   index: number;
+  score?: number;
   strength: string;
   growth: string;
   stronger_approach: string;
-  followup_feedback?: {question_text:string;strength:string;growth:string}[];
+  followup_feedback?: {question_text:string;score?:number;strength:string;growth:string}[];
 };
 
 type Feedback = {
@@ -169,7 +170,7 @@ Keep feedback youth-friendly, concrete, age-neutral, strengths-based, and focuse
 Give useful, specific, non-repetitive coaching tied to what the participant actually said. If an answer is strong, acknowledge it without manufacturing a weakness.
 Each primary question may have one conversational follow-up. Evaluate the entire answer, including the follow-up response(s), as a single competency. For each question, provide short separate follow-up_feedback entries when a follow-up was actually asked and answered. A follow-up is not a separate required question or a new completion requirement. Do not penalize people for needing clarification. Treat follow-up answers as evidence that can improve the primary assessment.
 For each question, give one growth opportunity of 2-3 concise sentences. Name ONE concrete kind of detail, example, or practical next step that would make this particular answer stronger. Do not write a replacement personal story using invented facts.
-Return a JSON object containing overview (string), questions (array of objects containing index (zero based integer), strength (string), growth (string), stronger_approach (string), followup_feedback (array of zero or more objects with question_text string, strength string and growth string for actual asked follow-ups))), and next_steps (array of 2-3 strings).
+Return a JSON object containing overview (string), questions (array of objects containing index (zero based integer), score (integer 1-5 evaluating answer relevance, specificity, individual contribution and supporting example; never scoring the person), strength (string), growth (string), stronger_approach (string), followup_feedback (array of zero or more objects with question_text string, score integer 1-5 for answer quality, strength string and growth string for actual asked follow-ups))), and next_steps (array of 2-3 strings). Scores are developmental coaching indicators, never hiring predictions. If a follow-up was not actually asked and answered, return an empty followup_feedback array.
 Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and generic repeated phrases. Keep the feedback developmental, professional, and encouraging.`;
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -203,17 +204,22 @@ Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and
     if (new Set(indices).size !== indices.length || indices.some((n: number) => !Number.isInteger(n) || n < 0 || n >= questionAnswers.length)) {
       return respond({ error: "invalid_feedback_indices" }, 502);
     }
+    if(isLive&&questionAnswers.length===5&&!outputQuestions.every((row:Record<string,unknown>)=>Number.isInteger(row.score)&&Number(row.score)>=1&&Number(row.score)<=5)){
+      return respond({error:"invalid_feedback_scores"},502);
+    }
     const feedback: Feedback = {
       source: isLive ? "nova_ai" : "ai_generated",
       fictional: !isLive,
       overview: String(parsed.overview || "").slice(0, 1200),
       questions: outputQuestions.map((row: Record<string, unknown>) => ({
         index: Number(row.index),
+        score: Number.isInteger(row.score)&&row.score>=1&&row.score<=5?row.score:undefined,
         strength: String(row.strength || "").slice(0, 900),
         growth: String(row.growth || "").slice(0, 900),
         stronger_approach: String(row.stronger_approach || "").slice(0, 1100),
         followup_feedback: (Array.isArray(row.followup_feedback)?row.followup_feedback:[]).slice(0,3).map((f:any)=>({
           question_text:String(f?.question_text||"").slice(0,550),
+          score:Number.isInteger(f?.score)&&f.score>=1&&f.score<=5?f.score:undefined,
           strength:String(f?.strength||"").slice(0,750),
           growth:String(f?.growth||"").slice(0,750)
         })),
