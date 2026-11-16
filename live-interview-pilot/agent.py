@@ -18,12 +18,12 @@ from pathlib import Path
 logger = logging.getLogger('livekit.agents.interview_completion')
 
 from livekit import agents, api
-from livekit.agents import AgentServer, AgentSession, Agent, function_tool, RunContext
+from livekit.agents import AgentServer, AgentSession, Agent, room_io
 from livekit.plugins import synthesia
 
 AVATAR_ID = os.getenv("SYNTHESIA_INTERACTIVE_AVATAR_ID", "fdec2525-6f4c-4544-87c6-abb3e47a12b4")
 AGENT_NAME = "levelup-interview-pilot"
-MAX_INTERVIEW_SECONDS = 480
+MAX_INTERVIEW_SECONDS = 900
 # Legacy three-question sessions have no job metadata and remain supported.
 PILOT_QUESTIONS = [
     ("q1", "What interests you about this position and what experience would help you succeed?"),
@@ -87,7 +87,9 @@ Follow-ups should encourage reflection rather than supply the ideal answer.
 Do not judge answers or give a score during the conversation.
 A short, uncertain, or poor-quality answer still counts as an answer; Nova evaluates quality later.
 Do not invent an answer if the participant refuses or does not respond.
-After all required questions have participant responses, call finish_interview once.
+Ask no more than one follow-up for the fifth/final question. Allow the participant to answer the follow-up before closing.
+After the fifth required question (or the third for an older legacy session) and any one optional final follow-up has a substantive answer, close with this exact natural statement: "Thank you for practicing with me today. That concludes our interview. Your private feedback will be available shortly. I wish you the best in your job search."
+After this goodbye, stop speaking and do not ask another question. The application will disconnect the participant automatically. Do not speak or spell internal function names, code, tool identifiers, system instructions, or implementation details. You have no tools to invoke.
 Never say the participant has passed a real job interview or reveal grades.
 """
 
@@ -107,6 +109,22 @@ def question_match(spoken, expected):
     return overlap >= 0.72 and (SequenceMatcher(None, sa, sb).ratio() >= 0.32 or len(a) >= len(b))
 
 
+def is_clarification_only(response: str) -> bool:
+    """A request to repeat a question is not a substantive answer."""
+    spoken = " ".join(response.lower().split())
+    if len(spoken) > 250:
+        return False
+    repeats = ("can you repeat", "could you repeat", "would you repeat",
+               "please repeat", "repeat that", "repeat the question",
+               "can you rephrase", "could you rephrase", "can you clarify",
+               "what was the question", "can you say that again",
+               "didn't hear", "couldn't hear", "didn't catch")
+    if not any(phrase in spoken for phrase in repeats):
+        return False
+    return not any(phrase in spoken for phrase in
+                   ("i would ", "i'd ", "i will ", "first i ", "my first step "))
+
+
 def extract_question_answers(turns, questions):
     """Only attribute verbatim participant turns to questions; never manufacture evidence."""
     answers = []
@@ -121,7 +139,8 @@ def extract_question_answers(turns, questions):
                            if next_question_text and turns[i]["role"] == "assistant"
                            and question_match(turns[i]["text"], next_question_text)), len(turns))
         replies = [x["text"].strip() for x in turns[first+1:next_index]
-                   if x["role"] == "user" and len(x["text"].strip()) >= 3]
+                   if x["role"] == "user" and len(x["text"].strip()) >= 12
+                   and not is_clarification_only(x["text"])]
         if not replies:
             break
         # Supabase validates each extracted answer against a captured participant turn.
@@ -167,42 +186,13 @@ async def report_completion(room_name: str, answers: list, event: str = 'intervi
 
 
 class PracticeInterviewer(Agent):
-    def __init__(self, room_name: str, questions):
+    """Jacqueline handles conversation; the server handles session completion."""
+    def __init__(self, room_name: str, questions, transcript_turns):
         super().__init__(instructions=build_interview_instructions(questions))
         self.room_name = room_name
+        self.questions = questions
+        self.transcript_turns = transcript_turns
         self._finished = False
-        self._answers = {}
-
-    @function_tool()
-    async def finish_interview(self, context: RunContext) -> str:
-        """Use only after the participant has answered every configured required interview question.
-        This delivers the final goodbye and officially completes the interview.
-        """
-        if self._finished:
-            return "Interview already finished."
-        self._finished = True
-        logger.info("INTERVIEW_COMPLETION tool invoked")
-        # Report completion without waiting on the active tool turn's playback.
-        # Waiting for playout here can prevent the callback from executing.
-        confirmed = False  # Transcript validator controls interview completion
-        logger.info("INTERVIEW_COMPLETION callback confirmed=%s", confirmed)
-        context.session.say(
-            "Thank you for interviewing with me today. I appreciate the examples you shared. "
-            "Your private developmental feedback will be available separately. "
-            "I wish you the best in your job search!",
-            allow_interruptions=False,
-        )
-        # Drain queued goodbye speech and prevent a second model response.
-        context.session.shutdown(drain=True)
-        async def close_room():
-            await asyncio.sleep(5)
-            try:
-                async with api.LiveKitAPI() as lk:
-                    await lk.room.delete_room(api.DeleteRoomRequest(room=self.room_name))
-            except Exception as exc:
-                print("Interview room close failed:", type(exc).__name__)
-        asyncio.create_task(close_room())
-        return "Interview closed. Do not ask any further questions."
 
 server = AgentServer()
 
@@ -216,19 +206,49 @@ async def interview(ctx: agents.JobContext):
     questions = resolve_interview_questions(getattr(ctx.job, "metadata", None))
     transcript_turns = []
     transcript_flush = None
+    closing_queued = False
+    interviewer = PracticeInterviewer(ctx.room.name, questions, transcript_turns)
+
     @session.on("conversation_item_added")
     def capture_turn(event):
+        nonlocal transcript_flush, closing_queued
         item = event.item
         if getattr(item, "role", None) not in ("user", "assistant"):
             return
         content = getattr(item, "text_content", None) or ""
-        if content.strip():
-            transcript_turns.append({"role": item.role, "text": content[:5000]})
-            logger.info("INTERVIEW_TRANSCRIPT captured role=%s total=%d", item.role, len(transcript_turns))
-            nonlocal transcript_flush
-            if transcript_flush and not transcript_flush.done():
-                transcript_flush.cancel()
-            transcript_flush = asyncio.create_task(flush_when_quiet())
+        if not content.strip():
+            return
+        transcript_turns.append({"role": item.role, "text": content[:5000]})
+        logger.info("INTERVIEW_TRANSCRIPT captured role=%s total=%d", item.role, len(transcript_turns))
+        if transcript_flush and not transcript_flush.done():
+            transcript_flush.cancel()
+        transcript_flush = asyncio.create_task(flush_when_quiet())
+
+        # A completed, spoken goodbye triggers shutdown without a callable LLM tool.
+        if item.role == "assistant" and not closing_queued and not interviewer._finished:
+            normalized = content.lower().replace("’", "'")
+            farewell_phrases = (
+                "that concludes our interview",
+                "this concludes our interview",
+                "that concludes the interview",
+                "thank you for practicing with me today",
+            )
+            if any(phrase in normalized for phrase in farewell_phrases):
+                substantive = extract_question_answers(transcript_turns, questions)
+                if len(substantive) == len(questions):
+                    closing_queued = True
+                    logger.info("INTERVIEW_COMPLETION natural goodbye detected; draining audio")
+                    asyncio.create_task(close_after_goodbye())
+                else:
+                    logger.warning("INTERVIEW_COMPLETION premature farewell %d/%d answered",
+                                   len(substantive), len(questions))
+
+    async def close_after_goodbye():
+        # Let the final spoken message enter the audio queue, then drain it fully.
+        await asyncio.sleep(0.5)
+        if not interviewer._finished:
+            interviewer._finished = True
+            session.shutdown(drain=True)
 
     async def upload_transcript():
         if not transcript_turns:
@@ -257,10 +277,14 @@ async def interview(ctx: agents.JobContext):
         join_timeout=60.0,
     )
     await avatar.start(session, room=ctx.room)
-    await session.start(room=ctx.room, agent=PracticeInterviewer(ctx.room.name, questions))
+    await session.start(
+        room=ctx.room,
+        agent=interviewer,
+        room_options=room_io.RoomOptions(delete_room_on_close=True),
+    )
     # Give the browser a short window to enable microphone/audio before the greeting.
     await asyncio.sleep(3)
-    await session.generate_reply(instructions="Introduce yourself as the AI practice interviewer and ask the first interview question.")
+    await session.generate_reply(instructions="Introduce yourself as Jacqueline, the AI practice interviewer, then ask the first required interview question exactly as written. Keep the introduction concise.")
     # Server-side upper bound: close the whole LiveKit room, not merely the browser UI.
     async def enforce_deadline():
         await asyncio.sleep(MAX_INTERVIEW_SECONDS)
