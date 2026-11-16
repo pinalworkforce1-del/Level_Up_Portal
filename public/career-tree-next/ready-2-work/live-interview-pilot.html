@@ -22,10 +22,19 @@
 <p class="hint">Jacqueline will ask five early-career behavioral questions matched to your selected role. You can use real examples from school, home, sports, volunteering, or paid work. Hypothetical examples are welcome when you haven't had that situation yet.</p>
 <p class="notice" id="interviewOriginNotice">Pilot session: not yet counted toward course completion or Coach View. A signed-in Level Up account is required.</p>
 <div class="row"><button id="start" type="button">Begin live interview</button><button id="end" class="secondary" type="button" disabled>End interview</button><button id="enableAudio" class="secondary" type="button" hidden>Enable Audio</button></div>
-<button id="pastFeedback" type="button" class="secondary" hidden>View My Previous Interview Feedback</button><p id="feedbackAvailability" class="hint" role="status" hidden></p><div id="feedbackActions" hidden><button id="viewFeedback" type="button">View Interview Feedback from Nova</button><div id="feedbackReport" class="notice" hidden></div></div><p id="arenaCreditStatus" class="hint" role="status" hidden></p>
+<button id="pastFeedback" type="button" class="secondary" hidden>View My Previous Interview Feedback</button><p id="feedbackAvailability" class="hint" role="status" hidden></p><div id="feedbackActions" hidden><button id="viewFeedback" type="button">View Interview Feedback from Nova</button></div><p id="arenaCreditStatus" class="hint" role="status" hidden></p>
 <p id="allowance" class="hint">Pilot policy: up to 15 minutes per five-question interview, normally 2 sessions per 30 days. Follow-up questions count toward the session time.</p><p id="status" role="status" aria-live="polite"><span class="indicator"></span>Ready when you are.</p><p class="hint" id="connection">Tip: Turn off nearby TVs or use headphones to avoid accidental interruptions.</p>
 </section><section class="panel"><div class="stage" id="stage"><video id="avatar" autoplay playsinline aria-label="Live video of your AI practice interviewer"></video><div class="placeholder" id="placeholder"><strong>Interview Intelligence</strong><p>Jacqueline is ready to meet you.</p><p class="muted">Your interviewer's video will appear here when connected.</p></div><div id="remoteAudio"></div></div><div class="row"><span class="indicator" id="indicator"></span><span id="trackState">Not connected</span><span id="interviewTimer" class="hint" role="status" aria-live="off" hidden></span></div><p class="muted">If video pauses, your audio interview may continue. The interview closes automatically after Jacqueline finishes her goodbye. You can also select End Interview to stop early.</p></section></div>
+<section class="panel" id="feedbackReportPanel" hidden style="margin-top:22px">
+  <div class="row" style="justify-content:space-between">
+    <div><h2>Nova's Interview Reflection</h2><p class="muted">Review your full interview feedback below. You can save the same report as a PDF to practice later.</p></div>
+    <button id="downloadFeedback" type="button" class="secondary" hidden>Download Feedback PDF</button>
+  </div>
+  <p id="feedbackReportStatus" role="status" aria-live="polite"></p>
+  <div id="feedbackReport" hidden><iframe data-interview-pdf style="display:block;width:100%;height:min(76vh,950px);min-height:480px;border:1px solid #456e90;border-radius:12px;background:white" title="Nova's interview feedback PDF"></iframe></div>
+</section>
 </main>
+<script src="./interview-feedback-report.js?v=20261116-1"></script>
 <script type="module">
 import {createClient} from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.115.0/+esm';
 import {Room,RoomEvent,Track} from 'https://cdn.jsdelivr.net/npm/livekit-client@2.15.2/+esm';
@@ -112,7 +121,7 @@ else if(data.status==='timed_out'){$('feedbackActions').hidden=true;$('feedbackA
 else if(data.status==='interrupted'){$('feedbackActions').hidden=true;$('feedbackAvailability').textContent='Nova feedback is not available for this attempt because all required interview questions were not verified. Your saved interview record remains on file. This does not mean your responses were poor.';$('feedbackAvailability').hidden=false;state('Interview ended without verified completion.','warn');trackLabel('Practice ended without verified completion')}
 }catch(e){console.warn('Could not refresh interview status',e)}}
 async function finish(){$('feedbackActions').hidden=true;$('feedbackAvailability').hidden=true;feedbackRoom=null;closedByUser=true;const finishedRoom=sessionRoomName;sessionRoomName=null; if(finishedRoom){const {data:{session}}=await client.auth.getSession();if(session)await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'end',room_name:finishedRoom})}).catch(()=>{})}end.disabled=true;start.disabled=false;$('occupation').disabled=false;connected=false;try{await room?.disconnect()}catch{}room=null;clearMedia();trackLabel('Not connected');state('Interview ended. Checking completion…');await showOutcome(finishedRoom)}
-start.onclick=async()=>{$('feedbackActions').hidden=true;$('feedbackAvailability').hidden=true;$('feedbackReport').hidden=true;feedbackRoom=null;start.disabled=true;closedByUser=false;$('occupation').disabled=true;state('Checking Level Up sign-in…');try{
+start.onclick=async()=>{$('feedbackActions').hidden=true;$('feedbackAvailability').hidden=true;$('feedbackReportPanel').hidden=true;window.LevelUpInterviewReport?.clear($('feedbackReport'));$('downloadFeedback').hidden=true;feedbackRoom=null;start.disabled=true;closedByUser=false;$('occupation').disabled=true;state('Checking Level Up sign-in…');try{
 const {data:{session},error:authError}=await client.auth.getSession();if(authError)throw authError;if(!session||session.user?.is_anonymous)throw Error('Please sign in with a Level Up participant account before starting a live interview.');
 const response=await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'pilot',occupation:$('occupation').value})});
 let data={};try{data=await response.json()}catch{}if(!response.ok){const friendly={sessions_paused:'Interview availability is temporarily paused while we finish testing cost safeguards.',session_allowance_used:'You have used your interview sessions for this 30-day period.',active_session_exists:'Another interview appears to be active. Please end it before starting again.'};throw Error(data.message||friendly[data.error]||data.error||'Unable to authorize the interview')}
@@ -135,50 +144,30 @@ state('Connecting to LiveKit…');await room.connect(data.server_url,data.partic
 await room.startAudio();await room.localParticipant.setMicrophoneEnabled(true);startInterviewTimer(data.maximum_seconds);connected=true;end.disabled=false;if(videoTrack){state('Connected • your interviewer is here','live');trackLabel('Interviewer video connected')}else{state('Connected • waiting for interviewer video…','live');trackLabel('Waiting for Synthesia video…')}
 }catch(e){const failedRoom=sessionRoomName;const oldRoom=room;room=null;if(oldRoom)await oldRoom.disconnect().catch(()=>{});if(failedRoom){try{const {data:{session}}=await client.auth.getSession();if(session)await fetch(tokenEndpoint,{method:'POST',headers:{'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token},body:JSON.stringify({mode:'end',room_name:failedRoom,reason:'connection_lost'})});}catch(error){console.warn('Failed interview reservation cleanup',error)}}clearMedia();start.disabled=false;end.disabled=true;$('occupation').disabled=false;sessionRoomName=null;state('Could not start: '+(e?.message||String(e)),'warn')}}
 $('viewFeedback').onclick=async()=>{
- if(!feedbackRoom)return;
- const report=$('feedbackReport'),button=$('viewFeedback');button.disabled=true;report.hidden=false;report.textContent='Nova is reviewing your interview…';
- try {
-  const {data:{session}}=await client.auth.getSession();if(!session)throw Error('Sign in to view your feedback.');
-  const headers={'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token};
-  const check=await fetch(tokenEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'session_status',room_name:feedbackRoom})});
-  if(!check.ok)throw Error('Could not verify interview completion.');
-  const status=await check.json();
-  if(status.status!=='completed'||status.feedback_ready!==true||status.evidence_complete!==true||status.ending_reason==='participant_ended')throw Error('Interview feedback is not yet available.');
-   await recordArenaCompletion(session,feedbackRoom,status);
-  const result=await fetch(feedbackEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'live',room_name:feedbackRoom})});
-  const data=await result.json().catch(()=>({}));
-  if(!result.ok)throw Error(data.message||({feedback_not_authorized:'Interview completion is not verified.',incomplete_evidence:'Interview responses are not available yet.',ai_not_configured:'Nova is not configured yet.'}[data.error])||'Nova feedback is temporarily unavailable.');
-  report.replaceChildren();
-  const line=(tag,text)=>{const e=document.createElement(tag);e.textContent=String(text||'');return e};
-  report.append(line('h3','Nova’s Interview Overview'),line('p',data.overview));
-  const qs=Array.isArray(status.required_questions)?status.required_questions:[];
-  const answers=Array.isArray(status.answer_evidence)?status.answer_evidence:[];
-  report.append(line('h3','Your Questions and Growth Opportunities'));
-  for(const row of data.questions||[]){
-   const i=Number(row.index);if(!Number.isInteger(i)||i<0||i>=qs.length)continue;
-   const card=document.createElement('div');card.style.cssText='padding:12px;margin:12px 0;border:1px solid #456e90;border-radius:12px';
-   card.append(line('h3','Question '+(i+1)+': '+(qs[i]?.text||'')));
-   if(Number.isInteger(row.score))card.append(line('p','Answer quality: '+row.score+' / 5 (developmental indicator)'));
-   card.append(line('p','Your response: '+(answers[i]?.response||'')),line('p','Strength demonstrated: '+(row.strength||'See the interview overview.')),line('p','Growth opportunity: '+row.growth));
-   if(row.stronger_approach)card.append(line('p','Practice suggestion: '+row.stronger_approach));
-   if(Array.isArray(row.followup_feedback)&&row.followup_feedback.length){
-     const sub=document.createElement('div');sub.style.cssText='padding:10px 12px;margin-top:12px;border-left:3px solid #61caed;background:#1b334b;border-radius:8px';
-     sub.append(line('h4','Follow-up conversation'));
-     for(const followup of row.followup_feedback){
-       if(followup.question_text)sub.append(line('p','Jacqueline asked: '+followup.question_text));
-       if(Number.isInteger(followup.score))sub.append(line('p','Follow-up answer quality: '+followup.score+' / 5 (developmental indicator)'));
-       if(followup.strength)sub.append(line('p','What you demonstrated: '+followup.strength));
-       if(followup.growth)sub.append(line('p','Next improvement: '+followup.growth));
-     }
-     card.append(sub);
-   }
-   report.append(card);
-  }
-  if(status.conversation_balance){const b=status.conversation_balance;report.append(line('h3','Conversation balance • 80/20 practice target'),line('p','You spoke approximately '+b.participant_percent+'% of the transcript words; Jacqueline '+b.interviewer_percent+'%. The practice target is 80% participant / 20% interviewer.'),line('p','This is a transcript word-count estimate, not measured speaking time or a performance score.'))}
-  report.append(line('h3','Nova’s Suggested Practice Goals'));
-  const list=document.createElement('ul');for(const x of data.next_steps||[])list.append(line('li',x));report.append(list);
-  report.append(line('p','Developmental practice feedback—not a hiring assessment.'));
- }catch(e){report.textContent=e?.message||'Feedback could not be loaded.'}finally{button.disabled=false}
+  if(!feedbackRoom)return;
+  const panel=$('feedbackReportPanel'),report=$('feedbackReport'),statusEl=$('feedbackReportStatus'),button=$('viewFeedback');
+  button.disabled=true;panel.hidden=false;report.hidden=true;
+  $('downloadFeedback').hidden=true;
+  statusEl.textContent='Nova is reviewing your interview…';
+  try{
+    const {data:{session}}=await client.auth.getSession();
+    if(!session)throw Error('Sign in to view your feedback.');
+    const headers={'content-type':'application/json',apikey:SUPABASE_KEY,authorization:'Bearer '+session.access_token};
+    const check=await fetch(tokenEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'session_status',room_name:feedbackRoom})});
+    if(!check.ok)throw Error('Could not verify interview completion.');
+    const evidence=await check.json();
+    if(evidence.status!=='completed'||evidence.feedback_ready!==true||evidence.evidence_complete!==true||evidence.ending_reason==='participant_ended')throw Error('Interview feedback is not yet available.');
+    await recordArenaCompletion(session,feedbackRoom,evidence);
+    const result=await fetch(feedbackEndpoint,{method:'POST',headers,body:JSON.stringify({mode:'live',room_name:feedbackRoom})});
+    const feedback=await result.json().catch(()=>({}));
+    if(!result.ok)throw Error(feedback.message||({feedback_not_authorized:'Interview completion is not verified.',incomplete_evidence:'Interview responses are not available yet.',ai_not_configured:'Nova is not configured yet.'}[feedback.error])||'Nova feedback is temporarily unavailable.');
+    if(!window.LevelUpInterviewReport)throw Error('The PDF report viewer could not load. Refresh this page and try again.');
+    const name=session.user.user_metadata?.display_name||session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'Participant';
+    await window.LevelUpInterviewReport.render({container:report,downloadButton:$('downloadFeedback'),feedback,evidence,participantName:name});
+    statusEl.textContent='Your interview feedback is ready. Use the PDF viewer to read it or download a copy.';
+    panel.scrollIntoView({behavior:'smooth',block:'start'});
+  }catch(e){statusEl.textContent=e?.message||'Feedback could not be loaded.'}
+  finally{button.disabled=false}
 };
 $('enableAudio').onclick=async()=>{try{await room?.startAudio();$('enableAudio').hidden=true;state('Audio enabled • Jacqueline can speak','live')}catch(e){state('Audio activation failed: '+e.message,'warn')}};
 async function loadLastInterview(){
