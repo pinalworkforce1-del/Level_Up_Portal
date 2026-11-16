@@ -69,9 +69,10 @@ def build_interview_instructions(questions):
     return f"""You are Jacqueline, a professional United States English speaking interviewer
 for Level Up's Interview Intelligence. Clearly disclose that this is an AI practice interview,
 not a real hiring decision.
-Ask the following {len(questions)} required questions in order, one at a time.
-Keep each required question recognizable; do not replace its central meaning.
+Ask ALL {len(questions)} required questions, individually, in EXACT numbered order. Never skip a question, merge two questions, or treat an earlier response as an answer to a question you have not explicitly asked. Even if the participant's answer to "Tell me about yourself" already discusses teamwork, you MUST still ask the separate teamwork question next, with its exact wording.
+Keep each required question recognizable; ask its actual wording before accepting an answer to it. The interview is not complete until every question has been explicitly asked and answered.
 {numbered}
+Do not silently jump from Question 1 to Question 3. After each question and any optional follow-up, consult the numbered list and ask the NEXT numbered required question. A related example in a previous answer never satisfies the requirement to ASK the next question.
 Wait for the participant's response before moving on. You may ask ONE short, natural
 clarifying follow-up per required question when it helps the participant share a specific
 example. Then move forward. Keep the five-question session concise.
@@ -207,7 +208,26 @@ async def interview(ctx: agents.JobContext):
     transcript_turns = []
     transcript_flush = None
     closing_queued = False
+    asked_question_ids = set()
     interviewer = PracticeInterviewer(ctx.room.name, questions, transcript_turns)
+    base_instructions = build_interview_instructions(questions)
+
+    async def reinforce_question_order(next_index: int):
+        if next_index >= len(questions):
+            return
+        next_text = questions[next_index]["text"]
+        reminder = (
+            f"\\n\\nLIVE ORDER CHECK: The next mandatory numbered question still to be asked is "
+            f"Question {next_index + 1}: {next_text} "
+            "After the participant answers the current question and any one optional follow-up, "
+            "ask that exact next question. Even if they have already discussed a related example, "
+            "DO NOT skip it. Do not conclude the interview until all numbered questions are asked."
+        )
+        try:
+            await interviewer.update_instructions(base_instructions + reminder)
+        except Exception:
+            logger.exception("INTERVIEW_ORDER instruction update failed")
+
 
     @session.on("conversation_item_added")
     def capture_turn(event):
@@ -224,7 +244,21 @@ async def interview(ctx: agents.JobContext):
             transcript_flush.cancel()
         transcript_flush = asyncio.create_task(flush_when_quiet())
 
-        # A completed, spoken goodbye triggers shutdown without a callable LLM tool.
+        # Keep the upcoming mandatory question explicit in the agent's live instructions.
+        # This prevents a teamwork example in Q1 from being mistaken for Q2.
+        if item.role == "assistant" and not closing_queued and not interviewer._finished:
+            for i, question in enumerate(questions):
+                if question_match(content, question["text"]) and i not in asked_question_ids:
+                    asked_question_ids.add(i)
+                    missing = [n for n in range(len(questions)) if n not in asked_question_ids]
+                    if missing and missing[0] < i:
+                        logger.warning("INTERVIEW_ORDER skipped question index=%d; ask before closing", missing[0])
+                    if missing:
+                        asyncio.create_task(reinforce_question_order(missing[0]))
+
+        # Spoken goodbye ends the call even if a question was skipped. The database
+        # independently determines whether all required answers were captured.
+        # Never keep the participant connected indefinitely due to an omitted question.
         if item.role == "assistant" and not closing_queued and not interviewer._finished:
             normalized = content.lower().replace("’", "'")
             farewell_phrases = (
@@ -235,13 +269,13 @@ async def interview(ctx: agents.JobContext):
             )
             if any(phrase in normalized for phrase in farewell_phrases):
                 substantive = extract_question_answers(transcript_turns, questions)
+                closing_queued = True
                 if len(substantive) == len(questions):
-                    closing_queued = True
-                    logger.info("INTERVIEW_COMPLETION natural goodbye detected; draining audio")
-                    asyncio.create_task(close_after_goodbye())
+                    logger.info("INTERVIEW_COMPLETION goodbye and all %d answers verified", len(questions))
                 else:
-                    logger.warning("INTERVIEW_COMPLETION premature farewell %d/%d answered",
+                    logger.warning("INTERVIEW_COMPLETION goodbye with only %d/%d answers; closing as incomplete",
                                    len(substantive), len(questions))
+                asyncio.create_task(close_after_goodbye())
 
     async def close_after_goodbye():
         # Let the final spoken message enter the audio queue, then drain it fully.
