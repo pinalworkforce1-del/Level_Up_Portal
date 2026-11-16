@@ -72,10 +72,10 @@ not a real hiring decision.
 Ask ALL {len(questions)} required questions, individually, in EXACT numbered order. Never skip a question, merge two questions, or treat an earlier response as an answer to a question you have not explicitly asked. Even if the participant's answer to "Tell me about yourself" already discusses teamwork, you MUST still ask the separate teamwork question next, with its exact wording.
 Keep each required question recognizable; ask its actual wording before accepting an answer to it. The interview is not complete until every question has been explicitly asked and answered.
 {numbered}
-Do not silently jump from Question 1 to Question 3. After each question and any optional follow-up, consult the numbered list and ask the NEXT numbered required question. A related example in a previous answer never satisfies the requirement to ASK the next question.
-Wait for the participant's response before moving on. You may ask ONE short, natural
-clarifying follow-up per required question when it helps the participant share a specific
-example. Then move forward. Keep the five-question session concise.
+TURN-TAKING IS MANDATORY. Ask only ONE question in each spoken assistant turn, then STOP speaking and listen. Never combine a follow-up and the next required question in the same message. If you ask "Could you tell me more about...", STOP IMMEDIATELY after the follow-up. Wait for a NEW participant reply AFTER that follow-up. The prior answer to the main question is NOT an answer to your follow-up.
+You may ask at most ONE concise clarifying follow-up per required question when it would help the participant give a concrete example. If you ask one, wait for its answer before you ask the next numbered required question. If the participant does not answer, gently allow them to respond or repeat the follow-up; do not advance while they are still thinking or silent.
+Once the participant answers the question and any follow-up, ask the NEXT numbered required question from the list. Do not skip a required question even if a previous answer covered a related topic. Never place two questions in one response, and do not tack "now moving on" onto a follow-up question.
+Keep the five-question interview concise and conversational.
 Many participants will be first-time job seekers or Work Experience (WEX) participants.
 They do NOT need paid employment to answer: after an uncertain answer, gently suggest
 they may use an honest example from school, group projects, sports, volunteering,
@@ -210,25 +210,6 @@ async def interview(ctx: agents.JobContext):
     closing_queued = False
     asked_question_ids = set()
     interviewer = PracticeInterviewer(ctx.room.name, questions, transcript_turns)
-    base_instructions = build_interview_instructions(questions)
-
-    async def reinforce_question_order(next_index: int):
-        if next_index >= len(questions):
-            return
-        next_text = questions[next_index]["text"]
-        reminder = (
-            f"\n\nLIVE ORDER CHECK: The next mandatory numbered question still to be asked is "
-            f"Question {next_index + 1}: {next_text} "
-            "After the participant answers the current question and any one optional follow-up, "
-            "ask that exact next question. Even if they have already discussed a related example, "
-            "DO NOT skip it. Do not conclude the interview until all numbered questions are asked."
-        )
-        try:
-            await interviewer.update_instructions(base_instructions + reminder)
-        except Exception:
-            logger.exception("INTERVIEW_ORDER instruction update failed")
-
-
     @session.on("conversation_item_added")
     def capture_turn(event):
         nonlocal transcript_flush, closing_queued
@@ -244,17 +225,19 @@ async def interview(ctx: agents.JobContext):
             transcript_flush.cancel()
         transcript_flush = asyncio.create_task(flush_when_quiet())
 
-        # Keep the upcoming mandatory question explicit in the agent's live instructions.
-        # This prevents a teamwork example in Q1 from being mistaken for Q2.
+        # Passive audit only: do not mutate the model's instructions while it is
+        # speaking. Mid-turn instruction updates can cause premature progression.
         if item.role == "assistant" and not closing_queued and not interviewer._finished:
-            for i, question in enumerate(questions):
-                if question_match(content, question["text"]) and i not in asked_question_ids:
-                    asked_question_ids.add(i)
-                    missing = [n for n in range(len(questions)) if n not in asked_question_ids]
-                    if missing and missing[0] < i:
-                        logger.warning("INTERVIEW_ORDER skipped question index=%d; ask before closing", missing[0])
+            matched = [i for i, question in enumerate(questions)
+                       if question_match(content, question["text"])]
+            for i in matched:
+                if i not in asked_question_ids:
+                    missing = [n for n in range(i) if n not in asked_question_ids]
                     if missing:
-                        asyncio.create_task(reinforce_question_order(missing[0]))
+                        logger.warning("INTERVIEW_ORDER required questions skipped before index=%d: %s", i, missing)
+                    asked_question_ids.add(i)
+            if len(matched) > 1:
+                logger.warning("INTERVIEW_TURN multiple required questions in one assistant response: %s", matched)
 
         # Spoken goodbye ends the call even if a question was skipped. The database
         # independently determines whether all required answers were captured.
