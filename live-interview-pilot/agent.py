@@ -217,7 +217,7 @@ async def interview(ctx: agents.JobContext):
             return
         next_text = questions[next_index]["text"]
         reminder = (
-            f"\\n\\nLIVE ORDER CHECK: The next mandatory numbered question still to be asked is "
+            f"\n\nLIVE ORDER CHECK: The next mandatory numbered question still to be asked is "
             f"Question {next_index + 1}: {next_text} "
             "After the participant answers the current question and any one optional follow-up, "
             "ask that exact next question. Even if they have already discussed a related example, "
