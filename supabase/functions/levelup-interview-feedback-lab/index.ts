@@ -40,6 +40,7 @@ type FeedbackQuestion = {
   strength: string;
   growth: string;
   stronger_approach: string;
+  followup_feedback?: {question_text:string;strength:string;growth:string}[];
 };
 
 type Feedback = {
@@ -108,7 +109,7 @@ Deno.serve(async (req) => {
       const url = new URL(PROJECT_URL + "/rest/v1/levelup_interview_sessions");
       url.searchParams.set("participant_id", "eq." + participant.id);
       url.searchParams.set("room_name", "eq." + roomName);
-      url.searchParams.set("select", "id,status,ending_reason,ended_at,evidence_complete,feedback_ready,required_questions,answer_evidence,feedback_json");
+      url.searchParams.set("select", "id,status,ending_reason,ended_at,evidence_complete,feedback_ready,required_questions,answer_evidence,transcript_json,feedback_json");
       const readResponse = await fetch(url, { headers: serviceHeaders });
       if (!readResponse.ok) return respond({ error: "ledger_unavailable" }, 502);
       const rows = await readResponse.json();
@@ -132,10 +133,24 @@ Deno.serve(async (req) => {
       if (!Array.isArray(required) || !Array.isArray(answers) || required.length === 0 || required.length !== answers.length || required.length > 20) {
         return respond({ error: "incomplete_evidence" }, 403);
       }
-      questionAnswers = required.map((q: Record<string, unknown>, i: number) => ({
-        q: String(q?.text || "").slice(0, 600),
-        a: String((answers[i] as Record<string, unknown>)?.response || "").slice(0, 5000),
-      }));
+      // Reconstruct each topic's full answer from the canonical question window,
+      // including follow-up responses, while retaining the original answer evidence.
+      const turnList=Array.isArray((sessionRecord as any)?.transcript_json)?(sessionRecord as any).transcript_json:[];
+      const questionStarts=required.map((q:any)=>{
+        const phrase=String(q?.text||"").toLowerCase().replace(/[^a-z0-9 ]/g," ").split(/\s+/).filter(Boolean).slice(0,9).join(" ");
+        return turnList.findIndex((t:any)=>t?.role==="assistant"&&String(t?.text||"").toLowerCase().replace(/[^a-z0-9 ]/g," ").includes(phrase));
+      });
+      questionAnswers=required.map((q: Record<string, unknown>,i:number)=>{
+        const start=questionStarts[i];
+        const end=questionStarts.slice(i+1).find((x:number)=>x>=0)??turnList.length;
+        const excerpt=start>=0?turnList.slice(start+1,end):[];
+        const spoken=excerpt.filter((t:any)=>t?.role==="user").map((t:any)=>String(t?.text||"").slice(0,2500)).join(" ").trim();
+        const followups=excerpt.filter((t:any)=>t?.role==="assistant"&&String(t?.text||"").includes("?"))
+          .map((t:any)=>String(t.text).slice(0,550));
+        return {q:String(q?.text||"").slice(0,600),
+          a:(spoken||String((answers[i] as Record<string,unknown>)?.response||"")).slice(0,8000),
+          followups};
+      });
       if (questionAnswers.some(({ q, a }) => !q.trim() || a.trim().length < 3)) {
         return respond({ error: "incomplete_evidence" }, 403);
       }
@@ -152,8 +167,9 @@ Most Level Up participants are early-career young adults, first-time job seekers
 For a vague or brief answer, suggest ONE small follow-up detail (their action, the situation, communication, outcome, or how they would respond), never invent a story. When an example is hypothetical, suggest how to explain their intended approach rather than implying an event occurred.
 Keep feedback youth-friendly, concrete, age-neutral, strengths-based, and focused on communication, teamwork, responsibility, time management, customer service, learning, and adaptability. Avoid treating the youth as deficient or diagnosing confidence.
 Give useful, specific, non-repetitive coaching tied to what the participant actually said. If an answer is strong, acknowledge it without manufacturing a weakness.
+Each primary question may have one conversational follow-up. Evaluate the entire answer, including the follow-up response(s), as a single competency. For each question, provide short separate follow-up_feedback entries when a follow-up was actually asked and answered. A follow-up is not a separate required question or a new completion requirement. Do not penalize people for needing clarification. Treat follow-up answers as evidence that can improve the primary assessment.
 For each question, give one growth opportunity of 2-3 concise sentences. Name ONE concrete kind of detail, example, or practical next step that would make this particular answer stronger. Do not write a replacement personal story using invented facts.
-Return a JSON object containing overview (string), questions (array of objects containing index (zero based integer), strength (string), growth (string), stronger_approach (string)), and next_steps (array of 2-3 strings).
+Return a JSON object containing overview (string), questions (array of objects containing index (zero based integer), strength (string), growth (string), stronger_approach (string), followup_feedback (array of zero or more objects with question_text string, strength string and growth string for actual asked follow-ups))), and next_steps (array of 2-3 strings).
 Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and generic repeated phrases. Keep the feedback developmental, professional, and encouraging.`;
 
     const aiResponse = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -196,6 +212,11 @@ Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and
         strength: String(row.strength || "").slice(0, 900),
         growth: String(row.growth || "").slice(0, 900),
         stronger_approach: String(row.stronger_approach || "").slice(0, 1100),
+        followup_feedback: (Array.isArray(row.followup_feedback)?row.followup_feedback:[]).slice(0,3).map((f:any)=>({
+          question_text:String(f?.question_text||"").slice(0,550),
+          strength:String(f?.strength||"").slice(0,750),
+          growth:String(f?.growth||"").slice(0,750)
+        })),
       })),
       next_steps: nextSteps.slice(0, 3).map((step: unknown) => String(step).slice(0, 500)),
     };
