@@ -179,7 +179,7 @@ Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and
       body: JSON.stringify({
         model: "gpt-4.1-mini",
         temperature: 0.35,
-        max_completion_tokens: 2000,
+        max_completion_tokens: 3600,
         response_format: { type: "json_object" },
         messages: [
           { role: "system", content: instructions },
