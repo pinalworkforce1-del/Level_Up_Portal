@@ -188,7 +188,7 @@ Keep feedback youth-friendly, concrete, age-neutral, strengths-based, and focuse
 Give useful, specific, non-repetitive coaching tied to what the participant actually said. If an answer is strong, acknowledge it without manufacturing a weakness.
 Each primary question may have one conversational follow-up. The submitted followups array contains only verified question-and-answer pairs from the transcript. Evaluate the complete response including ONLY the verified follow-up answers as a single competency under SAR (except the self-introduction). For each question, provide short separate followup_feedback entries when a follow-up was actually asked AND answered. A follow-up is not a separate required question or a new completion requirement. Do not penalize people for needing clarification. Treat follow-up answers as evidence that can improve the primary assessment. Distinguish the initial response from the additional detail elicited; do not claim a follow-up answer was given if Jacqueline moved ahead without waiting.
 For each question, give one growth opportunity of 2-3 concise sentences. Name ONE concrete kind of detail, example, or practical next step that would make this particular answer stronger. Do not write a replacement personal story using invented facts.
-Return a JSON object containing overview (string), questions (array of objects containing index (zero based integer), score (integer 1-5 evaluating answer relevance, specificity, individual contribution and supporting example; never scoring the person), strength (string), growth (string), stronger_approach (string), followup_feedback (array of zero or more objects with question_text string, score integer 1-5 for answer quality, strength string and growth string for actual asked follow-ups))), and next_steps (array of 2-3 strings). Scores are developmental coaching indicators, never hiring predictions. If the input followups array is empty, return an empty followup_feedback array. Never score an unanswered prompt or invent a reply.
+Return a JSON object containing overview (string), questions (array of objects containing index (zero based integer), score (integer 1-5 evaluating answer relevance, specificity, individual contribution and supporting example; never scoring the person), strength (string), growth (string), stronger_approach (string), followup_feedback (array of zero or more objects with question_text string, score integer 1-5 for answer quality, strength string and growth string for actual asked follow-ups))), and next_steps (array of 2-3 strings). Scores are developmental coaching indicators, never hiring predictions. If the input followups array is empty, return an empty followup_feedback array. Never score an unanswered prompt or invent a reply. When returning followup_feedback, copy question_text exactly from the input followups array without paraphrasing.
 For each required question, provide developmental_dimensions with situation, action, result, specificity, individual_contribution, and communication. Use integers 1-5 for evidence demonstrated in the actual answer including actual follow-ups, or null when the dimension cannot be assessed. Only behavioral questions require Situation/Action/Result; for "Tell me about yourself" return null for situation, action, and result. For hypotheticals, assess the participant's proposed action and anticipated reasoned result without pretending a real result happened. Never score qualities of a person, suitability for hiring, identity, or confidence. Low scores must reflect missing evidence, not lack of paid work. These separate dimensions help coaches see growth in SAR and practical communication.
 Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and generic repeated phrases. Keep the feedback developmental, professional, and encouraging.`;
 
@@ -276,12 +276,14 @@ Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and
          primary_response: String(questionAnswers[Number(row.index)]?.initial_response||questionAnswers[Number(row.index)]?.a||"").slice(0,5000),
          followup_feedback: (questionAnswers[Number(row.index)]?.followups||[]).slice(0,1).map((verified:any)=>{
            const matched=(Array.isArray(row.followup_feedback)?row.followup_feedback:[]).find((f:any)=>String(f?.question_text||"").trim().toLowerCase()===verified.question_text.trim().toLowerCase());
-           return matched?{
+           // Show the verified reply even if Nova did not generate a matching
+           // follow-up rating; an unmatched reply must remain unscored.
+           return {
              question_text:verified.question_text,response_text:verified.response_text,
-             score:Number.isInteger(matched.score)&&matched.score>=1&&matched.score<=5?matched.score:undefined,
-             strength:String(matched.strength||"").slice(0,750),growth:String(matched.growth||"").slice(0,750)
-           }:null;
-         }).filter(Boolean),
+             score:Number.isInteger(matched?.score)&&matched.score>=1&&matched.score<=5?matched.score:undefined,
+             strength:String(matched?.strength||"").slice(0,750),growth:String(matched?.growth||"").slice(0,750)
+           };
+         }),
       })),
       next_steps: nextSteps.slice(0, 3).map((step: unknown) => String(step).slice(0, 500)),
     };
