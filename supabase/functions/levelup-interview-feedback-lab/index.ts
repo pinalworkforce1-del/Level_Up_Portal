@@ -42,6 +42,10 @@ type FeedbackQuestion = {
   growth: string;
   stronger_approach: string;
   followup_feedback?: {question_text:string;score?:number;strength:string;growth:string}[];
+  developmental_dimensions?: {
+    situation:number|null; action:number|null; result:number|null;
+    specificity:number|null; individual_contribution:number|null; communication:number|null;
+  };
 };
 
 type Feedback = {
@@ -172,6 +176,7 @@ Give useful, specific, non-repetitive coaching tied to what the participant actu
 Each primary question may have one conversational follow-up. Evaluate the entire answer, including the follow-up response(s), as a single competency under SAR (except the self-introduction). For each question, provide short separate followup_feedback entries when a follow-up was actually asked AND answered. A follow-up is not a separate required question or a new completion requirement. Do not penalize people for needing clarification. Treat follow-up answers as evidence that can improve the primary assessment. Distinguish the initial response from the additional detail elicited; do not claim a follow-up answer was given if Jacqueline moved ahead without waiting.
 For each question, give one growth opportunity of 2-3 concise sentences. Name ONE concrete kind of detail, example, or practical next step that would make this particular answer stronger. Do not write a replacement personal story using invented facts.
 Return a JSON object containing overview (string), questions (array of objects containing index (zero based integer), score (integer 1-5 evaluating answer relevance, specificity, individual contribution and supporting example; never scoring the person), strength (string), growth (string), stronger_approach (string), followup_feedback (array of zero or more objects with question_text string, score integer 1-5 for answer quality, strength string and growth string for actual asked follow-ups))), and next_steps (array of 2-3 strings). Scores are developmental coaching indicators, never hiring predictions. If a follow-up was not actually asked and answered, return an empty followup_feedback array.
+For each required question, provide developmental_dimensions with situation, action, result, specificity, individual_contribution, and communication. Use integers 1-5 for evidence demonstrated in the actual answer including actual follow-ups, or null when the dimension cannot be assessed. Only behavioral questions require Situation/Action/Result; for "Tell me about yourself" return null for situation, action, and result. For hypotheticals, assess the participant's proposed action and anticipated reasoned result without pretending a real result happened. Never score qualities of a person, suitability for hiring, identity, or confidence. Low scores must reflect missing evidence, not lack of paid work. These separate dimensions help coaches see growth in SAR and practical communication.
 Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and generic repeated phrases. Keep the feedback developmental, professional, and encouraging.`;
 
 
@@ -184,10 +189,11 @@ Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and
         overview:{type:"string"},
         questions:{type:"array",items:{
           type:"object",additionalProperties:false,
-          required:["index","score","strength","growth","stronger_approach","followup_feedback"],
+          required:["index","score","strength","growth","stronger_approach","followup_feedback","developmental_dimensions"],
           properties:{
             index:{type:"integer"},score:{type:"integer"},strength:{type:"string"},
             growth:{type:"string"},stronger_approach:{type:"string"},
+             developmental_dimensions:{type:"object",additionalProperties:false,required:["situation","action","result","specificity","individual_contribution","communication"],properties:Object.fromEntries(["situation","action","result","specificity","individual_contribution","communication"].map(key=>[key,{type:["integer","null"]}]))},
             followup_feedback:{type:"array",items:{
               type:"object",additionalProperties:false,
               required:["question_text","score","strength","growth"],
@@ -253,7 +259,8 @@ Avoid hiring predictions, pass/fail assessments, protected-trait inferences, and
         strength: String(row.strength || "").slice(0, 900),
         growth: String(row.growth || "").slice(0, 900),
         stronger_approach: String(row.stronger_approach || "").slice(0, 1100),
-        followup_feedback: (Array.isArray(row.followup_feedback)?row.followup_feedback:[]).slice(0,3).map((f:any)=>({
+        developmental_dimensions: Object.fromEntries(["situation","action","result","specificity","individual_contribution","communication"].map(k=>{const v=(row as any)?.developmental_dimensions?.[k];return [k,Number.isInteger(v)&&v>=1&&v<=5?v:null]})) as FeedbackQuestion["developmental_dimensions"],
+         followup_feedback: (Array.isArray(row.followup_feedback)?row.followup_feedback:[]).slice(0,3).map((f:any)=>({
           question_text:String(f?.question_text||"").slice(0,550),
           score:Number.isInteger(f?.score)&&f.score>=1&&f.score<=5?f.score:undefined,
           strength:String(f?.strength||"").slice(0,750),
