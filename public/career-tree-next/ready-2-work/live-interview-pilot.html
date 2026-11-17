@@ -162,7 +162,7 @@ $('viewFeedback').onclick=async()=>{
     const feedback=await result.json().catch(()=>({}));
     if(!result.ok)throw Error(feedback.message||({feedback_not_authorized:'Interview completion is not verified.',incomplete_evidence:'Interview responses are not available yet.',ai_not_configured:'Nova is not configured yet.'}[feedback.error])||'Nova feedback is temporarily unavailable.');
     if(!window.LevelUpInterviewReport)throw Error('The PDF report viewer could not load. Refresh this page and try again.');
-    const name=session.user.user_metadata?.display_name||session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'Participant';
+    const name=evidence.participant_display_name||session.user.user_metadata?.display_name||session.user.user_metadata?.full_name||session.user.email?.split('@')[0]||'Participant';
     await window.LevelUpInterviewReport.render({container:report,downloadButton:$('downloadFeedback'),feedback,evidence,participantName:name});
     statusEl.textContent='Your interview feedback is ready. Use the PDF viewer to read it or download a copy.';
     panel.scrollIntoView({behavior:'smooth',block:'start'});
