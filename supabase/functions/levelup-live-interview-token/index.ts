@@ -82,6 +82,7 @@ Deno.serve(async req=>{
  if(!serviceKey)return response({error:"ledger_unavailable"},503,origin);
  const room="levelup-interview-pilot-"+crypto.randomUUID();
  const occupation=String(request?.occupation||"first_job").slice(0,64);
+  const sourceModule=request?.source_module==="interview-arena"?"interview-arena":"interview-intelligence";
  const questions=interviewQuestionsFor(occupation);
  if(!questions)return response({error:"unsupported_interview_role"},400,origin);
  const reservation=await fetch(supa+"/rest/v1/rpc/levelup_interview_reserve",{method:"POST",headers:ledgerHeaders,body:JSON.stringify({p_participant:user.id,p_room:room,p_occupation:occupation})}).catch(()=>null);
@@ -93,7 +94,7 @@ Deno.serve(async req=>{
   token.addGrant({roomJoin:true,room,canPublish:true,canPublishData:true,canSubscribe:true});
   token.roomConfig=new RoomConfiguration({agents:[new RoomAgentDispatch({agentName:"levelup-interview-pilot",metadata:JSON.stringify({question_bank:EARLY_CAREER_BANK.version,role:occupation})})]});
   const participantToken=await token.toJwt();
-  const tracked=await fetch(supa+"/rest/v1/levelup_interview_sessions?room_name=eq."+encodeURIComponent(room),{method:"PATCH",headers:ledgerHeaders,body:JSON.stringify({status:"active",required_questions:questions})});
+  const tracked=await fetch(supa+"/rest/v1/levelup_interview_sessions?room_name=eq."+encodeURIComponent(room),{method:"PATCH",headers:ledgerHeaders,body:JSON.stringify({status:"active",required_questions:questions,source_module:sourceModule})});
   if(!tracked.ok)throw Error("Unable to record interview configuration");
   return response({server_url:URL,participant_token:participantToken,room_name:room,avatar_session_started:false,mode:"pilot",ledger_recorded:true,remaining_sessions:reserved.remaining,maximum_seconds:reserved.maximum_seconds,question_count:questions.length,interview_role:occupation,interview_label:EARLY_CAREER_ROLES[EARLY_CAREER_BANK.aliases[occupation]||occupation]?.label||"First Job",question_bank:EARLY_CAREER_BANK.version},201,origin);
  } catch {
