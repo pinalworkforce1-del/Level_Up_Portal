@@ -56,8 +56,15 @@ Deno.serve(async req=>{
   for(const turn of turns){const n=String(turn.text||"").trim().split(/\s+/).filter(Boolean).length;if(turn.role==="user")pw+=n;else if(turn.role==="assistant")iw+=n}
   const total=pw+iw;
   const conversation_balance=total?{participant_percent:Math.round(pw/total*100),interviewer_percent:Math.round(iw/total*100),measurement:"word_count_proxy",target_participant_percent:80}:null;
+  // Server-verified profile name; participant cannot request another user's profile.
+  let participant_display_name:string|null=null;
+  const profileResponse=await fetch(supa+"/rest/v1/profiles?user_id=eq."+encodeURIComponent(user.id)+"&select=display_name&limit=1",{headers:ledgerHeaders}).catch(()=>null);
+  if(profileResponse?.ok){
+    const profiles=await profileResponse.json().catch(()=>[]);
+    participant_display_name=String(profiles?.[0]?.display_name||"").trim()||null;
+  }
   delete record.transcript_json;
-  return response({...record,conversation_balance},200,origin);
+  return response({...record,conversation_balance,participant_display_name},200,origin);
  }
  if(request?.mode==="latest_completed"){
   if(!serviceKey)return response({error:"ledger_unavailable"},503,origin);
