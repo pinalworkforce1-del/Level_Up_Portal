@@ -132,11 +132,12 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 <div class="overview">
 <section class="panel">
 <div class="eyebrow">Leadership Peak map</div><h2>Choose your next challenge</h2>
-<p class="muted small">Select an illuminated zone on the mountain map above, or use the accessible list below. Explore in any order. Finish all six zones and your final reflection to complete the module.</p>
+<p class="muted small">This is a leadership lab: every choice teaches something. Explore A, B, and C in each zone to earn up to 360 XP. Your XP never drops when you try a different response. Finish all six zones and your final reflection to complete the module; exploring every response is encouraged, not required.</p>
 <details class="zoneListFallback" id="zoneListFallback"><summary>Browse the six challenges as text</summary><div class="mapGrid" id="zoneMap"></div></details>
 </section>
 <aside class="panel">
-<div class="eyebrow">Your climb</div><div class="stats"><div><strong id="doneCount">0 / 6</strong><div class="muted">Zones completed</div></div><div><strong id="xpCount">0 / 180</strong><div class="muted">Leadership XP</div></div></div>
+<div class="eyebrow">Your climb</div><div class="stats"><div><strong id="doneCount">0 / 6</strong><div class="muted">Zones completed</div></div><div><strong id="xpCount">0 / 360</strong><div class="muted">Leadership XP</div></div></div>
+<p class="small muted" id="exploredCount">0 / 18 choices explored · XP earned once per choice</p>
 <div class="progressTrack" role="progressbar" aria-label="Leadership zones complete" aria-valuemin="0" aria-valuemax="6" aria-valuenow="0"><span id="progressFill"></span></div>
 <p class="small muted">Progress saves on this device and to your Level Up account when signed in.</p>
 <div class="status" id="saveStatus" role="status" aria-live="polite"></div>
@@ -208,7 +209,32 @@ const zones=[
 ['B','Tell them quitting is a bad idea and they need to toughen up.',20,'You wanted to motivate them. Try encouragement without judging their feelings.'],
 ['C','Encourage them, share that you have felt frustrated too, and suggest talking with staff before deciding.',30,'Strong choice. You acknowledged their frustration and pointed toward support without taking away their choice.']]}];
 const $=id=>document.getElementById(id);
-const clean=()=>({version:1,answers:{},reflection:'',completed_at:null});
+// Every illustrated decision can be explored independently and earns XP once.
+// v1 records only captured the latest selected answer; preserve that credit on upgrade.
+const clean=()=>({version:2,answers:{},explored:{},reflection:'',completed_at:null});
+function normalizeRecord(record){
+ const r=record&&typeof record==='object'?record:{};
+ const answers=r.answers&&typeof r.answers==='object'?r.answers:{};
+ const saved=r.explored&&typeof r.explored==='object'?r.explored:{};
+ const explored={};
+ for(const z of zones){
+  const visited=new Set(Array.isArray(saved[z.id])?saved[z.id]:[]);
+  const last=answers[z.id]?.choice;
+  if(z.answers.some(a=>a[0]===last))visited.add(last);
+  explored[z.id]=z.answers.map(a=>a[0]).filter(letter=>visited.has(letter));
+ }
+ return {version:2,answers,explored,reflection:String(r.reflection||''),completed_at:r.completed_at||null};
+}
+function mergeExplored(a,b){
+ const result={};
+ for(const z of zones){
+  const visited=new Set([...(a?.[z.id]||[]),...(b?.[z.id]||[])]);
+  result[z.id]=z.answers.map(x=>x[0]).filter(letter=>visited.has(letter));
+ }
+ return result;
+}
+const maxXP=zones.reduce((sum,z)=>sum+z.answers.reduce((part,a)=>part+a[2],0),0);
+const totalChoices=zones.reduce((sum,z)=>sum+z.answers.length,0);
 const ariaAudio=$('ariaAudio'),audioDir='./assets/audio/';
 let currentClip='',currentKind='',currentLabel='';
 const AUTO_NARRATION_KEY='levelup-leadership-peak-auto-narration-v1';
@@ -283,10 +309,15 @@ document.addEventListener('click',event=>{
 });
 let session=null,state=clean(),active=null,saving=false,timer=null;
 function key(){return 'levelup-leadership-peak-v1:'+(session?.user?.id||'guest')}
-function done(){return zones.filter(z=>state.answers[z.id]&&Number(state.answers[z.id].xp)>0)}
-function xp(){return done().reduce((n,z)=>n+state.answers[z.id].xp,0)}
+function done(){return zones.filter(z=>(state.explored[z.id]||[]).length>0)}
+function zoneXP(id){
+ const z=zones.find(z=>z.id===id);
+ return z?z.answers.filter(a=>(state.explored[id]||[]).includes(a[0])).reduce((n,a)=>n+a[2],0):0;
+}
+function exploredCount(){return zones.reduce((n,z)=>n+(state.explored[z.id]||[]).length,0)}
+function xp(){return zones.reduce((n,z)=>n+zoneXP(z.id),0)}
 function isComplete(){return done().length===6&&String(state.reflection||'').trim().length>=12}
-function snapshot(){return {version:1,answers:state.answers,reflection:state.reflection,completed_at:state.completed_at,completed_scenes:done().length,total_scenes:6,xp:xp(),module:'leadership-peak'}}
+function snapshot(){return {version:2,answers:state.answers,explored:state.explored,reflection:state.reflection,completed_at:state.completed_at,completed_scenes:done().length,total_scenes:6,explored_choices:exploredCount(),total_choices:totalChoices,xp:xp(),max_xp:maxXP,module:'leadership-peak'}}
 function localSave(){try{localStorage.setItem(key(),JSON.stringify(snapshot()))}catch(e){}}
 function setStatus(t){$('saveStatus').textContent=t}
 async function saveCloud(show=true){localSave();if(!session){if(show)setStatus('Saved on this device. Sign in to Level Up to save to your account.');return false}if(saving)return false;saving=true;
@@ -294,12 +325,12 @@ async function saveCloud(show=true){localSave();if(!session){if(show)setStatus('
  const {error}=await supabase.from('module_progress').upsert(record,{onConflict:'user_id,module_id'});if(error)throw error;if(show)setStatus('Saved to Level Up ✓');return true
  }catch(e){setStatus('Saved on device. Cloud save unavailable: '+(e?.message||'please try again'));return false}finally{saving=false}}
 function queueSave(){localSave();clearTimeout(timer);timer=setTimeout(()=>{void saveCloud(false)},700)}
-function render(){const count=done().length;$('doneCount').textContent=count+' / 6';$('xpCount').textContent=xp()+' / 180';$('progressFill').style.width=(count/6*100)+'%';document.querySelector('.progressTrack').setAttribute('aria-valuenow',count);
- $('mapLiveCount').textContent=count+' / 6';$('mapLiveXp').textContent=String(xp());
- $('mapLiveLevel').textContent=xp()>=180?'Leadership Peak Climber':xp()>=140?'Influence Builder':xp()>=100?'Growing Leader':'Emerging Leader';
- document.querySelectorAll('[data-map-zone]').forEach(button=>{const zone=zones.find(z=>z.id===button.dataset.mapZone),answer=state.answers[button.dataset.mapZone];if(!zone)return;button.classList.toggle('completed',!!answer);button.setAttribute('aria-label','Enter '+zone.title+(answer?' — '+answer.xp+' XP earned':' — ready to explore'))});
+function render(){const count=done().length;$('doneCount').textContent=count+' / 6';$('xpCount').textContent=xp()+' / '+maxXP;$('exploredCount').textContent=exploredCount()+' / '+totalChoices+' choices explored · XP earned once per choice';$('progressFill').style.width=(count/6*100)+'%';document.querySelector('.progressTrack').setAttribute('aria-valuenow',count);
+ $('mapLiveCount').textContent=count+' / 6';$('mapLiveXp').textContent=xp()+' / '+maxXP;
+ $('mapLiveLevel').textContent=xp()>=360?'Summit Explorer':xp()>=270?'Leadership Peak Climber':xp()>=180?'Influence Builder':xp()>=90?'Growing Leader':'Emerging Leader';
+ document.querySelectorAll('[data-map-zone]').forEach(button=>{const zone=zones.find(z=>z.id===button.dataset.mapZone),answer=state.answers[button.dataset.mapZone];if(!zone)return;button.classList.toggle('completed',!!answer);button.setAttribute('aria-label','Enter '+zone.title+((state.explored[zone.id]||[]).length?' — '+zoneXP(zone.id)+' of 60 XP earned, '+(state.explored[zone.id]||[]).length+' of 3 choices explored':' — ready to explore'))});
  $('zoneMap').replaceChildren();
- zones.forEach((z,i)=>{const b=document.createElement('button');b.type='button';b.className='zone'+(state.answers[z.id]?' completed':'');b.style.setProperty('--zone-art','url(./assets/slide-'+String([4,8,12,16,20,24][i]).padStart(2,'0')+'.webp)');const k=document.createElement('div');k.className='number';k.textContent='ZONE '+(i+1)+' • '+(state.answers[z.id]?'COMPLETE ✓':'READY');const n=document.createElement('b');n.textContent=z.title;const d=document.createElement('small');d.textContent=z.tagline;const e=document.createElement('div');e.className='result';e.textContent=state.answers[z.id]?(state.answers[z.id].xp+' XP earned'):'Explore challenge →';b.append(k,n,d,e);b.onclick=()=>openZone(z.id);$('zoneMap').append(b)});
+ zones.forEach((z,i)=>{const b=document.createElement('button');b.type='button';b.className='zone'+(state.answers[z.id]?' completed':'');b.style.setProperty('--zone-art','url(./assets/slide-'+String([4,8,12,16,20,24][i]).padStart(2,'0')+'.webp)');const k=document.createElement('div');k.className='number';k.textContent='ZONE '+(i+1)+' • '+(state.answers[z.id]?'COMPLETE ✓':'READY');const n=document.createElement('b');n.textContent=z.title;const d=document.createElement('small');d.textContent=z.tagline;const e=document.createElement('div');e.className='result';e.textContent=(state.explored[z.id]||[]).length?(zoneXP(z.id)+' / 60 XP · '+(state.explored[z.id]||[]).length+'/3 choices explored'):'Explore challenge →';b.append(k,n,d,e);b.onclick=()=>openZone(z.id);$('zoneMap').append(b)});
  $('review').hidden=count!==6||!!state.completed_at;$('summary').hidden=!state.completed_at;const gate=$('badgeGate');gate.classList.toggle('success',!!state.completed_at);gate.replaceChildren();const strong=document.createElement('strong');strong.textContent=state.completed_at?'Leadership Trail unlocked ✓':'Leadership Trail locked';const p=document.createElement('p');p.className='small muted';p.textContent=state.completed_at?'Your next step is to document real-world leadership activities.':'Complete the six zones and your final reflection to unlock.';gate.append(strong,p);if(state.completed_at){const a=document.createElement('a');a.href='badge-book.html';a.className='badgeLink';a.textContent='Open Leadership Trail →';gate.append(a)}}
 // Artwork uses 1600×900 illustrations. Percent-based hit areas scale with the image.
  // Zone 3 places its choices on the right; all other zones use the left.
@@ -344,11 +375,11 @@ const feedbackSlideMap=[
  {A:25,B:26,C:27}
 ];
 function leadershipSlide(n){return './assets/slide-'+String(n).padStart(2,'0')+'.webp'}
-function openAnswerDialog(z,a){
+function openAnswerDialog(z,a,newXP=false){
  stopAria();audioStatus('feedback','Ready to hear Aria respond to your choice.');
  const index=zones.indexOf(z),slide=feedbackSlideMap[index]?.[a[0]],fallback=!slide;
  const dialog=$('answerDialog'),img=$('answerArt');
- $('answerDialogTitle').textContent='✦ ARIA · '+z.title+' · Choice '+a[0]+' · '+a[2]+' XP';
+ $('answerDialogTitle').textContent='✦ ARIA · '+z.title+' · Choice '+a[0]+' · '+(newXP?'+'+a[2]+' XP earned':'XP already earned');
  img.src=leadershipSlide(slide||8);
  img.alt=slide?z.title+', Choice '+a[0]+': illustrated outcome and Aria feedback. Use Read feedback as text if the image text is small.':z.title+' background illustration with accurate Choice B feedback overlaid.';
  $('feedbackFallback').hidden=!fallback;
@@ -357,13 +388,13 @@ function openAnswerDialog(z,a){
   $('fallbackChoice').textContent=a[0]+'. '+a[1];
   $('fallbackResponse').textContent=a[3];
   $('fallbackAria').textContent='Aria says: '+z.aria;
-  $('fallbackXP').textContent=a[2]+' Leadership XP';
+  $('fallbackXP').textContent=newXP?'+'+a[2]+' new Leadership XP':a[2]+' Leadership XP already earned';
  }
  $('answerChoiceText').textContent='Your choice: '+a[0]+'. '+a[1];
  $('answerResponseText').textContent=a[3];
  $('answerAriaText').textContent='Aria says: '+z.aria;
  $('answerTipText').textContent='Leadership tip: '+z.tip;
- $('answerCredit').textContent=a[2]+' Leadership XP for this response';
+ $('answerCredit').textContent=newXP?'+'+a[2]+' new Leadership XP for exploring this response.':a[2]+' Leadership XP already earned for this response. You can review it again without losing or adding XP.';
  $('feedbackTranscript').open=false;
  dialog.classList.remove('expanded');
  $('zoomAnswer').textContent='⤢ Enlarge';
@@ -376,9 +407,17 @@ function openZone(id){const z=zones.find(q=>q.id===id);if(!z)return;stopAria();a
  if(state.answers[id])showFeedback(z,state.answers[id].choice);
  if(autoNarration)void playAria('prompt',true);
  $('challenge').scrollIntoView({behavior:'smooth',block:'start'})}
-function selectAnswer(z,i){stopAria();const a=z.answers[i];state.answers[z.id]={choice:a[0],text:a[1],xp:a[2],answered_at:new Date().toISOString()};queueSave();render();openZoneNoScroll(z);createArtworkTargets(z);showFeedback(z,a[0]);openAnswerDialog(z,a)}
+function selectAnswer(z,i){
+ stopAria();
+ const a=z.answers[i];
+ const visited=state.explored[z.id]||[];
+ const newXP=!visited.includes(a[0]);
+ if(newXP)state.explored[z.id]=[...visited,a[0]];
+ state.answers[z.id]={choice:a[0],text:a[1],xp:a[2],answered_at:new Date().toISOString()};
+ queueSave();render();openZoneNoScroll(z);createArtworkTargets(z);showFeedback(z,a[0],newXP);openAnswerDialog(z,a,newXP);
+}
 function openZoneNoScroll(z){$('choices').replaceChildren();z.answers.forEach((a,i)=>{const b=document.createElement('button');b.type='button';b.className='choice'+(state.answers[z.id]?.choice===a[0]?' selected':'');const l=document.createElement('span');l.className='letter';l.textContent=a[0];const t=document.createElement('span');t.textContent=a[1];b.append(l,t);b.onclick=()=>selectAnswer(z,i);$('choices').append(b)})}
-function showFeedback(z,letter){const a=z.answers.find(v=>v[0]===letter);if(!a)return;$('earnedXP').textContent='+'+a[2]+' Leadership XP';$('feedbackText').textContent=a[3];$('feedback').hidden=false}
+function showFeedback(z,letter,newXP=false){const a=z.answers.find(v=>v[0]===letter);if(!a)return;$('earnedXP').textContent=newXP?'+'+a[2]+' Leadership XP earned':a[2]+' Leadership XP already earned · review any time';$('feedbackText').textContent=a[3];$('feedback').hidden=false}
 function closeZone(){stopAria();$('challenge').hidden=true;active=null;render();const destination=window.matchMedia('(max-width:680px)').matches?$('zoneListFallback'):$('heroPageTitle').closest('.heroMap');destination.scrollIntoView({behavior:'smooth',block:'start'})}
 document.querySelectorAll('[data-map-zone]').forEach(button=>{button.addEventListener('click',()=>openZone(button.dataset.mapZone))});
 if(window.matchMedia('(max-width:680px)').matches)$('zoneListFallback').open=true;
@@ -396,6 +435,6 @@ $('answerDialog').addEventListener('close',()=>{if(currentKind==='feedback')stop
 $('reflection').oninput=e=>{state.reflection=e.target.value;queueSave()};
 $('completePeak').onclick=async()=>{state.reflection=$('reflection').value.trim();if(!isComplete()){setStatus('Complete all six zones and write at least one sentence in your reflection.');return}state.completed_at=state.completed_at||new Date().toISOString();stopAria();render();audioStatus('complete',"Ready to hear Aria's closing message.");if(autoNarration)void playAria('complete',true);const ok=await saveCloud(true);setStatus(ok?'Leadership Peak complete and saved to Level Up ✓':'Leadership Peak complete locally. Reconnect and save again to sync to Level Up.');$('summary').scrollIntoView({behavior:'smooth',block:'start'})};
 // MP3 narration is optional and does not change XP, progression, or saving.
-(async()=>{try{const {data}=await supabase.auth.getSession();session=data.session;let raw=localStorage.getItem(key());if(raw){const v=JSON.parse(raw);if(v&&typeof v==='object')state={...clean(),...v,answers:v.answers||{}}}if(session){const {data:row,error}=await supabase.from('module_progress').select('journey_state,is_complete,completed_at').eq('user_id',session.user.id).eq('module_id','leadership-peak').maybeSingle();if(error)throw error;if(row?.journey_state){const v=row.journey_state;state={...clean(),...v,answers:{...(v.answers||{}),...(state.answers||{})}};if(row.is_complete&&row.completed_at)state.completed_at=row.completed_at}}
+(async()=>{try{const {data}=await supabase.auth.getSession();session=data.session;let raw=localStorage.getItem(key());if(raw){const v=JSON.parse(raw);state=normalizeRecord(v)}if(session){const {data:row,error}=await supabase.from('module_progress').select('journey_state,is_complete,completed_at').eq('user_id',session.user.id).eq('module_id','leadership-peak').maybeSingle();if(error)throw error;if(row?.journey_state){const remote=normalizeRecord(row.journey_state),local=state;state={...remote,answers:{...remote.answers,...local.answers},explored:mergeExplored(remote.explored,local.explored),reflection:local.reflection||remote.reflection,completed_at:local.completed_at||remote.completed_at};if(row.is_complete&&row.completed_at)state.completed_at=row.completed_at}}
 $('reflection').value=state.reflection||'';render();setStatus(session?'Signed in to Level Up. Your progress can sync.':'Sign in to Level Up to sync your progress across devices.')}catch(e){render();setStatus('Progress is available on this device. Cloud restore unavailable: '+(e?.message||''))}})();
 </script></body></html>
