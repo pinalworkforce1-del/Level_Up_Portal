@@ -99,7 +99,7 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 .heroMapHit[data-map-zone="team"]{left:24.8%;top:58.9%;width:16.8%;height:18%}
 .heroMapHit[data-map-zone="influence"]{left:51.8%;top:59.0%;width:18.4%;height:17.8%}
 /* Mask the artwork's fixed 0/6 and 0 XP so progress always reflects saved state. */
-.heroMapLive{position:absolute;z-index:1;top:59.2%;left:1.65%;width:18.1%;height:25.5%;padding:clamp(7px,1.2vw,16px);display:flex;flex-direction:column;justify-content:center;gap:clamp(3px,.5vw,7px);border:1px solid #7962ac;border-radius:11px;background:#050e22f5;box-shadow:inset 0 0 15px #2f195856;color:#fff;line-height:1.35;font-size:clamp(8px,.98vw,14px)}
+.heroMapLive{position:absolute;z-index:1;top:59.2%;left:1.65%;width:18.1%;height:25.5%;padding:clamp(7px,1.2vw,16px);display:flex;flex-direction:column;justify-content:center;gap:clamp(3px,.5vw,7px);border:1px solid #7962ac;border-radius:11px;background:#050e22;box-shadow:inset 0 0 15px #2f195856;color:#fff;line-height:1.35;font-size:clamp(8px,.98vw,14px)}
 .heroMapLive strong{color:#c787ff;font-size:1.16em;letter-spacing:.02em}
 .heroMapLiveRow{display:flex;align-items:center;justify-content:space-between;gap:5px;border-top:1px solid #594b80a6;padding-top:5px}
 .heroMapLiveRow b{color:#f8ce69;font-size:1.13em}
@@ -108,6 +108,50 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 .zoneListFallback summary:hover,.zoneListFallback summary:focus-visible{color:#fff;outline-offset:3px}
 .zoneListFallback .mapGrid{margin-top:9px}
 @media(max-width:680px){.heroMapHit{display:none}.heroMapLive{padding:4px;gap:2px;font-size:6px;border-radius:5px}.heroMapLiveRow{padding-top:2px}.heroMapLive strong{font-size:7px}.heroMapLiveRow b{font-size:7px}.heroMapLevel{font-size:6px}}
+
+/* Hidden summit lab. Main map illustrations and six required zones are unchanged. */
+.summitStar{position:absolute;left:68.8%;top:.7%;width:6.6%;height:9.6%;z-index:4;border:0;background:transparent;border-radius:50%;cursor:pointer}
+.summitStar:after{content:"";position:absolute;inset:19%;border-radius:50%;background:radial-gradient(circle,#fceaff70,#cf9fff20 52%,transparent 74%);box-shadow:0 0 17px #dbb0ff77;animation:summitGlow 3.5s ease-in-out infinite;pointer-events:none}
+.summitStar:hover:after,.summitStar:focus-visible:after{box-shadow:0 0 24px 9px #e3b9ffb0;background:radial-gradient(circle,#fff2d0ba,#dbb5ff88 40%,transparent 75%)}
+.summitStar:focus-visible{outline:3px solid #f4dfff}
+.summitStar.unlocked:before{content:"✦";position:absolute;right:4%;bottom:2%;color:#ffe7aa;font-size:clamp(12px,1.4vw,21px);text-shadow:0 0 8px #ffe7aa}
+@keyframes summitGlow{0%,100%{opacity:.4;transform:scale(.83)}50%{opacity:.95;transform:scale(1.1)}}
+.summitDialog{width:min(93vw,840px);max-width:840px;max-height:91dvh;padding:0;overflow:auto;background:#101a39;border:1px solid #b68cfc;border-radius:18px;color:#f6f1ff;box-shadow:0 30px 100px #000c}
+.summitDialog::backdrop{background:#040716d9;backdrop-filter:blur(5px)}
+.summitInner{padding:clamp(18px,3vw,33px);background:radial-gradient(circle at 84% 5%,#7b4ca34d,transparent 50%),#0d1531}
+.summitTop{display:flex;justify-content:space-between;align-items:start;gap:12px}
+.summitTop h2{font-size:clamp(27px,4vw,39px);margin:4px 0}.summitTop p{margin:4px 0 10px}
+.summitTag{font-size:12px;letter-spacing:.11em;text-transform:uppercase;color:#f0c5ff;font-weight:900}
+.summitDialog button{cursor:pointer}
+.summitDialog button:disabled{opacity:.45;cursor:default}
+.summitDialog .summitClose{background:#252046;border:1px solid #9b89ce;border-radius:8px;color:#fff;padding:8px 11px;font-weight:800;white-space:nowrap}
+.summitRules{line-height:1.55;background:#181d40;border:1px solid #7768b1;padding:13px;border-radius:12px}
+.summitRules strong{color:#ffe1a4}
+.summitStats{display:flex;gap:9px;flex-wrap:wrap;margin:14px 0}
+.summitStats span{background:#191f42;border:1px solid #655d90;border-radius:9px;padding:8px;font-size:13px}
+.summitStats b{color:#f8d589;font-variant-numeric:tabular-nums}
+.summitBanks{display:grid;grid-template-columns:minmax(0,1fr) 70px minmax(0,1fr);align-items:stretch;gap:11px;margin:14px 0}
+.summitBank{padding:12px;border:1px solid #7167aa;border-radius:12px;background:#111b3b;min-height:160px}
+.summitBank.current{border-color:#82f2d5;box-shadow:inset 0 0 0 1px #82f2d566}
+.summitBank h3{font-size:15px;margin:0 0 10px}
+.summitMembers{display:grid;gap:7px}
+.summitMember{display:flex;gap:7px;justify-content:space-between;align-items:center;width:100%;min-height:41px;padding:8px;text-align:left;background:#202e52;border:1px solid #7770ad;border-radius:8px;color:#fff;font-weight:800}
+.summitMember span{font-size:12px;color:#a9eafd;white-space:nowrap}
+.summitMember[aria-pressed=true]{background:#1d5256;border-color:#8ceac8}
+.summitBridge{display:grid;place-content:center;text-align:center;color:#cdaaff;font-size:12px}
+.summitBridge strong{display:block;font-size:32px;color:#f6d9a4}
+.summitControls{display:flex;gap:8px;flex-wrap:wrap;margin:11px 0}
+.summitControls button{padding:10px 13px;background:#2a2457;color:#fff;border:1px solid #9779ca;border-radius:9px;font-weight:800}
+.summitControls .primary{background:#20746c;border-color:#7cdecf}
+.summitMessage{background:#1b2750;border:1px solid #7572bb;border-radius:9px;padding:12px;min-height:50px;line-height:1.5}
+.summitAward{margin-top:15px;padding:17px;border:1px solid #fbe1a8;border-radius:12px;background:#212c39}
+.summitAward h3{font-size:24px;margin:6px 0;color:#ffdf97}
+.summitReflection{display:block;font-weight:800;margin-top:15px}
+.summitDialog textarea{display:block;margin-top:6px;width:100%;min-height:64px;border:1px solid #8a78c2;border-radius:9px;padding:11px;color:#fff;background:#0b1633}
+.summitFurther{font-size:13px;color:#c3b5df;margin:17px 0 0}
+.summitFurther a{color:#96ebf8}
+@media(max-width:620px){.summitBanks{grid-template-columns:1fr}.summitBank{min-height:0}.summitBridge{display:flex;gap:12px;justify-content:center}.summitStar{width:9%;left:67.5%}}
+@media(prefers-reduced-motion:reduce){.summitStar:after{animation:none;opacity:.7}}
 </style>
 </head>
 <body>
@@ -115,7 +159,7 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 <main>
 <section class="hero heroMap" aria-labelledby="heroPageTitle">
 <h1 id="heroPageTitle" class="visuallyHidden">Leadership Peak — six leadership challenges</h1>
-<img class="heroMapImage" src="./assets/slide-03.webp" alt="Leadership Peak mountain map: Voice Ridge, Courage Crossing, Accountability Cliff, Feedback Lookout, Team Trail, and Influence Summit. Select a zone or use the accessible challenge list below." decoding="async">
+<img class="heroMapImage" src="./assets/slide-03.webp" alt="Leadership Peak mountain map: Voice Ridge, Courage Crossing, Accountability Cliff, Feedback Lookout, Team Trail, and Influence Summit. Select a zone or use the accessible challenge list below." decoding="async"><button type="button" id="summitStar" class="summitStar" aria-label="Discover secret Leadership Peak curiosity challenge at the glowing summit" title="There is something hidden in the summit light"><span class="visuallyHidden">Discover the summit secret</span></button>
 <button type="button" class="heroMapHit" data-map-zone="voice" aria-label="Enter Zone 1, Voice Ridge"><span>Enter Voice Ridge</span></button>
 <button type="button" class="heroMapHit" data-map-zone="courage" aria-label="Enter Zone 2, Courage Crossing"><span>Enter Courage Crossing</span></button>
 <button type="button" class="heroMapHit" data-map-zone="accountability" aria-label="Enter Zone 3, Accountability Cliff"><span>Enter Accountability Cliff</span></button>
@@ -178,6 +222,23 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 </dialog>
 <section class="panel" id="review" hidden style="margin-top:18px"><div class="eyebrow">Influence Summit reached</div><h2>One last reflection</h2><p>Leadership isn't about getting every choice right. What is one leadership habit you'll practice the next time you're part of a team?</p><div class="field"><label for="reflection">My next leadership step</label><textarea id="reflection" maxlength="2500" placeholder="For example: I'll make space for everyone to share an idea, then help our group choose one next step."></textarea></div><div class="actions"><button type="button" class="btn green" id="completePeak">Complete Leadership Peak & save →</button></div></section>
 <section class="panel" id="summary" hidden style="margin-top:18px"><div class="eyebrow">✓ Summit reached</div><h2>Leadership Peak complete!</h2><p>You've practiced all six leadership decisions and made a commitment to keep growing. Your next destination is the real world.</p><p class="muted">Your Leadership Trail Badge Book is now available. Its points track documented activities—not the XP you earned in the learning module.</p><div class="audioControls" aria-label="Closing narration"><button type="button" class="btn secondary" data-audio-play="complete">▶ Aria's closing message</button><button type="button" class="btn secondary" data-audio-replay="complete">↻ Replay</button><button type="button" class="btn secondary" data-audio-pause="complete" hidden>Ⅱ Pause</button><span class="audioStatus" data-audio-status="complete" role="status" aria-live="polite">Your achievement is also shown in text.</span></div><a href="badge-book.html" class="btn green badgeLink">Begin Leadership Trail →</a></section>
+
+<dialog id="summitDialog" class="summitDialog" aria-labelledby="summitTitle"><div class="summitInner">
+<div class="summitTop"><div><div class="summitTag">✦ Hidden summit · Leadership Curiosity Lab</div><h2 id="summitTitle">The Summit Signal</h2><p class="small muted">An optional challenge about teamwork, planning, and bringing everyone along.</p></div><button class="summitClose" id="summitClose" type="button">✕ Close</button></div>
+<p class="summitRules">A mountain storm is closing in. Four teammates must reach the signal station before the trail closes in <strong>19 minutes</strong>. The narrow crossing carries <strong>one or two people</strong> at a time. There is only <strong>one signal beacon</strong>, which must accompany every trip, including return trips. A pair travels at the speed of its <strong>slower</strong> teammate. Can you guide everyone safely across?</p>
+<div class="summitStats"><span>⏳ Elapsed <b id="summitTime">0 / 19 min</b></span><span>🔦 Beacon <b id="summitBeacon">Start</b></span><span>✦ At station <b id="summitSafe">0 / 4</b></span></div>
+<div class="summitBanks">
+<section id="summitNearBank" class="summitBank"><h3>⛰ Starting side</h3><div id="summitNear" class="summitMembers"></div></section>
+<div class="summitBridge" aria-hidden="true"><strong>⇄</strong> Signal crossing</div>
+<section id="summitFarBank" class="summitBank"><h3>✦ Signal station</h3><div id="summitFar" class="summitMembers"></div></section>
+</div>
+<p class="small muted">Select up to two teammates on the beacon's current side, then press Cross. Returns cost time too. Undo and retry freely—Leadership XP is never deducted.</p>
+<div class="summitControls"><button type="button" id="summitCross" class="primary" disabled>Choose teammates</button><button type="button" id="summitUndo">↶ Undo</button><button type="button" id="summitRestart">↻ Restart puzzle</button><button type="button" id="summitHint">✦ Aria's hint</button></div>
+<div id="summitMessage" class="summitMessage" role="status" aria-live="polite">Aria: Leadership is about helping everyone make it to the summit.</div>
+<div id="summitAward" class="summitAward" hidden><div class="summitTag">✦ Leadership Curiosity Award</div><h3>🏅 Summit Strategist</h3><p>You solved the challenge by coordinating the team and helping everyone reach safety. This award is separate from the 360 Leadership XP.</p></div>
+<label class="summitReflection" for="summitReflection">Aria asks: What did you learn about leading a team?<textarea id="summitReflection" maxlength="650" placeholder="An optional reflection, saved with your progress…"></textarea></label>
+<p class="summitFurther">For another challenge, <a href="https://ed.ted.com/lessons/can-you-solve-the-bridge-riddle-alex-gendler" target="_blank" rel="noopener noreferrer">try TED-Ed's classic Zombie Bridge riddle</a> in a separate tab. The Summit Signal is our Level Up variation.</p>
+</div></dialog>
 <audio id="ariaAudio" preload="none"></audio><div class="foot">Leadership Peak is a Level Up developmental experience. Challenge XP is not a hiring assessment, WIOA service verification, or a credential. Real-world Leadership Trail activities are reviewed separately by your Career Coach.</div>
 </main>
 <script type="module">
@@ -211,7 +272,22 @@ const zones=[
 const $=id=>document.getElementById(id);
 // Every illustrated decision can be explored independently and earns XP once.
 // v1 records only captured the latest selected answer; preserve that credit on upgrade.
-const clean=()=>({version:2,answers:{},explored:{},reflection:'',completed_at:null});
+const summitPeople=[{id:'scout',name:'Scout',minutes:1},{id:'navigator',name:'Navigator',minutes:3},{id:'builder',name:'Builder',minutes:6},{id:'mentor',name:'Mentor',minutes:9}];
+const summitLimit=19;
+const blankSummit=()=>({discovered_at:null,solved_at:null,moves:[],hints:0,reflection:'',updated_at:null});
+const clean=()=>({version:3,answers:{},explored:{},summit_secret:blankSummit(),reflection:'',completed_at:null});
+function normalizeSummit(v){
+ const s=v&&typeof v==='object'?v:{};
+ return {discovered_at:s.discovered_at||null,solved_at:s.solved_at||null,
+ moves:Array.isArray(s.moves)?s.moves.slice(0,30).filter(m=>Array.isArray(m)&&m.length>=1&&m.length<=2&&new Set(m).size===m.length&&m.every(id=>summitPeople.some(p=>p.id===id))):[],
+ hints:Number.isInteger(s.hints)?Math.max(0,Math.min(3,s.hints)):0,reflection:String(s.reflection||'').slice(0,650),updated_at:s.updated_at||null};
+}
+function mergeSummit(a,b){
+ const local=normalizeSummit(a),remote=normalizeSummit(b);
+ return {...(String(local.updated_at||'')>=String(remote.updated_at||'')?local:remote),
+ discovered_at:local.discovered_at||remote.discovered_at,solved_at:local.solved_at||remote.solved_at,
+ reflection:local.reflection||remote.reflection};
+}
 function normalizeRecord(record){
  const r=record&&typeof record==='object'?record:{};
  const answers=r.answers&&typeof r.answers==='object'?r.answers:{};
@@ -223,7 +299,7 @@ function normalizeRecord(record){
   if(z.answers.some(a=>a[0]===last))visited.add(last);
   explored[z.id]=z.answers.map(a=>a[0]).filter(letter=>visited.has(letter));
  }
- return {version:2,answers,explored,reflection:String(r.reflection||''),completed_at:r.completed_at||null};
+ return {version:3,answers,explored,summit_secret:normalizeSummit(r.summit_secret),reflection:String(r.reflection||''),completed_at:r.completed_at||null};
 }
 function mergeExplored(a,b){
  const result={};
@@ -317,7 +393,7 @@ function zoneXP(id){
 function exploredCount(){return zones.reduce((n,z)=>n+(state.explored[z.id]||[]).length,0)}
 function xp(){return zones.reduce((n,z)=>n+zoneXP(z.id),0)}
 function isComplete(){return done().length===6&&String(state.reflection||'').trim().length>=12}
-function snapshot(){return {version:2,answers:state.answers,explored:state.explored,reflection:state.reflection,completed_at:state.completed_at,completed_scenes:done().length,total_scenes:6,explored_choices:exploredCount(),total_choices:totalChoices,xp:xp(),max_xp:maxXP,module:'leadership-peak'}}
+function snapshot(){return {version:3,answers:state.answers,explored:state.explored,summit_secret:state.summit_secret,reflection:state.reflection,completed_at:state.completed_at,completed_scenes:done().length,total_scenes:6,explored_choices:exploredCount(),total_choices:totalChoices,xp:xp(),max_xp:maxXP,module:'leadership-peak'}}
 function localSave(){try{localStorage.setItem(key(),JSON.stringify(snapshot()))}catch(e){}}
 function setStatus(t){$('saveStatus').textContent=t}
 async function saveCloud(show=true){localSave();if(!session){if(show)setStatus('Saved on this device. Sign in to Level Up to save to your account.');return false}if(saving)return false;saving=true;
@@ -325,7 +401,7 @@ async function saveCloud(show=true){localSave();if(!session){if(show)setStatus('
  const {error}=await supabase.from('module_progress').upsert(record,{onConflict:'user_id,module_id'});if(error)throw error;if(show)setStatus('Saved to Level Up ✓');return true
  }catch(e){setStatus('Saved on device. Cloud save unavailable: '+(e?.message||'please try again'));return false}finally{saving=false}}
 function queueSave(){localSave();clearTimeout(timer);timer=setTimeout(()=>{void saveCloud(false)},700)}
-function render(){const count=done().length;$('doneCount').textContent=count+' / 6';$('xpCount').textContent=xp()+' / '+maxXP;$('exploredCount').textContent=exploredCount()+' / '+totalChoices+' choices explored · XP earned once per choice';$('progressFill').style.width=(count/6*100)+'%';document.querySelector('.progressTrack').setAttribute('aria-valuenow',count);
+function render(){const count=done().length;$('summitStar').classList.toggle('unlocked',Boolean(state.summit_secret.solved_at));$('doneCount').textContent=count+' / 6';$('xpCount').textContent=xp()+' / '+maxXP;$('exploredCount').textContent=exploredCount()+' / '+totalChoices+' choices explored · XP earned once per choice';$('progressFill').style.width=(count/6*100)+'%';document.querySelector('.progressTrack').setAttribute('aria-valuenow',count);
  $('mapLiveCount').textContent=count+' / 6';$('mapLiveXp').textContent=xp()+' / '+maxXP;
  $('mapLiveLevel').textContent=xp()>=360?'Summit Explorer':xp()>=270?'Leadership Peak Climber':xp()>=180?'Influence Builder':xp()>=90?'Growing Leader':'Emerging Leader';
  document.querySelectorAll('[data-map-zone]').forEach(button=>{const zone=zones.find(z=>z.id===button.dataset.mapZone),answer=state.answers[button.dataset.mapZone];if(!zone)return;button.classList.toggle('completed',!!answer);button.setAttribute('aria-label','Enter '+zone.title+((state.explored[zone.id]||[]).length?' — '+zoneXP(zone.id)+' of 60 XP earned, '+(state.explored[zone.id]||[]).length+' of 3 choices explored':' — ready to explore'))});
@@ -434,7 +510,107 @@ $('artDialog').addEventListener('click',e=>{if(e.target===$('artDialog'))$('artD
 $('answerDialog').addEventListener('close',()=>{if(currentKind==='feedback')stopAria()});
 $('reflection').oninput=e=>{state.reflection=e.target.value;queueSave()};
 $('completePeak').onclick=async()=>{state.reflection=$('reflection').value.trim();if(!isComplete()){setStatus('Complete all six zones and write at least one sentence in your reflection.');return}state.completed_at=state.completed_at||new Date().toISOString();stopAria();render();audioStatus('complete',"Ready to hear Aria's closing message.");if(autoNarration)void playAria('complete',true);const ok=await saveCloud(true);setStatus(ok?'Leadership Peak complete and saved to Level Up ✓':'Leadership Peak complete locally. Reconnect and save again to sync to Level Up.');$('summary').scrollIntoView({behavior:'smooth',block:'start'})};
+
+// THE SUMMIT SIGNAL. Puzzle-only minutes, award independent of 360 XP.
+let summitSelected=[],summitNotice='';
+const summitHints=[
+ "Aria: The beacon must return, but not necessarily with the same person who first carried it over.",
+ "Aria: Two slower teammates crossing together can be more efficient than giving each a separate trip.",
+ "Aria: Try sending the two quickest together first. One returns, then the two slowest go together. Think about who brings the beacon back next."
+];
+function summitModel(){
+ const positions=Object.fromEntries(summitPeople.map(p=>[p.id,'near']));
+ let side='near',minutes=0,validTrips=0;
+ for(const trip of state.summit_secret.moves){
+  if(!Array.isArray(trip)||!trip.length||trip.length>2||new Set(trip).size!==trip.length||trip.some(id=>positions[id]!==side))break;
+  const cost=Math.max(...trip.map(id=>summitPeople.find(p=>p.id===id).minutes));
+  if(minutes+cost>summitLimit)break;
+  const next=side==='near'?'far':'near';trip.forEach(id=>positions[id]=next);minutes+=cost;side=next;validTrips++;
+ }
+ const safe=summitPeople.filter(p=>positions[p.id]==='far').length;
+ return {positions,side,minutes,safe,done:safe===4,validTrips};
+}
+function summitMessage(s){summitNotice=s;$('summitMessage').textContent=s}
+function summitTouch(){state.summit_secret.updated_at=new Date().toISOString();queueSave()}
+function drawSummit(){
+ const m=summitModel();
+ summitSelected=summitSelected.filter(id=>m.positions[id]===m.side);
+ $('summitTime').textContent=m.minutes+' / '+summitLimit+' min';
+ $('summitBeacon').textContent=m.side==='near'?'Start':'Station';
+ $('summitSafe').textContent=m.safe+' / 4';
+ $('summitNearBank').classList.toggle('current',m.side==='near');
+ $('summitFarBank').classList.toggle('current',m.side==='far');
+ for(const bank of ['near','far']){
+  const target=$(bank==='near'?'summitNear':'summitFar');target.replaceChildren();
+  const people=summitPeople.filter(p=>m.positions[p.id]===bank);
+  for(const person of people){
+   const b=document.createElement('button');b.type='button';b.className='summitMember';b.disabled=bank!==m.side||m.done;
+   b.setAttribute('aria-pressed',String(summitSelected.includes(person.id)));
+   b.setAttribute('aria-label','Select '+person.name+', '+person.minutes+' minutes');
+   const name=document.createElement('strong');name.textContent=person.name;
+   const speed=document.createElement('span');speed.textContent=person.minutes+' min';
+   b.append(name,speed);
+   b.onclick=()=>{
+    if(summitSelected.includes(person.id))summitSelected=summitSelected.filter(id=>id!==person.id);
+    else if(summitSelected.length<2)summitSelected.push(person.id);
+    else {summitMessage('Select no more than two teammates for one trip.');return}
+    drawSummit();
+   };
+   target.append(b);
+  }
+  if(!people.length){const msg=document.createElement('small');msg.textContent='Everyone has moved on';target.append(msg)}
+ }
+ const available=summitSelected.length>0&&!m.done;
+ const cost=available?Math.max(...summitSelected.map(id=>summitPeople.find(p=>p.id===id).minutes)):0;
+ $('summitCross').disabled=!available;
+ $('summitCross').textContent=available?'Cross '+(m.side==='near'?'to station':'back to start')+' · '+cost+' min':'Choose 1 or 2 teammates';
+ $('summitUndo').disabled=!state.summit_secret.moves.length||m.done;
+ $('summitAward').hidden=!state.summit_secret.solved_at;
+ $('summitReflection').value=state.summit_secret.reflection||'';
+ $('summitStar').classList.toggle('unlocked',Boolean(state.summit_secret.solved_at));
+ if(!summitNotice)summitMessage('Aria: Plan who crosses and who returns with the beacon. No one gets left behind.');
+}
+function summitCross(){
+ const m=summitModel(),party=summitSelected.slice();
+ if(!party.length||party.length>2||m.done||party.some(id=>m.positions[id]!==m.side))return;
+ const cost=Math.max(...party.map(id=>summitPeople.find(p=>p.id===id).minutes));
+ if(m.minutes+cost>summitLimit){
+  summitMessage('Aria: That trip would reach '+(m.minutes+cost)+' minutes, past the storm deadline. Try a different plan or undo a trip. No XP is lost.');return;
+ }
+ state.summit_secret.moves.push(party);summitSelected=[];
+ const next=summitModel();
+ if(next.done){
+  if(!state.summit_secret.solved_at)state.summit_secret.solved_at=new Date().toISOString();
+  summitMessage('✦ SUMMIT STRATEGIST! Everyone crossed safely in '+next.minutes+' minutes. Strong leadership means coordinating a plan that works for the entire team.');
+ }else summitMessage('Aria: '+party.map(id=>summitPeople.find(p=>p.id===id).name).join(' and ')+' crossed in '+cost+' minute'+(cost===1?'':'s')+'. Now plan the next trip.');
+ summitTouch();drawSummit();
+}
+$('summitStar').onclick=()=>{
+ if(!state.summit_secret.discovered_at){state.summit_secret.discovered_at=new Date().toISOString();summitTouch()}
+ summitSelected=[];summitNotice='';drawSummit();$('summitDialog').showModal();
+};
+$('summitCross').onclick=summitCross;
+$('summitUndo').onclick=()=>{
+ if(!state.summit_secret.moves.length)return;
+ state.summit_secret.moves.pop();summitSelected=[];
+ summitMessage('Aria: Reconsidering a plan is part of leadership. Try a different sequence.');
+ summitTouch();drawSummit();
+};
+$('summitRestart').onclick=()=>{
+ state.summit_secret.moves=[];summitSelected=[];
+ summitMessage(state.summit_secret.solved_at?'Explore a new route. Your award stays earned.':'A fresh opportunity to think and explore. No XP is lost.');
+ summitTouch();drawSummit();
+};
+$('summitHint').onclick=()=>{
+ const n=Math.min(summitHints.length-1,state.summit_secret.hints);
+ state.summit_secret.hints=Math.min(summitHints.length,state.summit_secret.hints+1);
+ summitMessage(summitHints[n]);summitTouch();drawSummit();
+};
+$('summitReflection').onchange=()=>{state.summit_secret.reflection=$('summitReflection').value.trim().slice(0,650);summitTouch()};
+$('summitClose').onclick=()=>$('summitDialog').close();
+$('summitDialog').addEventListener('click',e=>{if(e.target===$('summitDialog'))$('summitDialog').close()});
+
 // MP3 narration is optional and does not change XP, progression, or saving.
-(async()=>{try{const {data}=await supabase.auth.getSession();session=data.session;let raw=localStorage.getItem(key());if(raw){const v=JSON.parse(raw);state=normalizeRecord(v)}if(session){const {data:row,error}=await supabase.from('module_progress').select('journey_state,is_complete,completed_at').eq('user_id',session.user.id).eq('module_id','leadership-peak').maybeSingle();if(error)throw error;if(row?.journey_state){const remote=normalizeRecord(row.journey_state),local=state;state={...remote,answers:{...remote.answers,...local.answers},explored:mergeExplored(remote.explored,local.explored),reflection:local.reflection||remote.reflection,completed_at:local.completed_at||remote.completed_at};if(row.is_complete&&row.completed_at)state.completed_at=row.completed_at}}
+(async()=>{try{const {data}=await supabase.auth.getSession();session=data.session;let raw=localStorage.getItem(key());if(raw){const v=JSON.parse(raw);state=normalizeRecord(v)}if(session){const {data:row,error}=await supabase.from('module_progress').select('journey_state,is_complete,completed_at').eq('user_id',session.user.id).eq('module_id','leadership-peak').maybeSingle();if(error)throw error;if(row?.journey_state){const remote=normalizeRecord(row.journey_state),local=state;state={...remote,answers:{...remote.answers,...local.answers},explored:mergeExplored(remote.explored,local.explored),summit_secret:mergeSummit(local.summit_secret,remote.summit_secret),reflection:local.reflection||remote.reflection,completed_at:local.completed_at||remote.completed_at};if(row.is_complete&&row.completed_at)state.completed_at=row.completed_at}}
 $('reflection').value=state.reflection||'';render();setStatus(session?'Signed in to Level Up. Your progress can sync.':'Sign in to Level Up to sync your progress across devices.')}catch(e){render();setStatus('Progress is available on this device. Cloud restore unavailable: '+(e?.message||''))}})();
 </script></body></html>
