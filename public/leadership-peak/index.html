@@ -152,6 +152,18 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 .summitFurther a{color:#96ebf8}
 @media(max-width:620px){.summitBanks{grid-template-columns:1fr}.summitBank{min-height:0}.summitBridge{display:flex;gap:12px;justify-content:center}.summitStar{width:9%;left:67.5%}}
 @media(prefers-reduced-motion:reduce){.summitStar:after{animation:none;opacity:.7}}
+
+/* Aria narration and storm audio use separate, optional, accessible controls. */
+.summitAudioPanel{margin:13px 0;padding:12px 14px;border:1px solid #7568b5;border-radius:12px;background:#111b38}
+.summitAudioPanel h3{margin:0 0 8px;font-size:15px;color:#e7c5ff}
+.summitAudioActions{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.summitAudioActions button{padding:8px 12px;border:1px solid #9783cb;border-radius:9px;color:#fff;background:#25214c;font-weight:800;font-size:13px}
+.summitAudioActions button[aria-pressed="true"]{background:#175148;border-color:#81ebd3}
+.summitAudioActions button:disabled{opacity:.5;cursor:default}
+.summitAudioStatus{color:#c6d6f4;font-size:12px;margin:8px 0 0;line-height:1.5}
+.summitCaption{min-height:36px;margin-top:9px;padding:8px 12px;border:1px solid #625787;border-radius:9px;background:#080d25;color:#f6f1ff;text-align:center;line-height:1.5;font-size:14px}
+.summitCaption:empty{display:none}
+@media(max-width:570px){.summitAudioActions button{flex:1 0 auto}}
 </style>
 </head>
 <body>
@@ -226,6 +238,21 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 <dialog id="summitDialog" class="summitDialog" aria-labelledby="summitTitle"><div class="summitInner">
 <div class="summitTop"><div><div class="summitTag">✦ Hidden summit · Leadership Curiosity Lab</div><h2 id="summitTitle">The Summit Signal</h2><p class="small muted">An optional challenge about teamwork, planning, and bringing everyone along.</p></div><button class="summitClose" id="summitClose" type="button">✕ Close</button></div>
 <p class="summitRules">A mountain storm is closing in. Four teammates must reach the signal station before the trail closes in <strong>19 minutes</strong>. The narrow crossing carries <strong>one or two people</strong> at a time. There is only <strong>one signal beacon</strong>, which must accompany every trip, including return trips. A pair travels at the speed of its <strong>slower</strong> teammate. Can you guide everyone safely across?</p>
+
+<section class="summitAudioPanel" aria-label="Summit Signal audio and captions">
+<h3>🎧 Aria and the mountain storm</h3>
+<div class="summitAudioActions">
+<button type="button" id="summitPlayIntro">▶ Play Scenario</button>
+<button type="button" id="summitPauseVoice" disabled>Ⅱ Pause Aria</button>
+<button type="button" id="summitReplayVoice" disabled>↻ Replay Aria</button>
+<button type="button" id="summitToggleStorm" aria-pressed="false">♫ Storm ambience: Off</button>
+<button type="button" id="summitToggleCaptions" aria-pressed="true">CC Captions: On</button>
+</div>
+<div class="summitAudioStatus" id="summitAudioStatus" role="status" aria-live="polite">Audio is optional. Press Play Scenario to hear Aria, or enable storm ambience independently.</div>
+<div id="summitCaption" class="summitCaption" role="region" aria-label="Aria narration captions" aria-live="off"></div>
+<audio id="summitVoice" preload="none"></audio>
+<audio id="summitStorm" preload="none" loop></audio>
+</section>
 <div class="summitStats"><span>⏳ Elapsed <b id="summitTime">0 / 19 min</b></span><span>🔦 Beacon <b id="summitBeacon">Start</b></span><span>✦ At station <b id="summitSafe">0 / 4</b></span></div>
 <div class="summitBanks">
 <section id="summitNearBank" class="summitBank"><h3>⛰ Starting side</h3><div id="summitNear" class="summitMembers"></div></section>
@@ -511,6 +538,121 @@ $('answerDialog').addEventListener('close',()=>{if(currentKind==='feedback')stop
 $('reflection').oninput=e=>{state.reflection=e.target.value;queueSave()};
 $('completePeak').onclick=async()=>{state.reflection=$('reflection').value.trim();if(!isComplete()){setStatus('Complete all six zones and write at least one sentence in your reflection.');return}state.completed_at=state.completed_at||new Date().toISOString();stopAria();render();audioStatus('complete',"Ready to hear Aria's closing message.");if(autoNarration)void playAria('complete',true);const ok=await saveCloud(true);setStatus(ok?'Leadership Peak complete and saved to Level Up ✓':'Leadership Peak complete locally. Reconnect and save again to sync to Level Up.');$('summary').scrollIntoView({behavior:'smooth',block:'start'})};
 
+
+// Summit Signal narration is user-triggered; storm ambience is separately optional.
+// These URLs are relative to /leadership-peak/ and require the MP3 package to be uploaded.
+const summitMediaBase='./assets/audio/summit/';
+const summitVoice=$('summitVoice'),summitStorm=$('summitStorm');
+const summitAudioFiles={intro:'summit_intro',hint1:'summit_hint_1',hint2:'summit_hint_2',hint3:'summit_hint_3',success:'summit_success'};
+const summitAudioState={clip:'',captionsOn:true,cues:[],stormOn:false,captionCache:new Map(),started:false};
+summitStorm.src=summitMediaBase+'summit_ambient.mp3';
+summitStorm.volume=0.16;
+function summitAudioStatus(message){$('summitAudioStatus').textContent=message}
+function summitAudioDucking(){summitStorm.volume=(summitVoice.paused||summitVoice.ended)?0.16:0.065}
+function summitCaptionTime(t){const p=t.trim().replace(',','.').split(':').map(Number);return p.length===3?p[0]*3600+p[1]*60+p[2]:p[0]*60+p[1]}
+function parseSummitVtt(text){
+ const cues=[];
+ const blocks=String(text||'').replace(/\r/g,'').split(/\n\s*\n/);
+ for(const block of blocks){
+  const lines=block.trim().split('\n'),i=lines.findIndex(line=>line.includes('-->'));
+  if(i<0)continue;
+  const [a,b]=lines[i].split('-->').map(s=>s.trim().split(/\s+/)[0]);
+  const start=summitCaptionTime(a),end=summitCaptionTime(b);
+  if(Number.isFinite(start)&&Number.isFinite(end)&&end>start){
+   const label=lines.slice(i+1).join(' ').replace(/<[^>]*>/g,'').trim();
+   if(label)cues.push({start,end,label});
+  }
+ }
+ return cues;
+}
+function updateSummitCaption(){
+ const box=$('summitCaption');
+ if(!summitAudioState.captionsOn||!summitAudioState.clip){box.textContent='';return}
+ const t=summitVoice.currentTime;
+ box.textContent=summitAudioState.cues.filter(cue=>t>=cue.start&&t<cue.end).map(cue=>cue.label).join(' ');
+}
+async function summitLoadCaptions(clip){
+ if(summitAudioState.captionCache.has(clip))return summitAudioState.captionCache.get(clip);
+ try{
+  const url=summitMediaBase+summitAudioFiles[clip]+'.vtt';
+  const response=await fetch(url,{cache:'force-cache'});
+  if(!response.ok)throw Error('captions unavailable');
+  const cues=parseSummitVtt(await response.text());
+  summitAudioState.captionCache.set(clip,cues);
+  return cues;
+ }catch(e){return []}
+}
+async function summitPlayVoice(clip){
+ if(!(clip in summitAudioFiles))return;
+ summitAudioState.clip=clip;
+ const target=clip;
+ summitAudioState.cues=[];
+ $('summitCaption').textContent='';
+ const cuePromise=summitLoadCaptions(clip);
+ summitVoice.pause();
+ summitVoice.src=summitMediaBase+summitAudioFiles[clip]+'.mp3';
+ summitVoice.load();
+ $('summitPauseVoice').disabled=false;
+ $('summitReplayVoice').disabled=false;
+ $('summitPauseVoice').textContent='Ⅱ Pause Aria';
+ summitAudioStatus('Loading Aria’s '+(clip==='intro'?'scenario':clip==='success'?'award message':'hint')+'…');
+ const cues=await cuePromise;
+ if(summitAudioState.clip!==target)return;
+ summitAudioState.cues=cues;
+ try{
+  await summitVoice.play();
+  summitAudioDucking();
+  summitAudioStatus('Playing Aria’s '+(clip==='intro'?'scenario':clip==='success'?'award message':'hint')+'. Captions are available below.');
+ }catch(e){
+  summitAudioDucking();
+  summitAudioStatus('Aria’s recording is not available on this site yet. The written scenario or hint remains available.');
+  $('summitPauseVoice').disabled=true;
+ }
+}
+function summitStopAudio(){
+ summitVoice.pause();summitStorm.pause();
+ summitAudioState.clip='';summitAudioState.cues=[];summitAudioState.stormOn=false;
+ $('summitToggleStorm').setAttribute('aria-pressed','false');
+ $('summitToggleStorm').textContent='♫ Storm ambience: Off';
+ $('summitPauseVoice').textContent='Ⅱ Pause Aria';
+ $('summitPauseVoice').disabled=true;
+ $('summitReplayVoice').disabled=true;
+ $('summitCaption').textContent='';
+ summitAudioDucking();
+}
+$('summitPlayIntro').onclick=()=>void summitPlayVoice('intro');
+$('summitPauseVoice').onclick=async()=>{
+ if(summitVoice.paused){
+  try{await summitVoice.play();$('summitPauseVoice').textContent='Ⅱ Pause Aria';summitAudioStatus('Aria narration resumed.')}
+  catch(e){summitAudioStatus('Could not resume Aria’s recording.')}
+ }else{
+  summitVoice.pause();$('summitPauseVoice').textContent='▶ Resume Aria';summitAudioStatus('Aria narration paused.');
+ }
+ summitAudioDucking();
+};
+$('summitReplayVoice').onclick=()=>{if(summitAudioState.clip)void summitPlayVoice(summitAudioState.clip)};
+$('summitToggleStorm').onclick=async()=>{
+ const next=!summitAudioState.stormOn;
+ if(next){
+  try{summitStorm.currentTime=0;await summitStorm.play();summitAudioState.stormOn=true;summitAudioStatus('Storm ambience enabled. Aria remains available separately.')}
+  catch(e){summitAudioStatus('The storm recording is not available on this site yet.')}
+ }else{summitStorm.pause();summitAudioState.stormOn=false;summitAudioStatus('Storm ambience off.')}
+ $('summitToggleStorm').setAttribute('aria-pressed',String(summitAudioState.stormOn));
+ $('summitToggleStorm').textContent='♫ Storm ambience: '+(summitAudioState.stormOn?'On':'Off');
+ summitAudioDucking();
+};
+$('summitToggleCaptions').onclick=()=>{
+ summitAudioState.captionsOn=!summitAudioState.captionsOn;
+ $('summitToggleCaptions').setAttribute('aria-pressed',String(summitAudioState.captionsOn));
+ $('summitToggleCaptions').textContent='CC Captions: '+(summitAudioState.captionsOn?'On':'Off');
+ updateSummitCaption();
+};
+summitVoice.addEventListener('timeupdate',updateSummitCaption);
+summitVoice.addEventListener('play',()=>{summitAudioDucking();$('summitPauseVoice').textContent='Ⅱ Pause Aria'});
+summitVoice.addEventListener('pause',()=>{summitAudioDucking();if(summitVoice.currentTime&& !summitVoice.ended)$('summitPauseVoice').textContent='▶ Resume Aria'});
+summitVoice.addEventListener('ended',()=>{summitAudioDucking();$('summitPauseVoice').disabled=true;summitAudioStatus('Aria has finished speaking. Replay her message whenever you like.');$('summitCaption').textContent=''});
+summitVoice.addEventListener('error',()=>{summitAudioDucking();if(summitAudioState.clip)summitAudioStatus('Aria’s audio file is not hosted yet. Follow the written prompts and try again after uploading the audio package.')});
+
 // THE SUMMIT SIGNAL. Puzzle-only minutes, award independent of 360 XP.
 let summitSelected=[],summitNotice='';
 const summitHints=[
@@ -580,7 +722,7 @@ function summitCross(){
  state.summit_secret.moves.push(party);summitSelected=[];
  const next=summitModel();
  if(next.done){
-  if(!state.summit_secret.solved_at)state.summit_secret.solved_at=new Date().toISOString();
+  if(!state.summit_secret.solved_at){state.summit_secret.solved_at=new Date().toISOString();void summitPlayVoice('success');}
   summitMessage('✦ SUMMIT STRATEGIST! Everyone crossed safely in '+next.minutes+' minutes. Strong leadership means coordinating a plan that works for the entire team.');
  }else summitMessage('Aria: '+party.map(id=>summitPeople.find(p=>p.id===id).name).join(' and ')+' crossed in '+cost+' minute'+(cost===1?'':'s')+'. Now plan the next trip.');
  summitTouch();drawSummit();
@@ -588,6 +730,7 @@ function summitCross(){
 $('summitStar').onclick=()=>{
  if(!state.summit_secret.discovered_at){state.summit_secret.discovered_at=new Date().toISOString();summitTouch()}
  summitSelected=[];summitNotice='';drawSummit();$('summitDialog').showModal();
+ summitAudioStatus('Press Play Scenario to hear Aria. Switch on storm ambience for the mountain atmosphere.');
 };
 $('summitCross').onclick=summitCross;
 $('summitUndo').onclick=()=>{
@@ -604,10 +747,11 @@ $('summitRestart').onclick=()=>{
 $('summitHint').onclick=()=>{
  const n=Math.min(summitHints.length-1,state.summit_secret.hints);
  state.summit_secret.hints=Math.min(summitHints.length,state.summit_secret.hints+1);
- summitMessage(summitHints[n]);summitTouch();drawSummit();
+ summitMessage(summitHints[n]);summitTouch();drawSummit();void summitPlayVoice('hint'+(n+1));
 };
 $('summitReflection').onchange=()=>{state.summit_secret.reflection=$('summitReflection').value.trim().slice(0,650);summitTouch()};
 $('summitClose').onclick=()=>$('summitDialog').close();
+$('summitDialog').addEventListener('close',summitStopAudio);
 $('summitDialog').addEventListener('click',e=>{if(e.target===$('summitDialog'))$('summitDialog').close()});
 
 // MP3 narration is optional and does not change XP, progression, or saving.
