@@ -596,17 +596,26 @@ async function summitPlayVoice(clip){
  $('summitReplayVoice').disabled=false;
  $('summitPauseVoice').textContent='Ⅱ Pause Aria';
  summitAudioStatus('Loading Aria’s '+(clip==='intro'?'scenario':clip==='success'?'award message':'hint')+'…');
- const cues=await cuePromise;
- if(summitAudioState.clip!==target)return;
- summitAudioState.cues=cues;
+ // Invoke play synchronously during the participant's click gesture; browsers may
+ // block playback if we wait for the caption fetch first.
+ const playback=summitVoice.play();
+ void cuePromise.then(cues=>{
+  if(summitAudioState.clip===target){
+   summitAudioState.cues=cues;
+   updateSummitCaption();
+  }
+ });
  try{
-  await summitVoice.play();
+  await playback;
   summitAudioDucking();
-  summitAudioStatus('Playing Aria’s '+(clip==='intro'?'scenario':clip==='success'?'award message':'hint')+'. Captions are available below.');
+  if(summitAudioState.clip===target)
+   summitAudioStatus('Playing Aria’s '+(clip==='intro'?'scenario':clip==='success'?'award message':'hint')+'. Captions are available below.');
  }catch(e){
   summitAudioDucking();
-  summitAudioStatus('Aria’s recording is not available on this site yet. The written scenario or hint remains available.');
-  $('summitPauseVoice').disabled=true;
+  if(summitAudioState.clip===target){
+   summitAudioStatus('Aria’s recording is not available on this site yet. The written scenario or hint remains available.');
+   $('summitPauseVoice').disabled=true;
+  }
  }
 }
 function summitStopAudio(){
