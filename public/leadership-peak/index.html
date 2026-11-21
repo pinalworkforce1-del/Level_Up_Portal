@@ -164,6 +164,36 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 .summitCaption{min-height:36px;margin-top:9px;padding:8px 12px;border:1px solid #625787;border-radius:9px;background:#080d25;color:#f6f1ff;text-align:center;line-height:1.5;font-size:14px}
 .summitCaption:empty{display:none}
 @media(max-width:570px){.summitAudioActions button{flex:1 0 auto}}
+
+/* Visual Summit Signal: art-layered character selection; native buttons remain accessible. */
+.summitScene{position:relative;isolation:isolate;overflow:hidden;aspect-ratio:16/9;border:1px solid #9d74ec;border-radius:15px;background:radial-gradient(circle at 73% 16%,#8346a84d,transparent 45%),linear-gradient(155deg,#101b43,#091326 62%,#1b1236);box-shadow:0 12px 35px #030613b5,inset 0 0 22px #9e61d72d;margin:13px 0}
+.summitSceneBackground{display:block;width:100%;height:100%;object-fit:cover;pointer-events:none;user-select:none}
+.summitScene:after{content:"";position:absolute;inset:0;pointer-events:none;z-index:1;background:linear-gradient(to top,#060c24bc 0%,#070b2500 39%),linear-gradient(90deg,#0b0c2f38,transparent 36%,transparent 70%,#070e2752)}
+.summitStageFlag{position:absolute;top:3%;z-index:3;font-weight:900;font-size:clamp(10px,1.5vw,15px);letter-spacing:.06em;text-shadow:0 2px 7px #000;pointer-events:none;padding:5px 10px;background:#07142dbb;border:1px solid #a391d5;border-radius:9px;color:#f5deff}
+.summitStageFlag.near{left:3%}.summitStageFlag.far{right:3%}
+.summitStageFlag.active{background:#153d45ea;border-color:#97f6da;color:#d9ffee}
+.summitStageCrew{position:absolute;z-index:4;display:grid;align-items:end;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(3px,.9vw,9px)}
+.summitStageCrew.near{left:2%;bottom:3%;width:52%;height:65%}
+.summitStageCrew.far{right:1.6%;top:22%;width:30%;height:62%}
+.summitActor{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0;min-height:0;padding:0 1px 1px;background:linear-gradient(0deg,#081431e0,#08143170 33%,transparent 62%);border:1px solid #7e76ab99;border-radius:12px;color:#fff;overflow:hidden;cursor:pointer;outline-offset:1px;transition:transform .18s ease,border-color .18s,filter .18s,box-shadow .18s}
+.summitActor img{display:block;width:100%;height:calc(100% - 30px);object-fit:contain;object-position:center bottom;filter:drop-shadow(0 2px 4px #000b);pointer-events:none}
+.summitActorText{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;width:100%;min-height:29px;text-align:center;background:#09132de5;line-height:1.12;padding:3px 4px;font-size:clamp(8px,1.35vw,13px);font-weight:900}
+.summitActorText small{color:#ffd886;font-size:.91em;white-space:nowrap}
+.summitActor:hover:not(:disabled),.summitActor:focus-visible{transform:translateY(-3px);border-color:#a0f9ff;box-shadow:0 0 17px #4bdcffaa;outline:2px solid #92e5fd}
+.summitActor[aria-pressed="true"]{border-color:#a0ffdb;background:linear-gradient(0deg,#123e51fa,#10445477 47%,transparent);box-shadow:0 0 16px 3px #77f9dfbb,inset 0 0 5px #a8fff4}
+.summitActor:disabled{cursor:default;opacity:.73;filter:saturate(.7)}
+.summitActorOrder{position:absolute;z-index:5;right:3px;top:3px;width:clamp(17px,2.6vw,27px);height:clamp(17px,2.6vw,27px);border-radius:50%;display:grid;place-items:center;background:#92ffe0;color:#092b36;border:1px solid #fff;font-weight:900;box-shadow:0 0 12px #abfff0}
+.summitBeaconGlow{position:absolute;z-index:2;width:clamp(32px,6vw,65px);height:clamp(32px,6vw,65px);border-radius:50%;background:radial-gradient(circle,#fff4b8 0%,#e4a6ff8c 25%,transparent 72%);filter:drop-shadow(0 0 15px #fdcd8c);pointer-events:none;transition:left .55s ease,top .55s ease}
+.summitBeaconGlow.near{left:33%;top:51%}.summitBeaconGlow.far{left:81%;top:38%}
+.summitStageCaption{margin:8px 0 4px;font-size:12px;color:#d5c6ee;text-align:center}
+.summitTextFallback summary{color:#b8eaf9;font-weight:850;cursor:pointer;padding:10px 4px;line-height:1.5}
+.summitTextFallback[open]{margin:8px 0}
+.summitBanks{margin:5px 0 12px}
+.summitScene.error .summitSceneBackground{display:none}
+.summitActor.arriving{animation:summitArrive .55s ease-out}
+@keyframes summitArrive{0%{opacity:.4;transform:translateX(-30px) scale(.94)}100%{opacity:1;transform:translateX(0) scale(1)}}
+@media(max-width:620px){.summitStageCrew.near{left:1%;width:55%;height:67%}.summitStageCrew.far{right:1%;width:33%;top:18%;height:63%}.summitActor{border-radius:6px}.summitActor img{height:calc(100% - 23px)}.summitActorText{min-height:23px;font-size:8px;padding:2px}.summitStageFlag{font-size:10px;padding:3px 6px}.summitActorOrder{width:17px;height:17px;font-size:10px}}
+@media(prefers-reduced-motion:reduce){.summitActor,.summitBeaconGlow{transition:none}.summitActor.arriving{animation:none}}
 </style>
 </head>
 <body>
@@ -254,11 +284,23 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 <audio id="summitStorm" preload="none" loop></audio>
 </section>
 <div class="summitStats"><span>⏳ Elapsed <b id="summitTime">0 / 19 min</b></span><span>🔦 Beacon <b id="summitBeacon">Start</b></span><span>✦ At station <b id="summitSafe">0 / 4</b></span></div>
+<section class="summitScene" id="summitScene" aria-label="Illustrated storm crossing. Select one or two teammates on the beacon's current side.">
+<img class="summitSceneBackground" src="./assets/summit-signal/summit-storm-scene.webp" alt="A stormy mountain crossing with a lantern-lit bridge and distant signal station" decoding="async" onerror="this.closest('.summitScene').classList.add('error')">
+<div id="summitNearFlag" class="summitStageFlag near active">⛰ Starting side</div>
+<div id="summitFarFlag" class="summitStageFlag far">✦ Signal station</div>
+<div id="summitBeaconGlow" class="summitBeaconGlow near" aria-hidden="true"></div>
+<div id="summitNearVisual" class="summitStageCrew near" role="group" aria-label="Teammates at the starting side"></div>
+<div id="summitFarVisual" class="summitStageCrew far" role="group" aria-label="Teammates at the signal station"></div>
+</section>
+<p class="summitStageCaption" id="summitVisualStatus">Select teammates directly on the illustration. The numbered badges show your crossing order.</p>
+<details id="summitTextFallback" class="summitTextFallback">
+<summary>Prefer text controls? Select teammates from a list</summary>
 <div class="summitBanks">
 <section id="summitNearBank" class="summitBank"><h3>⛰ Starting side</h3><div id="summitNear" class="summitMembers"></div></section>
 <div class="summitBridge" aria-hidden="true"><strong>⇄</strong> Signal crossing</div>
 <section id="summitFarBank" class="summitBank"><h3>✦ Signal station</h3><div id="summitFar" class="summitMembers"></div></section>
 </div>
+</details>
 <p class="small muted">Select up to two teammates on the beacon's current side, then press Cross. Returns cost time too. Undo and retry freely—Leadership XP is never deducted.</p>
 <div class="summitControls"><button type="button" id="summitCross" class="primary" disabled>Choose teammates</button><button type="button" id="summitUndo">↶ Undo</button><button type="button" id="summitRestart">↻ Restart puzzle</button><button type="button" id="summitHint">✦ Aria's hint</button></div>
 <div id="summitMessage" class="summitMessage" role="status" aria-live="polite">Aria: Leadership is about helping everyone make it to the summit.</div>
@@ -663,7 +705,7 @@ summitVoice.addEventListener('ended',()=>{summitAudioDucking();$('summitPauseVoi
 summitVoice.addEventListener('error',()=>{summitAudioDucking();if(summitAudioState.clip)summitAudioStatus('Aria’s audio file is not hosted yet. Follow the written prompts and try again after uploading the audio package.')});
 
 // THE SUMMIT SIGNAL. Puzzle-only minutes, award independent of 360 XP.
-let summitSelected=[],summitNotice='';
+let summitSelected=[],summitNotice='',summitLastCrossed=[];
 const summitHints=[
  "Aria: The beacon must return, but not necessarily with the same person who first carried it over.",
  "Aria: Two slower teammates crossing together can be more efficient than giving each a separate trip.",
@@ -682,6 +724,45 @@ function summitModel(){
  return {positions,side,minutes,safe,done:safe===4,validTrips};
 }
 function summitMessage(s){summitNotice=s;$('summitMessage').textContent=s}
+function summitTogglePerson(id){
+ const m=summitModel();
+ if(m.done||m.positions[id]!==m.side)return;
+ if(summitSelected.includes(id))summitSelected=summitSelected.filter(v=>v!==id);
+ else if(summitSelected.length<2)summitSelected.push(id);
+ else {summitMessage('Only two teammates can cross at once. Deselect someone to change your group.');return}
+ drawSummit();
+}
+function summitDrawVisual(m){
+ $('summitNearFlag').classList.toggle('active',m.side==='near');
+ $('summitFarFlag').classList.toggle('active',m.side==='far');
+ $('summitBeaconGlow').className='summitBeaconGlow '+m.side;
+ for(const bank of ['near','far']){
+  const wrap=$(bank==='near'?'summitNearVisual':'summitFarVisual');
+  wrap.replaceChildren();
+  for(const person of summitPeople.filter(p=>m.positions[p.id]===bank)){
+   const button=document.createElement('button');
+   button.type='button';
+   button.className='summitActor'+(summitLastCrossed.includes(person.id)?' arriving':'');
+   button.disabled=m.done||bank!==m.side;
+   button.setAttribute('aria-pressed',String(summitSelected.includes(person.id)));
+   button.setAttribute('aria-label',person.name+', '+person.minutes+' minute crossing. '+(bank==='near'?'Starting side.':'Signal station.')+(button.disabled?' Wait for the beacon.':' Select for crossing.'));
+   button.title=person.name+' · '+person.minutes+' min';
+   const img=document.createElement('img');
+   img.alt='';img.loading='lazy';img.src='./assets/summit-signal/'+person.id+'.webp';
+   img.onerror=()=>{$('summitTextFallback').open=true;img.hidden=true;};
+   const tag=document.createElement('span');tag.className='summitActorText';
+   const name=document.createElement('span');name.textContent=person.name;
+   const speed=document.createElement('small');speed.textContent=person.minutes+' min';
+   tag.append(name,speed);button.append(img,tag);
+   const order=summitSelected.indexOf(person.id);
+   if(order>=0){const marker=document.createElement('span');marker.className='summitActorOrder';marker.textContent=String(order+1);marker.setAttribute('aria-hidden','true');button.append(marker)}
+   button.onclick=()=>summitTogglePerson(person.id);
+   wrap.append(button);
+  }
+ }
+ const ordered=summitSelected.map(id=>summitPeople.find(p=>p.id===id)?.name).filter(Boolean);
+ $('summitVisualStatus').textContent=m.done?'All four teammates reached the station. Summit Strategist!':ordered.length?'Selected '+ordered.join(' → ')+'. Press Cross with beacon to move '+(m.side==='near'?'toward the station.':'back to start.'):'Click one or two visible teammates on the '+(m.side==='near'?'starting side':'station side')+' to plan the next crossing.';
+}
 function summitTouch(){state.summit_secret.updated_at=new Date().toISOString();queueSave()}
 function drawSummit(){
  const m=summitModel();
@@ -701,12 +782,7 @@ function drawSummit(){
    const name=document.createElement('strong');name.textContent=person.name;
    const speed=document.createElement('span');speed.textContent=person.minutes+' min';
    b.append(name,speed);
-   b.onclick=()=>{
-    if(summitSelected.includes(person.id))summitSelected=summitSelected.filter(id=>id!==person.id);
-    else if(summitSelected.length<2)summitSelected.push(person.id);
-    else {summitMessage('Select no more than two teammates for one trip.');return}
-    drawSummit();
-   };
+   b.onclick=()=>summitTogglePerson(person.id);
    target.append(b);
   }
   if(!people.length){const msg=document.createElement('small');msg.textContent='Everyone has moved on';target.append(msg)}
@@ -719,6 +795,7 @@ function drawSummit(){
  $('summitAward').hidden=!state.summit_secret.solved_at;
  $('summitReflection').value=state.summit_secret.reflection||'';
  $('summitStar').classList.toggle('unlocked',Boolean(state.summit_secret.solved_at));
+ summitDrawVisual(m);
  if(!summitNotice)summitMessage('Aria: Plan who crosses and who returns with the beacon. No one gets left behind.');
 }
 function summitCross(){
@@ -728,6 +805,7 @@ function summitCross(){
  if(m.minutes+cost>summitLimit){
   summitMessage('Aria: That trip would reach '+(m.minutes+cost)+' minutes, past the storm deadline. Try a different plan or undo a trip. No XP is lost.');return;
  }
+ summitLastCrossed=party.slice();
  state.summit_secret.moves.push(party);summitSelected=[];
  const next=summitModel();
  if(next.done){
@@ -738,18 +816,18 @@ function summitCross(){
 }
 $('summitStar').onclick=()=>{
  if(!state.summit_secret.discovered_at){state.summit_secret.discovered_at=new Date().toISOString();summitTouch()}
- summitSelected=[];summitNotice='';drawSummit();$('summitDialog').showModal();
+ summitSelected=[];summitLastCrossed=[];summitNotice='';drawSummit();$('summitDialog').showModal();
  summitAudioStatus('Press Play Scenario to hear Aria. Switch on storm ambience for the mountain atmosphere.');
 };
 $('summitCross').onclick=summitCross;
 $('summitUndo').onclick=()=>{
  if(!state.summit_secret.moves.length)return;
- state.summit_secret.moves.pop();summitSelected=[];
+ state.summit_secret.moves.pop();summitSelected=[];summitLastCrossed=[];
  summitMessage('Aria: Reconsidering a plan is part of leadership. Try a different sequence.');
  summitTouch();drawSummit();
 };
 $('summitRestart').onclick=()=>{
- state.summit_secret.moves=[];summitSelected=[];
+ state.summit_secret.moves=[];summitSelected=[];summitLastCrossed=[];
  summitMessage(state.summit_secret.solved_at?'Explore a new route. Your award stays earned.':'A fresh opportunity to think and explore. No XP is lost.');
  summitTouch();drawSummit();
 };
