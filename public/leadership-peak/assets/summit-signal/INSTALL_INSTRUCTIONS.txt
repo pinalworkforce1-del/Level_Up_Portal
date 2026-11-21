@@ -1,0 +1,22 @@
+SUMMIT SIGNAL — VISUAL INTEGRATION PACKAGE
+
+Upload all five .webp files to the SAME folder in your GitHub repo:
+  pinalworkforce1-del / Level_Up_Portal
+  public / leadership-peak / assets / summit-signal /
+
+Files:
+  summit-storm-scene.webp — clean storm backdrop
+  scout.webp — Scout (1 minute)
+  navigator.webp — Navigator (3 minutes)
+  builder.webp — Builder (6 minutes)
+  mentor.webp — Mentor (9 minutes)
+
+GitHub browser upload steps:
+  1. Open https://github.com/pinalworkforce1-del/Level_Up_Portal/tree/main/public/leadership-peak/assets
+  2. Create folder summit-signal (or upload via GitHub web UI by adding the folder).
+     Tip: A placeholder README.md in the summit-signal folder will be created by the assistant.
+  3. Open summit-signal, select Add file -> Upload files.
+  4. Drag the five .webp image files from the ZIP's public/leadership-peak/assets/summit-signal folder.
+  5. Commit directly to main. GitHub Actions will redeploy the portal.
+
+Note: The Leadership Peak web page is coded to fall back to the original text teammate controls if the five art assets are not yet available. Your existing Aria audio files and Supabase data are unchanged.
