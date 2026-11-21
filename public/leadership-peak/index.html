@@ -172,10 +172,10 @@ h2,h3{margin:0 0 10px}h2{font-size:23px}.muted{color:var(--muted)}.small{font-si
 .summitStageFlag{position:absolute;top:3%;z-index:3;font-weight:900;font-size:clamp(10px,1.5vw,15px);letter-spacing:.06em;text-shadow:0 2px 7px #000;pointer-events:none;padding:5px 10px;background:#07142dbb;border:1px solid #a391d5;border-radius:9px;color:#f5deff}
 .summitStageFlag.near{left:3%}.summitStageFlag.far{right:3%}
 .summitStageFlag.active{background:#153d45ea;border-color:#97f6da;color:#d9ffee}
-.summitStageCrew{position:absolute;z-index:4;display:grid;align-items:end;grid-template-columns:repeat(2,minmax(0,1fr));gap:clamp(3px,.9vw,9px)}
+.summitStageCrew{position:absolute;z-index:4;display:grid;align-items:end;grid-template-columns:repeat(2,minmax(0,1fr));grid-template-rows:repeat(2,minmax(0,1fr));gap:clamp(3px,.9vw,9px)}
 .summitStageCrew.near{left:2%;bottom:3%;width:52%;height:65%}
 .summitStageCrew.far{right:1.6%;top:22%;width:30%;height:62%}
-.summitActor{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0;min-height:0;padding:0 1px 1px;background:linear-gradient(0deg,#081431e0,#08143170 33%,transparent 62%);border:1px solid #7e76ab99;border-radius:12px;color:#fff;overflow:hidden;cursor:pointer;outline-offset:1px;transition:transform .18s ease,border-color .18s,filter .18s,box-shadow .18s}
+.summitActor{position:relative;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;min-width:0;min-height:0;height:100%;padding:0 1px 1px;background:linear-gradient(0deg,#081431e0,#08143170 33%,transparent 62%);border:1px solid #7e76ab99;border-radius:12px;color:#fff;overflow:hidden;cursor:pointer;outline-offset:1px;transition:transform .18s ease,border-color .18s,filter .18s,box-shadow .18s}
 .summitActor img{display:block;width:100%;height:calc(100% - 30px);object-fit:contain;object-position:center bottom;filter:drop-shadow(0 2px 4px #000b);pointer-events:none}
 .summitActorText{position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:4px;flex-wrap:wrap;width:100%;min-height:29px;text-align:center;background:#09132de5;line-height:1.12;padding:3px 4px;font-size:clamp(8px,1.35vw,13px);font-weight:900}
 .summitActorText small{color:#ffd886;font-size:.91em;white-space:nowrap}
